@@ -1,11 +1,16 @@
 pub mod commands;
 pub mod db;
+pub mod importer;
 pub mod models;
 
 use std::sync::Mutex;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{Manager, WindowEvent};
+
+pub struct AppState {
+    pub db: Mutex<rusqlite::Connection>,
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -25,7 +30,7 @@ pub fn run() {
             let conn = db::initialize_database(app.handle())
                 .map_err(|e| Box::<dyn std::error::Error>::from(e.to_string()))?;
 
-            app.manage(commands::AppState {
+            app.manage(AppState {
                 db: Mutex::new(conn),
             });
 
@@ -95,15 +100,19 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            commands::search_dictionary,
-            commands::add_to_srs,
-            commands::remove_from_srs,
-            commands::import_dictionary,
-            commands::get_due_cards,
-            commands::answer_card,
-            commands::get_dashboard_stats,
-            commands::get_setting,
-            commands::set_setting
+            commands::dictionary::search_dictionary,
+            commands::dictionary::search_kanjis,
+            commands::dictionary::get_kanji_breakdown,
+            commands::srs::add_to_srs,
+            commands::srs::remove_from_srs,
+            commands::srs::get_due_cards,
+            commands::srs::answer_card,
+            commands::settings::get_setting,
+            commands::settings::set_setting,
+            commands::system::get_dashboard_stats,
+            commands::system::clear_database,
+            commands::importer::import_dictionary,
+            commands::importer::import_jlpt_kanjis
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

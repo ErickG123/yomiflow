@@ -53,8 +53,25 @@ pub fn initialize_database(
             key TEXT PRIMARY KEY,
             value TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS tags (
+            id TEXT PRIMARY KEY,
+            category TEXT,
+            notes TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS kanjis (
+            character TEXT PRIMARY KEY,
+            onyomi TEXT,
+            kunyomi TEXT,
+            meaning TEXT,
+            jlpt_level INTEGER
+        );
         ",
     )?;
+
+    // Migration: ensure jlpt_level column exists if table was previously created without it
+    let _ = conn.execute("ALTER TABLE kanjis ADD COLUMN jlpt_level INTEGER", []);
 
     // Seed mock data if empty
     let count: i64 = conn.query_row("SELECT COUNT(*) FROM dictionary_entries", [], |row| {

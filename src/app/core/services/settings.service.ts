@@ -89,6 +89,15 @@ export class SettingsService {
     }
   }
 
+  async clearDatabase(): Promise<void> {
+    try {
+      await invoke('clear_database')
+    } catch (error) {
+      console.error('Failed to clear database via Tauri IPC:', error)
+      throw error
+    }
+  }
+
   async hardExit(): Promise<void> {
     try {
       await exit(0)

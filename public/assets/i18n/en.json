@@ -10,6 +10,10 @@
     "due_today": "Reviews Due",
     "new_cards": "New Cards",
     "total_cards": "Total Cards",
+    "imported_data": "Imported Data",
+    "total_words": "Dictionary Words",
+    "total_kanjis": "Total Kanjis",
+    "total_tags": "Total Tags",
     "start_study": "Start Study Session",
     "no_cards_due": "No cards due at this moment."
   },
@@ -23,7 +27,12 @@
     "added_srs": "Added to SRS",
     "remove_srs": "Remove from SRS",
     "toast_added": "Added to study deck",
-    "toast_removed": "Removed from study deck"
+    "toast_removed": "Removed from study deck",
+    "view_kanjis": "View Kanjis",
+    "hide_kanjis": "Hide Kanjis",
+    "onyomi": "On:",
+    "kunyomi": "Kun:",
+    "no_kanjis_found": "No Kanji breakdown found for this word."
   },
   "study": {
     "loading": "Loading cards for review...",
@@ -58,6 +67,11 @@
     "interval_1h": "1 hour",
     "interval_2h": "2 hours",
     "interval_4h": "4 hours",
-    "exit": "Exit YomiFlow"
+    "exit": "Exit YomiFlow",
+    "data_management": "Data Management",
+    "danger_zone": "Danger Zone",
+    "clear_db": "Clear Database",
+    "clear_db_confirm": "Are you sure? This will delete all imported words and your SRS progress. This action cannot be undone.",
+    "clear_db_success": "Database cleared successfully!"
   }
 }

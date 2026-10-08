@@ -5,6 +5,8 @@ import { TranslocoPipe, TranslocoService } from '@ngneat/transloco'
 import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification'
 import { NotificationState, SettingsService } from './core/services/settings.service'
 import { SchedulerService } from './core/services/scheduler.service'
+import { AppStateService } from './core/services/app-state.service'
+import { DictionaryService } from './features/dictionary/services/dictionary.service'
 
 @Component({
   selector: 'app-root',
@@ -17,6 +19,8 @@ export class App implements OnInit {
   private readonly translocoService = inject(TranslocoService, { optional: true })
   readonly settingsService = inject(SettingsService)
   readonly schedulerService = inject(SchedulerService)
+  readonly appState = inject(AppStateService)
+  readonly dictionaryService = inject(DictionaryService)
 
   readonly isSettingsOpen = signal<boolean>(false)
 
@@ -29,6 +33,8 @@ export class App implements OnInit {
   readonly activeLang = signal<string>(this.translocoService?.getActiveLang() ?? 'en')
 
   async ngOnInit(): Promise<void> {
+    await this.appState.initTauriListeners()
+
     try {
       let permissionGranted = await isPermissionGranted()
       if (!permissionGranted) {
@@ -63,6 +69,28 @@ export class App implements OnInit {
 
   closeSettings(): void {
     this.isSettingsOpen.set(false)
+  }
+
+  async clearDatabase(): Promise<void> {
+    const confirmMsg =
+      this.translocoService?.translate('settings.clear_db_confirm') ??
+      'Tem a certeza? Isto irá apagar todas as palavras importadas e o seu progresso no SRS. Esta ação é irreversível.'
+    if (window.confirm(confirmMsg)) {
+      this.appState.isProcessing.set(true)
+      this.appState.progressMessage.set('A iniciar...')
+      try {
+        await this.settingsService.clearDatabase()
+        const successMsg =
+          this.translocoService?.translate('settings.clear_db_success') ??
+          'Base de dados limpa com sucesso!'
+        alert(successMsg)
+      } catch (error) {
+        console.error('Failed to clear database:', error)
+        alert('Erro ao limpar a base de dados: ' + error)
+      } finally {
+        this.appState.isProcessing.set(false)
+      }
+    }
   }
 
   exitApp(): void {

@@ -51,10 +51,57 @@
           <i class="pi pi-database text-zinc-400"></i>
         </div>
         <div class="text-4xl font-bold tracking-tight text-zinc-200">
-          {{ stats().total_cards }}
+          {{ stats().total_cards | number }}
         </div>
       </div>
     </div>
+
+    <!-- Imported Data Section -->
+    <section class="space-y-4 pt-2">
+      <h2 class="text-lg font-semibold tracking-tight text-zinc-200">
+        {{ 'dashboard.imported_data' | transloco }}
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Dictionary Words -->
+        <div class="bg-zinc-900/70 border border-zinc-800 rounded-xl p-5 shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-zinc-400">
+            <span class="text-xs font-semibold uppercase tracking-wider">
+              {{ 'dashboard.total_words' | transloco }}
+            </span>
+            <i class="pi pi-book text-sky-400"></i>
+          </div>
+          <div class="text-3xl font-bold tracking-tight text-zinc-100">
+            {{ stats().total_dictionary_words | number }}
+          </div>
+        </div>
+
+        <!-- Kanjis -->
+        <div class="bg-zinc-900/70 border border-zinc-800 rounded-xl p-5 shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-zinc-400">
+            <span class="text-xs font-semibold uppercase tracking-wider">
+              {{ 'dashboard.total_kanjis' | transloco }}
+            </span>
+            <i class="pi pi-compass text-amber-400"></i>
+          </div>
+          <div class="text-3xl font-bold tracking-tight text-zinc-100">
+            {{ stats().total_kanjis | number }}
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="bg-zinc-900/70 border border-zinc-800 rounded-xl p-5 shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-zinc-400">
+            <span class="text-xs font-semibold uppercase tracking-wider">
+              {{ 'dashboard.total_tags' | transloco }}
+            </span>
+            <i class="pi pi-tags text-purple-400"></i>
+          </div>
+          <div class="text-3xl font-bold tracking-tight text-zinc-100">
+            {{ stats().total_tags | number }}
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <!-- Bottom Action Button -->

@@ -10,6 +10,9 @@ export class DashboardService {
     due_today: 0,
     new_cards: 0,
     total_cards: 0,
+    total_dictionary_words: 0,
+    total_kanjis: 0,
+    total_tags: 0,
   })
 
   readonly isLoading = signal<boolean>(false)

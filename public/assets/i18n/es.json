@@ -10,6 +10,10 @@
     "due_today": "Revisiones Pendientes",
     "new_cards": "Tarjetas Nuevas",
     "total_cards": "Total en el Mazo",
+    "imported_data": "Datos Importados",
+    "total_words": "Palabras del Diccionario",
+    "total_kanjis": "Total de Kanjis",
+    "total_tags": "Total de Etiquetas",
     "start_study": "Comenzar Sesión de Estudio",
     "no_cards_due": "No hay tarjetas pendientes en este momento."
   },
@@ -23,7 +27,12 @@
     "added_srs": "Añadido al SRS",
     "remove_srs": "Eliminar del SRS",
     "toast_added": "Añadido a los estudios",
-    "toast_removed": "Eliminado de los estudios"
+    "toast_removed": "Eliminado de los estudios",
+    "view_kanjis": "Ver Kanjis",
+    "hide_kanjis": "Ocultar Kanjis",
+    "onyomi": "On:",
+    "kunyomi": "Kun:",
+    "no_kanjis_found": "No se encontraron datos de Kanji para esta palabra."
   },
   "study": {
     "loading": "Cargando tarjetas para revisión...",
@@ -58,6 +67,11 @@
     "interval_1h": "1 hora",
     "interval_2h": "2 horas",
     "interval_4h": "4 horas",
-    "exit": "Cerrar YomiFlow"
+    "exit": "Cerrar YomiFlow",
+    "data_management": "Gestión de Datos",
+    "danger_zone": "Zona de Peligro",
+    "clear_db": "Borrar Base de Datos",
+    "clear_db_confirm": "¿Estás seguro? Esto borrará todas las palabras importadas y tu progreso en el SRS. Esta ação es irreversible.",
+    "clear_db_success": "¡Base de datos borrada con éxito!"
   }
 }
