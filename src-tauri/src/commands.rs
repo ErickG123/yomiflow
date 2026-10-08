@@ -1,5 +1,5 @@
 use crate::models::{DashboardStats, DictionaryEntry, ReviewCard};
-use rusqlite::{params, OptionalExtension};
+use rusqlite::{OptionalExtension, params};
 use serde_json::Value;
 use std::fs;
 use std::path::Path;
@@ -230,59 +230,53 @@ pub fn import_dictionary(folder_path: String, state: State<'_, AppState>) -> Res
             let file_name = file_path.file_name().and_then(|n| n.to_str()).unwrap_or("");
 
             // Yomichan term banks usually named term_bank_*.json
-            if file_name.starts_with("term_bank") || file_name.ends_with(".json") {
-                if let Ok(content) = fs::read_to_string(&file_path) {
-                    if let Ok(json) = serde_json::from_str::<Value>(&content) {
-                        if let Some(items) = json.as_array() {
-                            let mut stmt = tx
-                                .prepare(
-                                    "INSERT INTO dictionary_entries (kanji, reading, meaning) 
-                                     VALUES (?1, ?2, ?3)",
-                                )
+            if (file_name.starts_with("term_bank") || file_name.ends_with(".json"))
+                && let Ok(content) = fs::read_to_string(&file_path)
+                && let Ok(json) = serde_json::from_str::<Value>(&content)
+                && let Some(items) = json.as_array()
+            {
+                let mut stmt = tx
+                    .prepare(
+                        "INSERT INTO dictionary_entries (kanji, reading, meaning) 
+                         VALUES (?1, ?2, ?3)",
+                    )
+                    .map_err(|e| e.to_string())?;
+
+                for item in items {
+                    if let Some(arr) = item.as_array() {
+                        // Yomichan format: [kanji/term, reading, definition_tags, rules, score, [glossary...], sequence, term_tags]
+                        if !arr.is_empty() {
+                            let term = arr.first().and_then(|v| v.as_str()).unwrap_or("");
+                            let reading = arr.get(1).and_then(|v| v.as_str()).unwrap_or(term);
+
+                            let meaning = if let Some(defs) = arr.get(5).and_then(|v| v.as_array())
+                            {
+                                defs.iter()
+                                    .filter_map(|d| {
+                                        d.as_str()
+                                            .or_else(|| d.get("content").and_then(|c| c.as_str()))
+                                    })
+                                    .collect::<Vec<_>>()
+                                    .join("; ")
+                            } else {
+                                arr.get(5)
+                                    .and_then(|v| v.as_str())
+                                    .unwrap_or("")
+                                    .to_string()
+                            };
+
+                            if !term.is_empty() || !reading.is_empty() {
+                                stmt.execute(params![
+                                    if term == reading {
+                                        None::<String>
+                                    } else {
+                                        Some(term.to_string())
+                                    },
+                                    reading,
+                                    meaning
+                                ])
                                 .map_err(|e| e.to_string())?;
-
-                            for item in items {
-                                if let Some(arr) = item.as_array() {
-                                    // Yomichan format: [kanji/term, reading, definition_tags, rules, score, [glossary...], sequence, term_tags]
-                                    if !arr.is_empty() {
-                                        let term =
-                                            arr.get(0).and_then(|v| v.as_str()).unwrap_or("");
-                                        let reading =
-                                            arr.get(1).and_then(|v| v.as_str()).unwrap_or(term);
-
-                                        let meaning = if let Some(defs) =
-                                            arr.get(5).and_then(|v| v.as_array())
-                                        {
-                                            defs.iter()
-                                                .filter_map(|d| {
-                                                    d.as_str().or_else(|| {
-                                                        d.get("content").and_then(|c| c.as_str())
-                                                    })
-                                                })
-                                                .collect::<Vec<_>>()
-                                                .join("; ")
-                                        } else {
-                                            arr.get(5)
-                                                .and_then(|v| v.as_str())
-                                                .unwrap_or("")
-                                                .to_string()
-                                        };
-
-                                        if !term.is_empty() || !reading.is_empty() {
-                                            stmt.execute(params![
-                                                if term == reading {
-                                                    None::<String>
-                                                } else {
-                                                    Some(term.to_string())
-                                                },
-                                                reading,
-                                                meaning
-                                            ])
-                                            .map_err(|e| e.to_string())?;
-                                            total_imported += 1;
-                                        }
-                                    }
-                                }
+                                total_imported += 1;
                             }
                         }
                     }
@@ -303,7 +297,9 @@ pub fn get_setting(key: String, state: State<'_, AppState>) -> Result<Option<Str
         .prepare("SELECT value FROM settings WHERE key = ?1")
         .map_err(|e| e.to_string())?;
 
-    let result = stmt.query_row(params![key], |row| row.get::<_, String>(0)).optional();
+    let result = stmt
+        .query_row(params![key], |row| row.get::<_, String>(0))
+        .optional();
 
     match result {
         Ok(opt) => Ok(opt),
