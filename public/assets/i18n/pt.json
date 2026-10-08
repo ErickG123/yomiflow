@@ -38,7 +38,11 @@
     "easy": "Fácil",
     "congrats": "Parabéns!",
     "completed": "Revisões diárias concluídas.",
-    "back_to_dictionary": "Voltar ao Dicionário"
+    "back_to_dictionary": "Voltar ao Dicionário",
+    "all_caught_up": "Tudo em dia!",
+    "no_cards_message": "Não tem revisões pendentes para agora. Bom trabalho!",
+    "back_to_dashboard": "Voltar ao Dashboard",
+    "go_to_dictionary": "Adicionar Palavras"
   },
   "settings": {
     "title": "Configurações",

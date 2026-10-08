@@ -1,10 +1,10 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "yomiflow",
+  "productName": "YomiFlow",
   "version": "0.1.0",
-  "identifier": "com.yomiflow.dev",
+  "identifier": "com.yomiflow.app",
   "build": {
-    "frontendDist": "../dist",
+    "frontendDist": "../dist/yomiflow/browser",
     "devUrl": "http://localhost:4200",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"

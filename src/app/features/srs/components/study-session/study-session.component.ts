@@ -15,12 +15,16 @@ export class StudySessionComponent implements OnInit {
   private readonly srsService = inject(SrsService)
 
   readonly dueCards = this.srsService.dueCards
-  readonly isLoading = this.srsService.isLoading
+  readonly isLoading = signal<boolean>(true)
   readonly currentCard = this.srsService.currentCard
   readonly isFlipped = signal<boolean>(false)
 
-  ngOnInit(): void {
-    this.srsService.getDueCards()
+  async ngOnInit(): Promise<void> {
+    try {
+      await this.srsService.getDueCards()
+    } finally {
+      this.isLoading.set(false)
+    }
   }
 
   flipCard(): void {

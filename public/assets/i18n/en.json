@@ -38,7 +38,11 @@
     "easy": "Easy",
     "congrats": "Congratulations!",
     "completed": "Daily reviews completed.",
-    "back_to_dictionary": "Back to Dictionary"
+    "back_to_dictionary": "Back to Dictionary",
+    "all_caught_up": "All caught up!",
+    "no_cards_message": "You have no reviews due right now. Great job!",
+    "back_to_dashboard": "Back to Dashboard",
+    "go_to_dictionary": "Add Words"
   },
   "settings": {
     "title": "Settings",

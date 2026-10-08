@@ -66,6 +66,15 @@ Antes de iniciar, certifique-se de possuir instalado na sua máquina:
    - Linting de código: `npm run lint`
    - Build do Frontend: `npm run build`
    - Checagem do Backend: `cd src-tauri && cargo check`
+   - **Geração de Ícones Nativos:** Coloque uma imagem `app-icon.png` (1024x1024) na raiz e execute:
+     ```bash
+     npm run tauri:icon
+     ```
+   - **Build de Produção (Instalador Nativo Local):** Para gerar o instalador `.exe` (Windows) ou `.deb`/`.AppImage` (Linux):
+     ```bash
+     npm run tauri:build
+     ```
+     > Os instaladores finais e binários otimizados serão gerados na pasta `src-tauri/target/release/bundle/`.
 
 ---
 
