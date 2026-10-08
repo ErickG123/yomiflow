@@ -1,0 +1,82 @@
+<main class="min-h-screen bg-zinc-950 text-zinc-200 p-8">
+  <div class="w-full max-w-2xl mx-auto space-y-6">
+    <header class="flex items-center justify-between pb-2 border-b border-zinc-900">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight text-zinc-100">{{ 'search.title' | transloco }}</h1>
+        <p class="text-sm text-zinc-400">{{ 'search.subtitle' | transloco }}</p>
+      </div>
+
+      <button
+        type="button"
+        title="{{ 'search.import_title' | transloco }}"
+        aria-label="{{ 'search.import_title' | transloco }}"
+        [disabled]="isImporting()"
+        (click)="onImportDictionary()"
+        class="p-2.5 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <i
+          class="pi text-xl"
+          [class.pi-spin]="isImporting()"
+          [class.pi-spinner]="isImporting()"
+          [class.pi-folder-open]="!isImporting()"
+        ></i>
+      </button>
+    </header>
+
+    <div class="relative">
+      <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500">
+        <i class="pi pi-search text-lg"></i>
+      </span>
+      <input
+        type="search"
+        [placeholder]="'search.placeholder' | transloco"
+        (input)="onSearchInput($event)"
+        class="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-12 pr-4 py-4 text-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-lg"
+      />
+    </div>
+
+    @if (isLoading()) {
+      <div class="text-center py-8 text-zinc-500">
+        <i class="pi pi-spin pi-spinner text-2xl"></i>
+      </div>
+    }
+
+    <section class="space-y-4">
+      @for (entry of searchResults(); track entry.id) {
+        <article class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between hover:bg-zinc-800/80 transition-colors shadow-sm">
+          <div class="space-y-1">
+            <span class="text-sm font-medium text-zinc-400 block">{{ entry.reading }}</span>
+            <div class="text-4xl font-serif text-zinc-100">{{ entry.kanji ?? entry.reading }}</div>
+            <p class="text-zinc-300 text-base pt-1">{{ entry.meaning }}</p>
+          </div>
+
+          <button
+            type="button"
+            [title]="entry.in_srs ? ('search.added_srs' | transloco) : ('search.add_srs' | transloco)"
+            [attr.aria-label]="entry.in_srs ? ('search.added_srs' | transloco) : ('search.add_srs' | transloco)"
+            [disabled]="entry.in_srs"
+            (click)="onAddToSrs(entry.id)"
+            class="p-3 rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+            [class.text-green-500]="entry.in_srs"
+            [class.bg-green-500/10]="entry.in_srs"
+            [class.text-zinc-400]="!entry.in_srs"
+            [class.hover:text-indigo-400]="!entry.in_srs"
+            [class.hover:bg-zinc-800]="!entry.in_srs"
+          >
+            <i
+              class="pi text-xl transition-all"
+              [class.pi-check]="entry.in_srs"
+              [class.pi-plus]="!entry.in_srs"
+            ></i>
+          </button>
+        </article>
+      } @empty {
+        @if (!isLoading()) {
+          <div class="text-center py-12 text-zinc-600">
+            <p>{{ 'search.empty' | transloco }}</p>
+          </div>
+        }
+      }
+    </section>
+  </div>
+</main>

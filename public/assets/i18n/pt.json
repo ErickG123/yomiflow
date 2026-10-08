@@ -1,0 +1,56 @@
+{
+  "nav": {
+    "dashboard": "Painel",
+    "dictionary": "Dicionário",
+    "study": "Estudar"
+  },
+  "dashboard": {
+    "welcome": "Bem-vindo de volta",
+    "subtitle": "Aqui está o seu progresso diário de estudos.",
+    "due_today": "Revisões Pendentes",
+    "new_cards": "Cartões Novos",
+    "total_cards": "Total no Baralho",
+    "start_study": "Começar Sessão de Estudo",
+    "no_cards_due": "Sem cartões pendentes no momento."
+  },
+  "search": {
+    "title": "YomiFlow",
+    "subtitle": "Dicionário Japonês Offline & SRS",
+    "placeholder": "Pesquisar kanji, leitura ou significado...",
+    "import_title": "Importar Pasta de Dicionário Yomichan",
+    "empty": "Digite para pesquisar palavras no seu dicionário offline.",
+    "add_srs": "Adicionar ao SRS",
+    "added_srs": "Adicionado ao SRS"
+  },
+  "study": {
+    "loading": "Carregando cartões para revisão...",
+    "remaining": "RESTANTES",
+    "new": "NOVO",
+    "review": "REVISÃO",
+    "show_answer": "Mostrar Resposta",
+    "space": "(Espaço)",
+    "again": "Errei",
+    "hard": "Difícil",
+    "good": "Bom",
+    "easy": "Fácil",
+    "congrats": "Parabéns!",
+    "completed": "Revisões diárias concluídas.",
+    "back_to_dictionary": "Voltar ao Dicionário"
+  },
+  "settings": {
+    "title": "Configurações",
+    "language": "Idioma",
+    "notifications": "Notificações",
+    "notif_on": "Ativadas",
+    "notif_off": "Desativadas",
+    "notif_1h": "Pausar 1 hora",
+    "interval_label": "Verificar a cada:",
+    "interval_minutes": "minutos",
+    "interval_15m": "15 minutos",
+    "interval_30m": "30 minutos",
+    "interval_1h": "1 hora",
+    "interval_2h": "2 horas",
+    "interval_4h": "4 horas",
+    "exit": "Encerrar YomiFlow"
+  }
+}

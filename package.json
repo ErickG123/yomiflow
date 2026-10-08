@@ -4,9 +4,14 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "dev": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "vitest run",
+    "test:ci": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "tauri": "tauri"
   },
   "private": true,
   "packageManager": "npm@11.5.2",
@@ -17,14 +22,37 @@
     "@angular/forms": "^22.2.0",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
+    "@tauri-apps/api": "^2.12.1",
+    "@tauri-apps/plugin-dialog": "^2.8.1",
+    "@tauri-apps/plugin-notification": "^2.5.1",
+    "@tauri-apps/plugin-process": "^2.4.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
+    "@analogjs/vite-plugin-angular": "^2.8.0",
+    "@angular-eslint/eslint-plugin": "^22.5.0",
+    "@angular-eslint/template-parser": "^22.5.0",
     "@angular/build": "^22.2.2",
     "@angular/cli": "^22.2.2",
     "@angular/compiler-cli": "^22.2.0",
+    "@eslint/js": "^10.0.1",
+    "@ngneat/transloco": "^6.0.4",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@tauri-apps/cli": "^2.12.1",
+    "@testing-library/angular": "^19.5.0",
+    "autoprefixer": "^10.6.1",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "jsdom": "^30.1.2",
+    "postcss": "^8.5.29",
     "prettier": "^3.8.1",
-    "typescript": "~6.0.2"
+    "primeicons": "^8.0.2",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.71.1",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^5.0.3",
+    "zone.js": "^0.16.3"
   }
 }

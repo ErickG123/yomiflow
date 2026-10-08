@@ -1,0 +1,76 @@
+<div class="min-h-[calc(100vh-4rem)] p-8 max-w-4xl mx-auto flex flex-col justify-between text-zinc-100">
+  <div class="space-y-8">
+    <!-- Welcome Header -->
+    <header class="space-y-1">
+      <h1 class="text-3xl font-bold tracking-tight text-zinc-100">
+        {{ 'dashboard.welcome' | transloco }}
+      </h1>
+      <p class="text-sm text-zinc-400">
+        {{ 'dashboard.subtitle' | transloco }}
+      </p>
+    </header>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
+      <!-- Card 1: Due Today -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm space-y-2">
+        <div class="flex items-center justify-between text-zinc-400">
+          <span class="text-xs font-semibold uppercase tracking-wider">
+            {{ 'dashboard.due_today' | transloco }}
+          </span>
+          <i class="pi pi-clock text-indigo-400"></i>
+        </div>
+        <div
+          class="text-4xl font-bold tracking-tight"
+          [class.text-indigo-400]="stats().due_today > 0"
+          [class.text-zinc-500]="stats().due_today === 0"
+        >
+          {{ stats().due_today }}
+        </div>
+      </div>
+
+      <!-- Card 2: New Cards -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm space-y-2">
+        <div class="flex items-center justify-between text-zinc-400">
+          <span class="text-xs font-semibold uppercase tracking-wider">
+            {{ 'dashboard.new_cards' | transloco }}
+          </span>
+          <i class="pi pi-sparkles text-emerald-400"></i>
+        </div>
+        <div class="text-4xl font-bold tracking-tight text-emerald-400">
+          {{ stats().new_cards }}
+        </div>
+      </div>
+
+      <!-- Card 3: Total Cards -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm space-y-2">
+        <div class="flex items-center justify-between text-zinc-400">
+          <span class="text-xs font-semibold uppercase tracking-wider">
+            {{ 'dashboard.total_cards' | transloco }}
+          </span>
+          <i class="pi pi-database text-zinc-400"></i>
+        </div>
+        <div class="text-4xl font-bold tracking-tight text-zinc-200">
+          {{ stats().total_cards }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Action Button -->
+  <div class="text-center py-6">
+    <button
+      type="button"
+      [disabled]="stats().due_today === 0 && stats().new_cards === 0"
+      (click)="startStudy()"
+      class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 px-10 rounded-xl transition-all shadow-lg active:scale-95 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
+    >
+      {{ 'dashboard.start_study' | transloco }}
+    </button>
+    @if (stats().due_today === 0 && stats().new_cards === 0) {
+      <p class="text-xs text-zinc-500 mt-2">
+        {{ 'dashboard.no_cards_due' | transloco }}
+      </p>
+    }
+  </div>
+</div>

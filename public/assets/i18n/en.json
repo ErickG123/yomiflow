@@ -1,0 +1,56 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "dictionary": "Dictionary",
+    "study": "Study"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "subtitle": "Here is your daily study overview.",
+    "due_today": "Reviews Due",
+    "new_cards": "New Cards",
+    "total_cards": "Total Cards",
+    "start_study": "Start Study Session",
+    "no_cards_due": "No cards due at this moment."
+  },
+  "search": {
+    "title": "YomiFlow",
+    "subtitle": "Offline Japanese Dictionary & SRS",
+    "placeholder": "Search kanji, reading, or meaning...",
+    "import_title": "Import Yomichan Dictionary Folder",
+    "empty": "Type to search words in your offline dictionary.",
+    "add_srs": "Add to SRS",
+    "added_srs": "Added to SRS"
+  },
+  "study": {
+    "loading": "Loading cards for review...",
+    "remaining": "REMAINING",
+    "new": "NEW",
+    "review": "REVIEW",
+    "show_answer": "Show Answer",
+    "space": "(Space)",
+    "again": "Again",
+    "hard": "Hard",
+    "good": "Good",
+    "easy": "Easy",
+    "congrats": "Congratulations!",
+    "completed": "Daily reviews completed.",
+    "back_to_dictionary": "Back to Dictionary"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "notifications": "Notifications",
+    "notif_on": "Enabled",
+    "notif_off": "Disabled",
+    "notif_1h": "Pause 1 hour",
+    "interval_label": "Check every:",
+    "interval_minutes": "minutes",
+    "interval_15m": "15 minutes",
+    "interval_30m": "30 minutes",
+    "interval_1h": "1 hour",
+    "interval_2h": "2 hours",
+    "interval_4h": "4 hours",
+    "exit": "Exit YomiFlow"
+  }
+}
