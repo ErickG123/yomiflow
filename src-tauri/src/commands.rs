@@ -77,6 +77,38 @@ pub fn add_to_srs(entry_id: i64, state: State<'_, AppState>) -> Result<(), Strin
 }
 
 #[tauri::command]
+pub fn remove_from_srs(entry_id: i64, state: State<'_, AppState>) -> Result<(), String> {
+    let mut conn = state.db.lock().map_err(|e| e.to_string())?;
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+
+    let card_ids: Vec<String> = {
+        let mut stmt = tx
+            .prepare("SELECT id FROM cards WHERE entry_id = ?1")
+            .map_err(|e| e.to_string())?;
+        let rows = stmt
+            .query_map(params![entry_id], |row| row.get::<_, String>(0))
+            .map_err(|e| e.to_string())?;
+        rows.collect::<Result<Vec<String>, rusqlite::Error>>()
+            .map_err(|e| e.to_string())?
+    };
+
+    for card_id in card_ids {
+        tx.execute(
+            "DELETE FROM review_logs WHERE card_id = ?1",
+            params![card_id],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    tx.execute("DELETE FROM cards WHERE entry_id = ?1", params![entry_id])
+        .map_err(|e| e.to_string())?;
+
+    tx.commit().map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
 pub fn get_due_cards(state: State<'_, AppState>) -> Result<Vec<ReviewCard>, String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
 

@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
-import { TranslocoPipe } from '@ngneat/transloco'
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco'
+import { DictionaryEntry } from '../../models/dictionary.model'
 import { DictionaryService } from '../../services/dictionary.service'
 
 @Component({
@@ -12,11 +13,15 @@ import { DictionaryService } from '../../services/dictionary.service'
 })
 export class DictionarySearchComponent {
   private readonly dictionaryService = inject(DictionaryService)
+  private readonly translocoService = inject(TranslocoService, { optional: true })
 
   readonly searchResults = this.dictionaryService.searchResults
   readonly isLoading = this.dictionaryService.isLoading
   readonly addedCardIds = this.dictionaryService.addedCardIds
   readonly isImporting = this.dictionaryService.isImporting
+
+  readonly toastMessage = signal<string | null>(null)
+  private toastTimeout: ReturnType<typeof setTimeout> | null = null
 
   onSearchInput(event: Event): void {
     const target = event.target as HTMLInputElement
@@ -27,8 +32,28 @@ export class DictionarySearchComponent {
     return this.addedCardIds().includes(entryId)
   }
 
-  onAddToSrs(entryId: number): void {
-    this.dictionaryService.addToSrs(entryId)
+  async toggleSrs(entry: DictionaryEntry): Promise<void> {
+    try {
+      if (entry.in_srs) {
+        await this.dictionaryService.removeFromSrs(entry.id)
+        this.showToast(this.translocoService?.translate('search.toast_removed') ?? 'Removido dos estudos')
+      } else {
+        await this.dictionaryService.addToSrs(entry.id)
+        this.showToast(this.translocoService?.translate('search.toast_added') ?? 'Adicionado aos estudos')
+      }
+    } catch (error) {
+      console.error('Failed to toggle SRS status:', error)
+    }
+  }
+
+  private showToast(message: string): void {
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout)
+    }
+    this.toastMessage.set(message)
+    this.toastTimeout = setTimeout(() => {
+      this.toastMessage.set(null)
+    }, 2500)
   }
 
   onImportDictionary(): void {

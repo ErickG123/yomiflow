@@ -20,7 +20,10 @@
     "import_title": "Importar Pasta de Dicionário Yomichan",
     "empty": "Digite para pesquisar palavras no seu dicionário offline.",
     "add_srs": "Adicionar ao SRS",
-    "added_srs": "Adicionado ao SRS"
+    "added_srs": "Adicionado ao SRS",
+    "remove_srs": "Remover do SRS",
+    "toast_added": "Adicionado aos estudos",
+    "toast_removed": "Removido dos estudos"
   },
   "study": {
     "loading": "Carregando cartões para revisão...",

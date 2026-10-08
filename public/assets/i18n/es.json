@@ -20,7 +20,10 @@
     "import_title": "Importar Carpeta de Diccionario Yomichan",
     "empty": "Escribe para buscar palabras en tu diccionario offline.",
     "add_srs": "Añadir al SRS",
-    "added_srs": "Añadido al SRS"
+    "added_srs": "Añadido al SRS",
+    "remove_srs": "Eliminar del SRS",
+    "toast_added": "Añadido a los estudios",
+    "toast_removed": "Eliminado de los estudios"
   },
   "study": {
     "loading": "Cargando tarjetas para revisión...",

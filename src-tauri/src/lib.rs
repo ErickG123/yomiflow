@@ -97,6 +97,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::search_dictionary,
             commands::add_to_srs,
+            commands::remove_from_srs,
             commands::import_dictionary,
             commands::get_due_cards,
             commands::answer_card,

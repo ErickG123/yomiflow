@@ -49,6 +49,19 @@ export class DictionaryService {
     }
   }
 
+  async removeFromSrs(entryId: number): Promise<void> {
+    try {
+      await invoke('remove_from_srs', { entryId })
+      this.addedCardIds.update((current) => current.filter((id) => id !== entryId))
+      this.searchResults.update((entries) =>
+        entries.map((entry) => (entry.id === entryId ? { ...entry, in_srs: false } : entry))
+      )
+    } catch (error) {
+      console.error('Failed to remove card from SRS:', error)
+      throw error
+    }
+  }
+
   async openImportDialog(): Promise<void> {
     try {
       const selected = await open({

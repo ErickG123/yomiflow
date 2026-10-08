@@ -20,7 +20,10 @@
     "import_title": "Import Yomichan Dictionary Folder",
     "empty": "Type to search words in your offline dictionary.",
     "add_srs": "Add to SRS",
-    "added_srs": "Added to SRS"
+    "added_srs": "Added to SRS",
+    "remove_srs": "Remove from SRS",
+    "toast_added": "Added to study deck",
+    "toast_removed": "Removed from study deck"
   },
   "study": {
     "loading": "Loading cards for review...",
