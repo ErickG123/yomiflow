@@ -22,6 +22,20 @@ export const routes: Routes = [
     component: StudySessionComponent,
   },
   {
+    path: 'manga',
+    loadComponent: () =>
+      import('./features/reader/components/manga-library/manga-library.component').then(
+        (m) => m.MangaLibraryComponent
+      ),
+  },
+  {
+    path: 'reader',
+    loadComponent: () =>
+      import('./features/reader/components/manga-reader/manga-reader.component').then(
+        (m) => m.MangaReaderComponent
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'dashboard',
   },

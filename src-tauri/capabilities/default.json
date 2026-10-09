@@ -9,6 +9,7 @@
     "core:default",
     "dialog:default",
     "notification:default",
-    "process:default"
+    "process:default",
+    "opener:default"
   ]
 }

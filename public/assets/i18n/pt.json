@@ -2,7 +2,8 @@
   "nav": {
     "dashboard": "Painel",
     "dictionary": "Dicionário",
-    "study": "Estudar"
+    "study": "Estudar",
+    "reader": "Mangá"
   },
   "dashboard": {
     "welcome": "Bem-vindo de volta",
@@ -79,5 +80,35 @@
     "clear_db": "Apagar Base de Dados",
     "clear_db_confirm": "Tem a certeza? Isto irá apagar todas as palavras importadas e o seu progresso no SRS. Esta ação é irreversível.",
     "clear_db_success": "Base de dados limpa com sucesso!"
+  },
+  "reader": {
+    "open_manga": "Abrir Mangá (.cbz, .zip, .rar, .cbr)",
+    "page": "Página",
+    "of": "de",
+    "advance": "Avançar",
+    "previous": "Recuar",
+    "drag_hint": "Dica: Arraste o cursor sobre o texto para extrair via OCR",
+    "extracting_text": "A processar OCR...",
+    "ocr_results": "Dicionário & OCR",
+    "extracted_text": "Texto Reconhecido",
+    "words_found": "Vocabulário Encontrado",
+    "no_words_found": "Nenhuma palavra encontrada no dicionário.",
+    "no_manga_title": "Nenhum mangá aberto",
+    "no_manga_desc": "Selecione um ficheiro .cbz, .zip, .rar ou .cbr no seu computador para começar a ler com navegação estilo japonês (direita para a esquerda).",
+    "select_file": "Selecionar Arquivo (.cbz, .zip, .rar, .cbr)",
+    "back_to_library": "Biblioteca"
+  },
+  "library": {
+    "title": "Biblioteca de Mangás",
+    "subtitle": "Importe pastas com arquivos .cbz, .zip, .rar ou .cbr para organizar os seus volumes.",
+    "import_folder": "Importar Pasta de Mangás",
+    "open_single_file": "Abrir Arquivo Avulso",
+    "rescan": "Atualizar Biblioteca",
+    "root_path": "Pasta Raiz",
+    "total_volumes": "volumes encontrados",
+    "scanning": "A varrer pasta de mangás recursivamente...",
+    "empty_title": "Nenhum mangá encontrado",
+    "empty_desc": "Selecione uma pasta no seu computador onde guarda os seus mangás para carregar todos os volumes automaticamente.",
+    "vols": "volumes"
   }
 }

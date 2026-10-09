@@ -2,7 +2,8 @@
   "nav": {
     "dashboard": "Dashboard",
     "dictionary": "Dictionary",
-    "study": "Study"
+    "study": "Study",
+    "reader": "Manga"
   },
   "dashboard": {
     "welcome": "Welcome back",
@@ -79,5 +80,35 @@
     "clear_db": "Clear Database",
     "clear_db_confirm": "Are you sure? This will delete all imported words and your SRS progress. This action cannot be undone.",
     "clear_db_success": "Database cleared successfully!"
+  },
+  "reader": {
+    "open_manga": "Open Manga (.cbz, .zip, .rar, .cbr)",
+    "page": "Page",
+    "of": "of",
+    "advance": "Next",
+    "previous": "Prev",
+    "drag_hint": "Tip: Drag cursor over speech bubbles to extract text with OCR",
+    "extracting_text": "Processing OCR...",
+    "ocr_results": "Dictionary & OCR",
+    "extracted_text": "Recognized Text",
+    "words_found": "Found Vocabulary",
+    "no_words_found": "No matching words found in dictionary.",
+    "no_manga_title": "No manga opened",
+    "no_manga_desc": "Select a .cbz, .zip, .rar, or .cbr file from your computer to start reading with Japanese style navigation (Right to Left).",
+    "select_file": "Select File (.cbz, .zip, .rar, .cbr)",
+    "back_to_library": "Library"
+  },
+  "library": {
+    "title": "Manga Library",
+    "subtitle": "Import folders containing .cbz, .zip, .rar, or .cbr files to automatically organize your series.",
+    "import_folder": "Import Manga Folder",
+    "open_single_file": "Open Single File",
+    "rescan": "Rescan Library",
+    "root_path": "Root Folder",
+    "total_volumes": "volumes found",
+    "scanning": "Scanning manga library recursively...",
+    "empty_title": "No mangas found",
+    "empty_desc": "Select a folder on your computer where your manga files are stored to automatically load all volumes.",
+    "vols": "vols"
   }
 }
