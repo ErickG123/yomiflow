@@ -1,5 +1,5 @@
 use crate::AppState;
-use crate::models::ReviewCard;
+use crate::models::{HeatmapEntry, ReviewCard, StreakStats};
 use rusqlite::params;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::State;
@@ -174,4 +174,151 @@ pub fn answer_card(card_id: String, rating: i32, state: State<'_, AppState>) -> 
     tx.commit().map_err(|e| e.to_string())?;
 
     Ok(())
+}
+
+#[tauri::command]
+pub async fn get_study_heatmap(state: State<'_, AppState>) -> Result<Vec<HeatmapEntry>, String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+
+    let mut stmt = conn
+        .prepare(
+            "SELECT strftime('%Y-%m-%d', datetime(review_datetime, 'unixepoch', 'localtime')) as date, COUNT(*) as count 
+             FROM review_logs 
+             GROUP BY date 
+             ORDER BY date ASC",
+        )
+        .map_err(|e| e.to_string())?;
+
+    let entries = stmt
+        .query_map([], |row| {
+            Ok(HeatmapEntry {
+                date: row.get(0)?,
+                count: row.get(1)?,
+            })
+        })
+        .map_err(|e| e.to_string())?
+        .collect::<Result<Vec<HeatmapEntry>, rusqlite::Error>>()
+        .map_err(|e| e.to_string())?;
+
+    Ok(entries)
+}
+
+fn parse_ymd_to_days(ymd: &str) -> Option<i64> {
+    let parts: Vec<&str> = ymd.split('-').collect();
+    if parts.len() != 3 {
+        return None;
+    }
+    let y: i64 = parts[0].parse().ok()?;
+    let m: i64 = parts[1].parse().ok()?;
+    let d: i64 = parts[2].parse().ok()?;
+
+    // Rata Die / Julian-like formula for days since epoch
+    let m_adj = (m + 9) % 12;
+    let y_adj = y - m_adj / 10;
+    let days =
+        365 * y_adj + y_adj / 4 - y_adj / 100 + y_adj / 400 + (m_adj * 306 + 5) / 10 + (d - 1);
+    Some(days)
+}
+
+#[tauri::command]
+pub async fn get_study_streaks(state: State<'_, AppState>) -> Result<StreakStats, String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+
+    let today_ymd: String = conn
+        .query_row(
+            "SELECT strftime('%Y-%m-%d', datetime('now', 'localtime'))",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+
+    let mut stmt = conn
+        .prepare(
+            "SELECT DISTINCT strftime('%Y-%m-%d', datetime(review_datetime, 'unixepoch', 'localtime')) as date 
+             FROM review_logs 
+             ORDER BY date DESC",
+        )
+        .map_err(|e| e.to_string())?;
+
+    let distinct_dates = stmt
+        .query_map([], |row| row.get::<_, String>(0))
+        .map_err(|e| e.to_string())?
+        .collect::<Result<Vec<String>, rusqlite::Error>>()
+        .map_err(|e| e.to_string())?;
+
+    if distinct_dates.is_empty() {
+        return Ok(StreakStats {
+            current_streak: 0,
+            max_streak: 0,
+        });
+    }
+
+    let today_days = match parse_ymd_to_days(&today_ymd) {
+        Some(d) => d,
+        None => {
+            return Ok(StreakStats {
+                current_streak: 0,
+                max_streak: 0,
+            });
+        }
+    };
+
+    let days_list: Vec<i64> = distinct_dates
+        .iter()
+        .filter_map(|d| parse_ymd_to_days(d))
+        .collect();
+
+    if days_list.is_empty() {
+        return Ok(StreakStats {
+            current_streak: 0,
+            max_streak: 0,
+        });
+    }
+
+    // Calculate current streak
+    let mut current_streak = 0;
+    let mut expected_day = if days_list[0] == today_days {
+        today_days
+    } else if days_list[0] == today_days - 1 {
+        today_days - 1
+    } else {
+        0
+    };
+
+    if expected_day != 0 {
+        for &day in &days_list {
+            if day == expected_day {
+                current_streak += 1;
+                expected_day -= 1;
+            } else if day > expected_day {
+                continue;
+            } else {
+                break;
+            }
+        }
+    }
+
+    // Calculate max streak across all historical study days
+    let mut max_streak = 1;
+    let mut streak_count = 1;
+
+    for i in 1..days_list.len() {
+        if days_list[i] == days_list[i - 1] - 1 {
+            streak_count += 1;
+        } else if days_list[i] < days_list[i - 1] - 1 {
+            streak_count = 1;
+        }
+        if streak_count > max_streak {
+            max_streak = streak_count;
+        }
+    }
+
+    if current_streak > max_streak {
+        max_streak = current_streak;
+    }
+
+    Ok(StreakStats {
+        current_streak,
+        max_streak,
+    })
 }

@@ -27,3 +27,15 @@ pub struct ReviewCard {
     pub meaning: String,
     pub state: i32,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct HeatmapEntry {
+    pub date: String,
+    pub count: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct StreakStats {
+    pub current_streak: i32,
+    pub max_streak: i32,
+}

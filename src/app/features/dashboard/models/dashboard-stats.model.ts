@@ -6,3 +6,14 @@ export interface DashboardStats {
   total_kanjis: number
   total_tags: number
 }
+
+export interface HeatmapEntry {
+  date: string
+  count: number
+}
+
+export interface StreakStats {
+  current_streak: number
+  max_streak: number
+}
+

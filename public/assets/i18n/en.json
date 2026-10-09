@@ -14,6 +14,12 @@
     "total_words": "Dictionary Words",
     "total_kanjis": "Total Kanjis",
     "total_tags": "Total Tags",
+    "study_habits": "Study Habits",
+    "current_streak": "Consecutive Days",
+    "max_streak": "Best Record",
+    "days": "days",
+    "heatmap_title": "Activity History",
+    "reviews_count": "reviews",
     "start_study": "Start Study Session",
     "no_cards_due": "No cards due at this moment."
   },

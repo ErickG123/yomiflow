@@ -14,6 +14,12 @@
     "total_words": "Palavras do Dicionário",
     "total_kanjis": "Total de Kanjis",
     "total_tags": "Total de Tags",
+    "study_habits": "Hábitos de Estudo",
+    "current_streak": "Dias Consecutivos",
+    "max_streak": "Recorde Máximo",
+    "days": "dias",
+    "heatmap_title": "Histórico de Atividade",
+    "reviews_count": "revisões",
     "start_study": "Começar Sessão de Estudo",
     "no_cards_due": "Sem cartões pendentes no momento."
   },

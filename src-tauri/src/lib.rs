@@ -112,7 +112,9 @@ pub fn run() {
             commands::system::get_dashboard_stats,
             commands::system::clear_database,
             commands::importer::import_dictionary,
-            commands::importer::import_jlpt_kanjis
+            commands::importer::import_jlpt_kanjis,
+            commands::srs::get_study_heatmap,
+            commands::srs::get_study_streaks
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");
