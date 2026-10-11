@@ -194,6 +194,29 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             date TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
         );
 
+        CREATE TABLE IF NOT EXISTS image_occlusion_cards (
+            id TEXT PRIMARY KEY,
+            deck_id TEXT NOT NULL DEFAULT 'default',
+            image_path TEXT NOT NULL,
+            masks_json TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            due_date INTEGER NOT NULL DEFAULT 0,
+            stability REAL NOT NULL DEFAULT 0.0,
+            difficulty REAL NOT NULL DEFAULT 0.0,
+            reps INTEGER NOT NULL DEFAULT 0,
+            state INTEGER NOT NULL DEFAULT 0,
+            last_review INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY(deck_id) REFERENCES decks(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS image_occlusion_review_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            card_id TEXT NOT NULL,
+            rating INTEGER NOT NULL,
+            review_datetime INTEGER NOT NULL,
+            FOREIGN KEY(card_id) REFERENCES image_occlusion_cards(id) ON DELETE CASCADE
+        );
+
         CREATE VIEW IF NOT EXISTS flashcards AS 
         SELECT id, entry_id, deck_id, due_date, stability, difficulty, reps, state FROM cards;
         ",
@@ -224,6 +247,30 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
         [],
     );
     let _ = conn.execute("ALTER TABLE kana_mastery ADD COLUMN alphabet TEXT", []);
+    let _ = conn.execute(
+        "ALTER TABLE image_occlusion_cards ADD COLUMN due_date INTEGER NOT NULL DEFAULT 0",
+        [],
+    );
+    let _ = conn.execute(
+        "ALTER TABLE image_occlusion_cards ADD COLUMN stability REAL NOT NULL DEFAULT 0.0",
+        [],
+    );
+    let _ = conn.execute(
+        "ALTER TABLE image_occlusion_cards ADD COLUMN difficulty REAL NOT NULL DEFAULT 0.0",
+        [],
+    );
+    let _ = conn.execute(
+        "ALTER TABLE image_occlusion_cards ADD COLUMN reps INTEGER NOT NULL DEFAULT 0",
+        [],
+    );
+    let _ = conn.execute(
+        "ALTER TABLE image_occlusion_cards ADD COLUMN state INTEGER NOT NULL DEFAULT 0",
+        [],
+    );
+    let _ = conn.execute(
+        "ALTER TABLE image_occlusion_cards ADD COLUMN last_review INTEGER NOT NULL DEFAULT 0",
+        [],
+    );
     let _ = conn.execute("ALTER TABLE kana_mastery ADD COLUMN category TEXT", []);
     let _ = conn.execute(
         "ALTER TABLE kana_mastery ADD COLUMN correct_count INTEGER DEFAULT 0",

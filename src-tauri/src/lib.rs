@@ -166,7 +166,11 @@ pub fn run() {
             commands::reader::get_epub_position,
             commands::stats::get_badges,
             commands::discord::set_discord_zen_presence,
-            commands::pomodoro::save_study_session
+            commands::pomodoro::save_study_session,
+            commands::image_occlusion::save_image_occlusion_card,
+            commands::image_occlusion::list_image_occlusion_cards,
+            commands::image_occlusion::get_image_occlusion_card,
+            commands::image_occlusion::answer_image_occlusion_card
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

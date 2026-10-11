@@ -1,0 +1,142 @@
+<main class="min-h-full bg-zinc-950 px-5 py-8 text-zinc-100 md:px-10">
+  <div class="mx-auto max-w-6xl space-y-6">
+    <header class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">{{ 'imageOcclusion.eyebrow' | transloco }}</p>
+        <h1 class="mt-2 text-3xl font-semibold tracking-tight">{{ 'imageOcclusion.title' | transloco }}</h1>
+        <p class="mt-2 max-w-2xl text-sm text-zinc-400">{{ 'imageOcclusion.subtitle' | transloco }}</p>
+      </div>
+      <div class="flex rounded-xl border border-zinc-800 bg-zinc-900 p-1">
+        <button type="button" class="tab-button" [class.tab-active]="activeTab() === 'create'" (click)="setTab('create')">{{ 'imageOcclusion.createTab' | transloco }}</button>
+        <button type="button" class="tab-button" [class.tab-active]="activeTab() === 'review'" (click)="setTab('review')">{{ 'imageOcclusion.reviewTab' | transloco }} <span class="ml-1 text-zinc-500">{{ cards().length }}</span></button>
+      </div>
+    </header>
+
+    @if (errorMessage(); as error) {
+      <div class="rounded-xl border border-rose-900/70 bg-rose-950/30 px-4 py-3 text-sm text-rose-300">{{ error | transloco }}</div>
+    }
+
+    @if (activeTab() === 'create') {
+      <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
+        <div class="panel min-w-0">
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="font-medium">{{ 'imageOcclusion.editorTitle' | transloco }}</h2>
+              <p class="mt-1 text-xs text-zinc-500">{{ 'imageOcclusion.editorHint' | transloco }}</p>
+            </div>
+            <label class="upload-button">
+              <i class="pi pi-upload"></i>
+              {{ 'imageOcclusion.upload' | transloco }}
+              <input class="sr-only" type="file" accept="image/png,image/jpeg,image/webp" (change)="onFileSelected($event)" />
+            </label>
+          </div>
+
+          @if (imageData(); as image) {
+            <div class="image-stage" [style.aspect-ratio]="imageAspectRatio">
+              <img [src]="image" [alt]="'imageOcclusion.imageAlt' | transloco" draggable="false" />
+              <svg class="mask-layer" viewBox="0 0 1000 1000" preserveAspectRatio="none"
+                (pointerdown)="startDrawing($event)" (pointermove)="continueDrawing($event)" (pointerup)="finishDrawing($event)">
+                @for (mask of masks(); track $index) {
+                  <g>
+                    <rect [attr.x]="mask.x * 1000" [attr.y]="mask.y * 1000" [attr.width]="mask.width * 1000" [attr.height]="mask.height * 1000" class="occlusion-mask" />
+                    <text [attr.x]="(mask.x + mask.width / 2) * 1000" [attr.y]="(mask.y + mask.height / 2) * 1000" class="mask-number">{{ $index + 1 }}</text>
+                  </g>
+                }
+                @if (draftMask(); as draft) {
+                  <rect [attr.x]="draft.x * 1000" [attr.y]="draft.y * 1000" [attr.width]="draft.width * 1000" [attr.height]="draft.height * 1000" class="draft-mask" />
+                }
+              </svg>
+            </div>
+          } @else {
+            <label class="upload-dropzone">
+              <i class="pi pi-image text-3xl text-indigo-300"></i>
+              <span class="mt-3 font-medium">{{ 'imageOcclusion.dropTitle' | transloco }}</span>
+              <span class="mt-1 text-xs text-zinc-500">{{ 'imageOcclusion.dropHint' | transloco }}</span>
+              <input class="sr-only" type="file" accept="image/png,image/jpeg,image/webp" (change)="onFileSelected($event)" />
+            </label>
+          }
+        </div>
+
+        <aside class="panel h-fit">
+          <h2 class="font-medium">{{ 'imageOcclusion.masksTitle' | transloco }}</h2>
+          <p class="mt-1 text-xs text-zinc-500">{{ 'imageOcclusion.masksHint' | transloco }}</p>
+          @if (masks().length) {
+            <ol class="mt-4 space-y-2">
+              @for (mask of masks(); track $index) {
+                <li class="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950/70 px-3 py-2 text-xs">
+                  <span class="text-zinc-300">{{ 'imageOcclusion.maskLabel' | transloco }} {{ $index + 1 }} <span class="text-zinc-600">{{ (mask.width * 100) | number: '1.0-0' }}% × {{ (mask.height * 100) | number: '1.0-0' }}%</span></span>
+                  <button type="button" class="icon-button" [attr.aria-label]="'imageOcclusion.removeMask' | transloco" (click)="removeMask($index)"><i class="pi pi-times"></i></button>
+                </li>
+              }
+            </ol>
+          } @else {
+            <p class="mt-4 rounded-lg border border-dashed border-zinc-800 px-3 py-4 text-center text-xs text-zinc-500">{{ 'imageOcclusion.noMasks' | transloco }}</p>
+          }
+          <div class="mt-5 grid grid-cols-2 gap-2">
+            <button type="button" class="secondary-button" [disabled]="!imageData()" (click)="clearEditor()">{{ 'imageOcclusion.clear' | transloco }}</button>
+            <button type="button" class="primary-button" [disabled]="!imageData() || !masks().length || isSaving()" (click)="saveCard()">{{ (isSaving() ? 'imageOcclusion.saving' : 'imageOcclusion.save') | transloco }}</button>
+          </div>
+        </aside>
+      </section>
+    } @else {
+      <section class="grid gap-6 xl:grid-cols-[15rem_minmax(0,1fr)]">
+        <aside class="panel h-fit">
+          <h2 class="font-medium">{{ 'imageOcclusion.savedCards' | transloco }}</h2>
+          @if (cards().length) {
+            <ul class="mt-4 space-y-2">
+              @for (card of cards(); track card.id) {
+                <li>
+                  <button type="button" class="saved-card" [class.saved-card-active]="activeCardId() === card.id" (click)="selectCard(card)">
+                    <i class="pi pi-image text-indigo-300"></i>
+                    <span class="min-w-0 flex-1 truncate">{{ card.id.slice(0, 8) }}</span>
+                    <span class="text-[10px] text-zinc-500">{{ card.maskCount }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="mt-3 text-xs text-zinc-500">{{ 'imageOcclusion.emptyReview' | transloco }}</p>
+          }
+        </aside>
+
+        <div class="panel min-w-0">
+          @if (activeCard; as card) {
+            <div class="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 class="font-medium">{{ 'imageOcclusion.reviewTitle' | transloco }}</h2>
+                <p class="mt-1 text-xs text-zinc-500">{{ 'imageOcclusion.reviewHint' | transloco }}</p>
+              </div>
+              <span class="text-xs text-zinc-500">{{ revealedMasks().length }} / {{ card.masks.length }}</span>
+            </div>
+            <div class="image-stage review-stage" [style.aspect-ratio]="imageAspectRatio">
+              <img [src]="card.imageData" [alt]="'imageOcclusion.imageAlt' | transloco" draggable="false" (load)="imageWidth.set($any($event.target).naturalWidth); imageHeight.set($any($event.target).naturalHeight)" />
+              <svg class="mask-layer review-mask-layer" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                @for (mask of card.masks; track $index) {
+                  @if (!revealedMasks().includes($index)) {
+                    <g class="reveal-target" role="button" tabindex="0" [attr.aria-label]="('imageOcclusion.reveal' | transloco) + ' ' + ($index + 1)" (click)="revealMask($index)" (keydown.enter)="revealMask($index)" (keydown.space)="revealMask($index); $event.preventDefault()">
+                      <rect [attr.x]="mask.x * 1000" [attr.y]="mask.y * 1000" [attr.width]="mask.width * 1000" [attr.height]="mask.height * 1000" class="occlusion-mask" />
+                      <text [attr.x]="(mask.x + mask.width / 2) * 1000" [attr.y]="(mask.y + mask.height / 2) * 1000" class="mask-number">{{ $index + 1 }}</text>
+                    </g>
+                  }
+                }
+              </svg>
+            </div>
+            @if (revealedMasks().length === card.masks.length) {
+              <div class="mt-5">
+                <p class="mb-3 text-center text-xs text-zinc-500">{{ 'imageOcclusion.rateRecall' | transloco }}</p>
+                <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <button type="button" class="rating-button rating-again" [disabled]="isAnswering()" (click)="answerCard(1)">{{ 'study.again' | transloco }}</button>
+                  <button type="button" class="rating-button rating-hard" [disabled]="isAnswering()" (click)="answerCard(2)">{{ 'study.hard' | transloco }}</button>
+                  <button type="button" class="rating-button rating-good" [disabled]="isAnswering()" (click)="answerCard(3)">{{ 'study.good' | transloco }}</button>
+                  <button type="button" class="rating-button rating-easy" [disabled]="isAnswering()" (click)="answerCard(4)">{{ 'study.easy' | transloco }}</button>
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="py-20 text-center text-sm text-zinc-500">{{ 'imageOcclusion.emptyReview' | transloco }}</div>
+          }
+        </div>
+      </section>
+    }
+  </div>
+</main>

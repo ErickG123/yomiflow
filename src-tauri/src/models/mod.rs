@@ -1,4 +1,5 @@
 pub mod dictionary;
+pub mod image_occlusion;
 pub mod kana;
 pub mod kanji;
 pub mod media;
@@ -9,6 +10,7 @@ pub mod srs;
 pub mod system;
 
 pub use dictionary::*;
+pub use image_occlusion::*;
 pub use kana::*;
 pub use kanji::*;
 pub use media::*;

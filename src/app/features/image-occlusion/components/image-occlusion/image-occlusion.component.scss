@@ -1,0 +1,27 @@
+:host { display: block; height: 100%; }
+.panel { border: 1px solid rgb(63 63 70 / 0.75); border-radius: 1rem; background: rgb(24 24 27 / 0.65); padding: 1.25rem; }
+.tab-button { border-radius: 0.65rem; padding: 0.55rem 0.85rem; color: #a1a1aa; font-size: 0.75rem; cursor: pointer; }
+.tab-active { background: #27272a; color: #fafafa; }
+.upload-button, .primary-button, .secondary-button { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 1px solid #4f46e5; border-radius: 0.7rem; background: #4338ca; padding: 0.65rem 0.9rem; color: white; font-size: 0.75rem; cursor: pointer; }
+.secondary-button { border-color: #3f3f46; background: #18181b; color: #d4d4d8; }
+.primary-button:disabled, .secondary-button:disabled { cursor: not-allowed; opacity: 0.45; }
+.upload-dropzone { display: flex; min-height: 20rem; cursor: pointer; flex-direction: column; align-items: center; justify-content: center; border: 1px dashed #52525b; border-radius: 0.8rem; background: #09090b80; color: #e4e4e7; }
+.image-stage { position: relative; width: 100%; overflow: hidden; border-radius: 0.75rem; background: #09090b; touch-action: none; }
+.image-stage img { display: block; width: 100%; height: 100%; object-fit: fill; user-select: none; }
+.mask-layer { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+.review-mask-layer { cursor: default; }
+.occlusion-mask { fill: #09090b; stroke: #a5b4fc; stroke-width: 3; vector-effect: non-scaling-stroke; }
+.draft-mask { fill: rgb(99 102 241 / 0.58); stroke: #c7d2fe; stroke-width: 3; stroke-dasharray: 9 6; vector-effect: non-scaling-stroke; }
+.mask-number { fill: white; font-size: 42px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.reveal-target { cursor: pointer; outline: none; }
+.reveal-target:hover .occlusion-mask, .reveal-target:focus .occlusion-mask { fill: #27272a; stroke: #c7d2fe; }
+.icon-button { color: #71717a; padding: 0.2rem 0.35rem; cursor: pointer; }
+.icon-button:hover { color: #fda4af; }
+.saved-card { display: flex; width: 100%; align-items: center; gap: 0.6rem; border: 1px solid #27272a; border-radius: 0.65rem; padding: 0.65rem; text-align: left; color: #d4d4d8; font-size: 0.75rem; cursor: pointer; }
+.saved-card-active { border-color: rgb(99 102 241 / 0.75); background: rgb(49 46 129 / 0.24); }
+.rating-button { border: 1px solid #3f3f46; border-radius: 0.7rem; padding: 0.75rem 0.6rem; font-size: 0.75rem; cursor: pointer; }
+.rating-button:disabled { cursor: wait; opacity: 0.5; }
+.rating-again { border-color: #7f1d1d; background: #450a0a66; color: #fda4af; }
+.rating-hard { border-color: #7c2d12; background: #43140766; color: #fdba74; }
+.rating-good { border-color: #14532d; background: #052e1666; color: #86efac; }
+.rating-easy { border-color: #155e75; background: #08334466; color: #67e8f9; }

@@ -297,6 +297,24 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 6. Deixe o intervalo terminar. Deve surgir uma segunda notificação nativa e o widget deve preparar o próximo bloco de foco. Confirme que o intervalo não criou outra linha em `study_sessions`.
 7. Repita iniciando e pausando ou reiniciando um foco antes do término. Sessões interrompidas não devem criar linhas.
 
+### Cenário G: Oclusão de Imagem
+**Objetivo:** Validar a criação local de um cartão visual com várias máscaras e a revelação individual de cada região durante a revisão.
+
+1. Abra **Oclusão de Imagem** na Sidebar. Faça upload de um painel de mangá em PNG, JPEG ou WebP, ou copie uma imagem e cole na janela.
+2. Desenhe arrastando o ponteiro sobre um balão de fala e sobre um kanji separado. Confirme que dois retângulos numerados aparecem e que cada um pode ser removido individualmente.
+3. Salve o cartão e abra a aba **Revisar**. Confirme que o painel salvo aparece com todas as regiões cobertas por retângulos opacos.
+4. Clique no primeiro retângulo: apenas essa área deve revelar a imagem original; os outros retângulos devem permanecer ocultos. Clique no segundo e confirme a revelação independente. Repita a navegação com `Enter` e `Espaço` quando uma máscara estiver focada.
+5. Depois de revelar todas as máscaras, classifique a recordação com **Again**, **Hard**, **Good** ou **Easy**. O cartão deve sair da lista enquanto não estiver vencido, e a avaliação deve atualizar o agendamento FSRS.
+6. Reinicie o YomiFlow, reabra um cartão visual vencido na aba de revisão e confirme que a imagem e as máscaras persistem.
+7. Consulte o SQLite:
+   ```sql
+   SELECT id, deck_id, image_path, masks_json, due_date, state, created_at
+   FROM image_occlusion_cards
+   ORDER BY created_at DESC
+   LIMIT 1;
+   ```
+   Confirme que `image_path` aponta para um arquivo na pasta `image_occlusion` do diretório de dados local e que `masks_json` contém os dois retângulos com coordenadas entre 0 e 1. A avaliação deve aparecer em `image_occlusion_review_logs` para o cartão.
+
 ## 4. Pipeline de Integração Contínua (CI/CD Quality Gates)
 
 Antes de qualquer `git commit` e `git push`, a suíte de validação obrigatória abaixo deve ser executada sem erros:

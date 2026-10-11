@@ -40,6 +40,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'image-occlusion',
+    canActivate: [onboardingGuard],
+    loadComponent: () =>
+      import('./features/image-occlusion/components/image-occlusion/image-occlusion.component').then(
+        (m) => m.ImageOcclusionComponent
+      ),
+  },
+  {
     path: 'kana',
     canActivate: [onboardingGuard],
     loadComponent: () =>

@@ -150,6 +150,20 @@
             </a>
 
             <a
+              routerLink="/image-occlusion"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="effectiveSidebarCollapsed()"
+              [title]="'imageOcclusion.nav' | transloco"
+            >
+              <i class="pi pi-eye text-sm shrink-0"></i>
+              @if (!effectiveSidebarCollapsed()) {
+                <span class="truncate">{{ 'imageOcclusion.nav' | transloco }}</span>
+              }
+            </a>
+
+            <a
               routerLink="/kana"
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
