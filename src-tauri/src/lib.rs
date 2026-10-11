@@ -154,6 +154,8 @@ pub fn run() {
             commands::stats::get_study_history,
             commands::stats::get_jlpt_coverage_stats,
             commands::kana::record_kana_attempt,
+            commands::kana::update_kana_score,
+            commands::kana::get_kana_characters,
             commands::kana::get_kana_mastery_list,
             commands::kana::get_kana_proficiency_stats,
             commands::news::fetch_nhk_easy_news,

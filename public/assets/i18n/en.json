@@ -51,7 +51,19 @@
     "hiragana_mastery": "Hiragana Mastery",
     "katakana_mastery": "Katakana Mastery",
     "overall_mastery": "Overall Proficiency",
-    "restart": "Restart Session"
+    "restart": "Restart Session",
+    "configure_quiz": "Configure Quiz",
+    "setup_title": "Quiz Session Setup",
+    "setup_desc": "Customize which alphabets and phonetic variations to train in this session.",
+    "select_alphabet": "1. Select Alphabet",
+    "mode_all_desc": "Mixed training of Hiragana and Katakana",
+    "mode_hiragana_desc": "Exclusive focus on Hiragana",
+    "mode_katakana_desc": "Exclusive focus on Katakana",
+    "select_variations": "2. Phonetic Variations",
+    "var_base": "Gojūon (Base)",
+    "var_dakuon": "Dakuon / Handakuon (Ten-ten & Maru)",
+    "var_yoon": "Yōon (Digraphs / Combinations)",
+    "start_training": "Start Dojo Training"
   },
   "dashboard": {
     "kana_proficiency_title": "Alphabet Proficiency (Kana Dojo)",

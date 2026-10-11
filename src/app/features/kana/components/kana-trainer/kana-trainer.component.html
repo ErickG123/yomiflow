@@ -1,238 +1,331 @@
 <div *transloco="let t" class="min-h-[calc(100vh-4rem)] p-6 md:p-10 max-w-4xl mx-auto flex flex-col gap-8 text-zinc-100">
   <!-- Header -->
   <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-6">
-    <div>
-      <div class="flex items-center gap-3">
-        <div class="p-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight text-white">{{ t('kana.title') }}</h1>
-          <p class="text-xs text-zinc-400 mt-0.5">{{ t('kana.subtitle') }}</p>
-        </div>
+    <div class="flex items-center gap-3">
+      <div class="p-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white">{{ t('kana.title') }}</h1>
+        <p class="text-xs text-zinc-400 mt-0.5">{{ t('kana.subtitle') }}</p>
       </div>
     </div>
 
-    <!-- Filter Segmented Toggle -->
-    <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded-xl p-1 text-xs">
+    @if (currentStep() === 'quiz') {
       <button
         type="button"
-        (click)="setFilter('both')"
-        class="px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer"
-        [class.bg-indigo-600]="filterMode() === 'both'"
-        [class.text-white]="filterMode() === 'both'"
-        [class.text-zinc-400]="filterMode() !== 'both'"
+        (click)="backToConfig()"
+        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 transition-colors cursor-pointer self-start sm:self-auto"
       >
-        {{ t('kana.mode_all') }}
+        <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>{{ t('kana.configure_quiz') }}</span>
       </button>
-      <button
-        type="button"
-        (click)="setFilter('hiragana')"
-        class="px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer"
-        [class.bg-indigo-600]="filterMode() === 'hiragana'"
-        [class.text-white]="filterMode() === 'hiragana'"
-        [class.text-zinc-400]="filterMode() !== 'hiragana'"
-      >
-        {{ t('kana.mode_hiragana') }}
-      </button>
-      <button
-        type="button"
-        (click)="setFilter('katakana')"
-        class="px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer"
-        [class.bg-indigo-600]="filterMode() === 'katakana'"
-        [class.text-white]="filterMode() === 'katakana'"
-        [class.text-zinc-400]="filterMode() !== 'katakana'"
-      >
-        {{ t('kana.mode_katakana') }}
-      </button>
-    </div>
+    }
   </header>
 
-  <!-- Live Stats Strip -->
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-    <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 flex flex-col justify-between">
-      <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">{{ t('kana.streak') }}</span>
-      <div class="text-2xl font-bold text-amber-400 mt-2 flex items-center gap-2">
-        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-        </svg>
-        <span>{{ streak() }}</span>
-      </div>
-    </div>
-
-    <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 flex flex-col justify-between">
-      <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">{{ t('kana.accuracy') }}</span>
-      <div class="text-2xl font-bold text-emerald-400 mt-2 flex items-center gap-2">
-        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span>{{ getAccuracyPercentage() }}%</span>
-      </div>
-    </div>
-
-    <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 flex flex-col justify-between">
-      <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">{{ t('kana.speed') }}</span>
-      <div class="text-2xl font-bold text-indigo-400 mt-2 flex items-center gap-2">
-        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span>{{ getAverageSpeedSeconds() }}</span>
-      </div>
-    </div>
-
-    <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 flex flex-col justify-between">
-      <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">{{ t('kana.answered') }}</span>
-      <div class="text-2xl font-bold text-zinc-200 mt-2 flex items-center gap-2">
-        <svg class="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-        <span>{{ sessionCorrect() }}/{{ sessionTotal() }}</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Interactive Quiz Card -->
-  <main class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 sm:p-12 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden transition-all min-h-[380px]">
-    @if (currentKana(); as kana) {
-      <!-- Kana Type Tag -->
-      <span class="px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-zinc-800 border border-zinc-700/80 text-zinc-300 mb-4">
-        {{ kana.type }}
-      </span>
-
-      <!-- Big Kana Flashcard Character -->
-      <div
-        class="text-8xl sm:text-9xl font-bold font-serif my-4 select-none transition-all duration-300 transform scale-100"
-        [class.text-emerald-400]="lastResult() === 'correct'"
-        [class.text-rose-400]="lastResult() === 'wrong'"
-        [class.text-white]="lastResult() === null"
-        [class.scale-105]="lastResult() === 'correct'"
-        [class.animate-shake]="lastResult() === 'wrong'"
-      >
-        {{ kana.character }}
-      </div>
-
-      <!-- Feedback Banner if Wrong -->
-      @if (lastWrongAnswer(); as wrong) {
-        <div class="mt-2 mb-4 px-4 py-2 bg-rose-950/70 border border-rose-800/80 rounded-xl text-rose-300 text-xs flex items-center gap-2 animate-fadeIn">
-          <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-          <span>{{ t('kana.wrong') }} <strong class="font-mono text-white text-sm uppercase underline">{{ wrong.expected }}</strong></span>
-        </div>
-      }
-
-      <!-- Speed Input Field -->
-      <div class="w-full max-w-sm mt-4 flex flex-col items-center gap-3">
-        <div class="relative w-full">
-          <input
-            #answerInput
-            type="text"
-            [ngModel]="userInput()"
-            (ngModelChange)="userInput.set($event)"
-            (keydown)="onInputKeydown($event)"
-            [placeholder]="t('kana.input_placeholder')"
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-            class="w-full bg-zinc-950 border-2 rounded-2xl px-5 py-4 text-center text-xl font-bold font-mono tracking-widest outline-none transition-all"
-            [class.border-emerald-500]="lastResult() === 'correct'"
-            [class.border-rose-500]="lastResult() === 'wrong'"
-            [class.border-zinc-700]="lastResult() === null"
-            [class.focus:border-indigo-500]="lastResult() === null"
-          />
+  <!-- STEP 1: CONFIGURATION SCREEN -->
+  @if (currentStep() === 'config') {
+    <div class="space-y-8 animate-fadeIn">
+      <!-- Overview Proficiency Stats Strip -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-zinc-400">{{ t('kana.hiragana_mastery') }}</span>
+            <span class="text-base font-bold font-mono text-indigo-400">{{ kanaService.proficiency().hiragana_proficiency }}%</span>
+          </div>
+          <div class="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-indigo-500 h-1.5 rounded-full transition-all duration-500" [style.width.%]="kanaService.proficiency().hiragana_proficiency"></div>
+          </div>
         </div>
 
-        <!-- Action Helper Buttons -->
-        <div class="flex items-center gap-3 w-full justify-center">
+        <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-zinc-400">{{ t('kana.katakana_mastery') }}</span>
+            <span class="text-base font-bold font-mono text-emerald-400">{{ kanaService.proficiency().katakana_proficiency }}%</span>
+          </div>
+          <div class="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" [style.width.%]="kanaService.proficiency().katakana_proficiency"></div>
+          </div>
+        </div>
+
+        <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-zinc-400">{{ t('kana.overall_mastery') }}</span>
+            <span class="text-base font-bold font-mono text-amber-400">{{ kanaService.proficiency().overall_proficiency }}%</span>
+          </div>
+          <div class="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-amber-500 h-1.5 rounded-full transition-all duration-500" [style.width.%]="kanaService.proficiency().overall_proficiency"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Setup Card -->
+      <section class="bg-zinc-900/70 border border-zinc-800 rounded-3xl p-6 sm:p-8 space-y-8 shadow-xl">
+        <div>
+          <h2 class="text-base font-bold text-white tracking-tight">{{ t('kana.setup_title') }}</h2>
+          <p class="text-xs text-zinc-400 mt-1">{{ t('kana.setup_desc') }}</p>
+        </div>
+
+        <!-- Section: Alphabet Selection -->
+        <div class="space-y-3">
+          <label class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+            {{ t('kana.select_alphabet') }}
+          </label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button
+              type="button"
+              (click)="setAlphabet('both')"
+              class="p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between h-24"
+              [class.bg-indigo-600]="quizConfig().alphabet === 'both'"
+              [class.border-indigo-500]="quizConfig().alphabet === 'both'"
+              [class.text-white]="quizConfig().alphabet === 'both'"
+              [class.shadow-md]="quizConfig().alphabet === 'both'"
+              [class.bg-zinc-950]="quizConfig().alphabet !== 'both'"
+              [class.border-zinc-800]="quizConfig().alphabet !== 'both'"
+              [class.text-zinc-300]="quizConfig().alphabet !== 'both'"
+              [class.hover:border-zinc-700]="quizConfig().alphabet !== 'both'"
+            >
+              <div class="flex items-center justify-between w-full">
+                <span class="text-xs font-bold uppercase">{{ t('kana.mode_all') }}</span>
+                <span class="text-xs font-mono font-bold opacity-80">あ・ア</span>
+              </div>
+              <span class="text-[11px] opacity-75">{{ t('kana.mode_all_desc') }}</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="setAlphabet('hiragana')"
+              class="p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between h-24"
+              [class.bg-indigo-600]="quizConfig().alphabet === 'hiragana'"
+              [class.border-indigo-500]="quizConfig().alphabet === 'hiragana'"
+              [class.text-white]="quizConfig().alphabet === 'hiragana'"
+              [class.shadow-md]="quizConfig().alphabet === 'hiragana'"
+              [class.bg-zinc-950]="quizConfig().alphabet !== 'hiragana'"
+              [class.border-zinc-800]="quizConfig().alphabet !== 'hiragana'"
+              [class.text-zinc-300]="quizConfig().alphabet !== 'hiragana'"
+              [class.hover:border-zinc-700]="quizConfig().alphabet !== 'hiragana'"
+            >
+              <div class="flex items-center justify-between w-full">
+                <span class="text-xs font-bold uppercase">{{ t('kana.mode_hiragana') }}</span>
+                <span class="text-xs font-mono font-bold opacity-80">あ</span>
+              </div>
+              <span class="text-[11px] opacity-75">{{ t('kana.mode_hiragana_desc') }}</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="setAlphabet('katakana')"
+              class="p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between h-24"
+              [class.bg-indigo-600]="quizConfig().alphabet === 'katakana'"
+              [class.border-indigo-500]="quizConfig().alphabet === 'katakana'"
+              [class.text-white]="quizConfig().alphabet === 'katakana'"
+              [class.shadow-md]="quizConfig().alphabet === 'katakana'"
+              [class.bg-zinc-950]="quizConfig().alphabet !== 'katakana'"
+              [class.border-zinc-800]="quizConfig().alphabet !== 'katakana'"
+              [class.text-zinc-300]="quizConfig().alphabet !== 'katakana'"
+              [class.hover:border-zinc-700]="quizConfig().alphabet !== 'katakana'"
+            >
+              <div class="flex items-center justify-between w-full">
+                <span class="text-xs font-bold uppercase">{{ t('kana.mode_katakana') }}</span>
+                <span class="text-xs font-mono font-bold opacity-80">ア</span>
+              </div>
+              <span class="text-[11px] opacity-75">{{ t('kana.mode_katakana_desc') }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section: Variations Checkboxes / Toggles -->
+        <div class="space-y-3">
+          <label class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+            {{ t('kana.select_variations') }}
+          </label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Gojuon Base -->
+            <label
+              class="flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer bg-zinc-950 border-zinc-800 hover:border-zinc-700"
+              [class.border-indigo-500\/50]="quizConfig().includeBase"
+              [class.bg-indigo-950\/10]="quizConfig().includeBase"
+            >
+              <div>
+                <div class="text-xs font-bold text-zinc-200">{{ t('kana.var_base') }}</div>
+                <div class="text-[11px] text-zinc-500 mt-0.5">a, ka, sa, ta...</div>
+              </div>
+              <input
+                type="checkbox"
+                [checked]="quizConfig().includeBase"
+                (change)="toggleVariation('base')"
+                class="w-4 h-4 rounded text-indigo-600 bg-zinc-900 border-zinc-700 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+              />
+            </label>
+
+            <!-- Dakuon & Handakuon -->
+            <label
+              class="flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer bg-zinc-950 border-zinc-800 hover:border-zinc-700"
+              [class.border-indigo-500\/50]="quizConfig().includeDakuon"
+              [class.bg-indigo-950\/10]="quizConfig().includeDakuon"
+            >
+              <div>
+                <div class="text-xs font-bold text-zinc-200">{{ t('kana.var_dakuon') }}</div>
+                <div class="text-[11px] text-zinc-500 mt-0.5">ga, za, da, ba, pa...</div>
+              </div>
+              <input
+                type="checkbox"
+                [checked]="quizConfig().includeDakuon"
+                (change)="toggleVariation('dakuon')"
+                class="w-4 h-4 rounded text-indigo-600 bg-zinc-900 border-zinc-700 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+              />
+            </label>
+
+            <!-- Yoon Digraphs -->
+            <label
+              class="flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer bg-zinc-950 border-zinc-800 hover:border-zinc-700"
+              [class.border-indigo-500\/50]="quizConfig().includeYoon"
+              [class.bg-indigo-950\/10]="quizConfig().includeYoon"
+            >
+              <div>
+                <div class="text-xs font-bold text-zinc-200">{{ t('kana.var_yoon') }}</div>
+                <div class="text-[11px] text-zinc-500 mt-0.5">kya, sha, chu, ryo...</div>
+              </div>
+              <input
+                type="checkbox"
+                [checked]="quizConfig().includeYoon"
+                (change)="toggleVariation('yoon')"
+                class="w-4 h-4 rounded text-indigo-600 bg-zinc-900 border-zinc-700 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+              />
+            </label>
+          </div>
+        </div>
+
+        <!-- Launch Button -->
+        <div class="pt-2">
           <button
             type="button"
-            (click)="skipQuestion()"
-            class="px-4 py-2 text-xs font-semibold rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
-            [title]="t('kana.skip')"
+            (click)="startQuiz()"
+            [disabled]="!quizConfig().includeBase && !quizConfig().includeDakuon && !quizConfig().includeYoon"
+            class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold rounded-2xl transition-all cursor-pointer shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 active:scale-[0.99]"
           >
-            <span>{{ t('kana.skip') }}</span>
-          </button>
-
-          <button
-            type="button"
-            (click)="checkAnswer()"
-            class="px-6 py-2 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition-colors cursor-pointer flex items-center gap-1.5 shadow-md active:scale-95"
-            [title]="t('kana.check')"
-          >
-            <span>{{ t('kana.check') }}</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{{ t('kana.start_training') }}</span>
           </button>
         </div>
+      </section>
+    </div>
+  }
+
+  <!-- STEP 2: QUIZ FLASHCARDS SPEED SCREEN -->
+  @if (currentStep() === 'quiz') {
+    <div class="space-y-6 animate-fadeIn">
+      <!-- Live Stats Strip -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 flex flex-col justify-between">
+          <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">{{ t('kana.streak') }}</span>
+          <div class="text-2xl font-bold text-amber-400 mt-2 flex items-center gap-2">
+            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+            </svg>
+            <span>{{ streak() }}</span>
+          </div>
+        </div>
+
+        <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 flex flex-col justify-between">
+          <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">{{ t('kana.accuracy') }}</span>
+          <div class="text-2xl font-bold text-emerald-400 mt-2 flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{{ getAccuracyPercentage() }}%</span>
+          </div>
+        </div>
+
+        <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 flex flex-col justify-between">
+          <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">{{ t('kana.speed') }}</span>
+          <div class="text-2xl font-bold text-indigo-400 mt-2 flex items-center gap-2">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{{ getAverageSpeedSeconds() }}</span>
+          </div>
+        </div>
+
+        <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 flex flex-col justify-between">
+          <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">{{ t('kana.answered') }}</span>
+          <div class="text-2xl font-bold text-zinc-200 mt-2 flex items-center gap-2">
+            <svg class="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <span>{{ sessionCorrect() }}/{{ sessionTotal() }}</span>
+          </div>
+        </div>
       </div>
-    }
-  </main>
 
-  <!-- Global Mastery Cards -->
-  <section class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-md space-y-4">
-    <div class="flex items-center justify-between">
-      <h3 class="text-sm font-bold text-zinc-200 flex items-center gap-2">
-        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-        <span>{{ t('kana.stats_title') }}</span>
-      </h3>
-
-      <button
-        type="button"
-        (click)="restartSession()"
-        class="text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer flex items-center gap-1"
+      <!-- Speed Flashcard Main Card -->
+      <main
+        class="bg-zinc-900 border rounded-3xl p-8 sm:p-14 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300 min-h-[420px]"
+        [class.border-zinc-800]="lastResult() === null"
+        [class.border-emerald-500]="lastResult() === 'correct'"
+        [class.bg-emerald-950\/20]="lastResult() === 'correct'"
+        [class.border-rose-500]="lastResult() === 'wrong'"
+        [class.bg-rose-950\/20]="lastResult() === 'wrong'"
       >
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        <span>{{ t('kana.restart') }}</span>
-      </button>
+        @if (currentKana(); as kana) {
+          <!-- Kana Metadata Tag -->
+          <div class="flex items-center gap-2 mb-4">
+            <span class="px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-zinc-800/90 border border-zinc-700/80 text-zinc-300">
+              {{ kana.alphabet === 'hiragana' ? 'Hiragana' : 'Katakana' }}
+            </span>
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider bg-zinc-800/60 text-zinc-400">
+              {{ kana.category }}
+            </span>
+          </div>
+
+          <!-- Flashcard Big Japanese Character -->
+          <div class="text-7xl sm:text-9xl font-black text-white select-none transition-transform duration-200 hover:scale-105 my-4 tracking-normal">
+            {{ kana.character }}
+          </div>
+
+          <!-- Interactive Input Form -->
+          <div class="w-full max-w-sm mt-4 flex flex-col items-center gap-4">
+            <div class="relative w-full">
+              <input
+                #answerInput
+                type="text"
+                autofocus
+                [ngModel]="userInput()"
+                (ngModelChange)="userInput.set($event)"
+                (keydown)="onInputKeydown($event)"
+                [placeholder]="t('kana.input_placeholder')"
+                class="w-full bg-zinc-950 border border-zinc-700 text-white rounded-2xl py-3.5 px-5 text-center text-lg font-mono tracking-widest placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner"
+              />
+            </div>
+
+            <!-- Validation Feedback Alert -->
+            @if (lastWrongAnswer(); as wrong) {
+              <div class="w-full text-center p-3 rounded-xl bg-rose-950/60 border border-rose-800/60 text-rose-300 text-xs font-medium animate-fadeIn">
+                {{ t('kana.wrong') }} <span class="font-bold underline text-rose-200">{{ wrong.expected }}</span>
+              </div>
+            } @else if (lastResult() === 'correct') {
+              <div class="w-full text-center p-2 rounded-xl bg-emerald-950/40 text-emerald-400 text-xs font-semibold animate-fadeIn">
+                {{ t('kana.correct') }}
+              </div>
+            }
+
+            <!-- Bottom Actions -->
+            <div class="flex items-center justify-between w-full text-[11px] text-zinc-500 pt-2 px-2">
+              <span class="hover:text-zinc-400 transition-colors cursor-pointer" (click)="skipQuestion()">
+                {{ t('kana.skip') }}
+              </span>
+              <span>{{ t('kana.check') }}</span>
+            </div>
+          </div>
+        }
+      </main>
     </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-      <!-- Hiragana Progress -->
-      <div class="space-y-2">
-        <div class="flex justify-between text-xs">
-          <span class="text-zinc-400 font-medium">{{ t('kana.hiragana_mastery') }}</span>
-          <span class="font-bold text-indigo-400">{{ kanaService.proficiency().hiragana_proficiency }}%</span>
-        </div>
-        <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
-          <div
-            class="bg-indigo-500 h-2 rounded-full transition-all duration-500"
-            [style.width.%]="kanaService.proficiency().hiragana_proficiency"
-          ></div>
-        </div>
-      </div>
-
-      <!-- Katakana Progress -->
-      <div class="space-y-2">
-        <div class="flex justify-between text-xs">
-          <span class="text-zinc-400 font-medium">{{ t('kana.katakana_mastery') }}</span>
-          <span class="font-bold text-emerald-400">{{ kanaService.proficiency().katakana_proficiency }}%</span>
-        </div>
-        <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
-          <div
-            class="bg-emerald-500 h-2 rounded-full transition-all duration-500"
-            [style.width.%]="kanaService.proficiency().katakana_proficiency"
-          ></div>
-        </div>
-      </div>
-
-      <!-- Overall Progress -->
-      <div class="space-y-2">
-        <div class="flex justify-between text-xs">
-          <span class="text-zinc-400 font-medium">{{ t('kana.overall_mastery') }}</span>
-          <span class="font-bold text-amber-400">{{ kanaService.proficiency().overall_proficiency }}%</span>
-        </div>
-        <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
-          <div
-            class="bg-amber-500 h-2 rounded-full transition-all duration-500"
-            [style.width.%]="kanaService.proficiency().overall_proficiency"
-          ></div>
-        </div>
-      </div>
-    </div>
-  </section>
+  }
 </div>

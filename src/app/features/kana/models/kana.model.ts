@@ -1,14 +1,21 @@
+export type KanaAlphabetSelection = 'hiragana' | 'katakana' | 'both'
+export type KanaVariationCategory = 'base' | 'dakuon' | 'yoon'
+
 export interface KanaCharacter {
   character: string
   romaji: string
-  type: 'hiragana' | 'katakana'
-  row: string // 'a', 'ka', 'sa', 'ta', 'na', 'ha', 'ma', 'ya', 'ra', 'wa'
+  alphabet: 'hiragana' | 'katakana'
+  category: KanaVariationCategory
 }
 
 export interface KanaMasteryRecord {
   character: string
   romaji: string
-  kana_type: 'hiragana' | 'katakana'
+  kana_type: string
+  alphabet: string
+  category: string
+  correct_count: number
+  wrong_count: number
   total_attempts: number
   correct_attempts: number
   accuracy_percentage: number
@@ -23,4 +30,9 @@ export interface KanaProficiencyStats {
   total_correct: number
 }
 
-export type KanaAlphabetFilter = 'hiragana' | 'katakana' | 'both'
+export interface KanaQuizConfig {
+  alphabet: KanaAlphabetSelection
+  includeBase: boolean
+  includeDakuon: boolean
+  includeYoon: boolean
+}

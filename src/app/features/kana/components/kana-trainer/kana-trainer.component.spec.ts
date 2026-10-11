@@ -2,18 +2,26 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { KanaTrainerComponent } from './kana-trainer.component'
 import { KanaService } from '../../services/kana.service'
 import { signal, EnvironmentInjector, createEnvironmentInjector, runInInjectionContext } from '@angular/core'
-import { KanaMasteryRecord, KanaProficiencyStats } from '../../models/kana.model'
+import { KanaCharacter, KanaMasteryRecord, KanaProficiencyStats } from '../../models/kana.model'
 
 describe('KanaTrainerComponent', () => {
   let component: KanaTrainerComponent
   let kanaServiceMock: {
     proficiency: ReturnType<typeof signal<KanaProficiencyStats>>
     masteryList: ReturnType<typeof signal<KanaMasteryRecord[]>>
+    allCharacters: ReturnType<typeof signal<KanaCharacter[]>>
     loadProficiency: ReturnType<typeof vi.fn>
     loadMasteryList: ReturnType<typeof vi.fn>
-    recordAttempt: ReturnType<typeof vi.fn>
-    getCharacters: ReturnType<typeof vi.fn>
+    loadKanaCharacters: ReturnType<typeof vi.fn>
+    updateKanaScore: ReturnType<typeof vi.fn>
+    getFilteredCharacters: ReturnType<typeof vi.fn>
   }
+
+  const sampleCharacters: KanaCharacter[] = [
+    { character: 'あ', romaji: 'a', alphabet: 'hiragana', category: 'base' },
+    { character: 'い', romaji: 'i', alphabet: 'hiragana', category: 'base' },
+    { character: 'が', romaji: 'ga', alphabet: 'hiragana', category: 'dakuon' },
+  ]
 
   beforeEach(() => {
     vi.restoreAllMocks()
@@ -27,13 +35,12 @@ describe('KanaTrainerComponent', () => {
         total_correct: 8,
       }),
       masteryList: signal([]),
+      allCharacters: signal(sampleCharacters),
       loadProficiency: vi.fn().mockResolvedValue({}),
       loadMasteryList: vi.fn().mockResolvedValue([]),
-      recordAttempt: vi.fn().mockResolvedValue({}),
-      getCharacters: vi.fn().mockReturnValue([
-        { character: 'あ', romaji: 'a', type: 'hiragana', row: 'a' },
-        { character: 'い', romaji: 'i', type: 'hiragana', row: 'a' },
-      ]),
+      loadKanaCharacters: vi.fn().mockResolvedValue(sampleCharacters),
+      updateKanaScore: vi.fn().mockResolvedValue({}),
+      getFilteredCharacters: vi.fn().mockReturnValue(sampleCharacters),
     }
 
     const providers = [{ provide: KanaService, useValue: kanaServiceMock }]
@@ -47,16 +54,29 @@ describe('KanaTrainerComponent', () => {
     })
   })
 
-  it('should initialize and load a random kana question', async () => {
+  it('should initialize and load kana data on init', async () => {
     await component.ngOnInit()
 
     expect(kanaServiceMock.loadProficiency).toHaveBeenCalledTimes(1)
     expect(kanaServiceMock.loadMasteryList).toHaveBeenCalledTimes(1)
+    expect(kanaServiceMock.loadKanaCharacters).toHaveBeenCalledTimes(1)
+    expect(component.currentStep()).toBe('config')
+  })
+
+  it('should toggle configuration and start quiz', () => {
+    component.setAlphabet('hiragana')
+    expect(component.quizConfig().alphabet).toBe('hiragana')
+
+    component.toggleVariation('yoon')
+    expect(component.quizConfig().includeYoon).toBe(true)
+
+    component.startQuiz()
+    expect(component.currentStep()).toBe('quiz')
     expect(component.currentKana()).not.toBeNull()
   })
 
-  it('should validate correct romaji answer and update streak', async () => {
-    component.currentKana.set({ character: 'あ', romaji: 'a', type: 'hiragana', row: 'a' })
+  it('should validate correct romaji answer and update score', async () => {
+    component.currentKana.set({ character: 'あ', romaji: 'a', alphabet: 'hiragana', category: 'base' })
     component.userInput.set('a')
 
     await component.checkAnswer()
@@ -64,11 +84,11 @@ describe('KanaTrainerComponent', () => {
     expect(component.lastResult()).toBe('correct')
     expect(component.streak()).toBe(1)
     expect(component.sessionCorrect()).toBe(1)
-    expect(kanaServiceMock.recordAttempt).toHaveBeenCalledWith('あ', 'a', 'hiragana', true)
+    expect(kanaServiceMock.updateKanaScore).toHaveBeenCalledWith('あ', true)
   })
 
   it('should flag wrong romaji answer and reset streak', async () => {
-    component.currentKana.set({ character: 'あ', romaji: 'a', type: 'hiragana', row: 'a' })
+    component.currentKana.set({ character: 'あ', romaji: 'a', alphabet: 'hiragana', category: 'base' })
     component.streak.set(5)
     component.userInput.set('o')
 
@@ -77,12 +97,14 @@ describe('KanaTrainerComponent', () => {
     expect(component.lastResult()).toBe('wrong')
     expect(component.streak()).toBe(0)
     expect(component.lastWrongAnswer()?.expected).toBe('a')
-    expect(kanaServiceMock.recordAttempt).toHaveBeenCalledWith('あ', 'a', 'hiragana', false)
+    expect(kanaServiceMock.updateKanaScore).toHaveBeenCalledWith('あ', false)
   })
 
-  it('should compute accuracy percentage accurately', () => {
-    component.sessionTotal.set(10)
-    component.sessionCorrect.set(8)
-    expect(component.getAccuracyPercentage()).toBe(80)
+  it('should allow returning back to configuration screen', () => {
+    component.startQuiz()
+    expect(component.currentStep()).toBe('quiz')
+
+    component.backToConfig()
+    expect(component.currentStep()).toBe('config')
   })
 })

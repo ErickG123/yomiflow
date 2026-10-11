@@ -30,8 +30,16 @@
 
         <!-- Grouped Navigation List -->
         <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-          <!-- Overview: Dashboard -->
+          <!-- Category 1: Consumo (Dashboard, Mangá, Vídeo) -->
           <div class="space-y-1">
+            @if (!effectiveSidebarCollapsed()) {
+              <div class="px-3 text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-1.5">
+                {{ 'nav.categories.consumption' | transloco }}
+              </div>
+            } @else {
+              <div class="h-px bg-zinc-800 my-2 mx-1"></div>
+            }
+
             <a
               routerLink="/dashboard"
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
@@ -45,17 +53,6 @@
                 <span class="truncate">{{ 'nav.dashboard' | transloco }}</span>
               }
             </a>
-          </div>
-
-          <!-- Category 1: Consumo (Manga, Video) -->
-          <div class="space-y-1">
-            @if (!effectiveSidebarCollapsed()) {
-              <div class="px-3 text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-1.5">
-                {{ 'nav.categories.consumption' | transloco }}
-              </div>
-            } @else {
-              <div class="h-px bg-zinc-800 my-2 mx-1"></div>
-            }
 
             <a
               routerLink="/manga"
@@ -114,7 +111,7 @@
             </a>
           </div>
 
-          <!-- Category 2: Estudo Ativo (SRS, Kana Dojo, Caderno, Shadowing, Analytics) -->
+          <!-- Category 2: Estudo Ativo (Baralhos SRS, Kana Dojo, Caderno) -->
           <div class="space-y-1">
             @if (!effectiveSidebarCollapsed()) {
               <div class="px-3 text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-1.5">
@@ -123,6 +120,20 @@
             } @else {
               <div class="h-px bg-zinc-800 my-2 mx-1"></div>
             }
+
+            <a
+              routerLink="/decks"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="effectiveSidebarCollapsed()"
+              [title]="'nav.decks' | transloco"
+            >
+              <i class="pi pi-clone text-sm shrink-0"></i>
+              @if (!effectiveSidebarCollapsed()) {
+                <span class="truncate">{{ 'nav.decks' | transloco }}</span>
+              }
+            </a>
 
             <a
               routerLink="/study"
@@ -167,20 +178,6 @@
             </a>
 
             <a
-              routerLink="/decks"
-              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
-              [routerLinkActiveOptions]="{ exact: false }"
-              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="effectiveSidebarCollapsed()"
-              [title]="'nav.decks' | transloco"
-            >
-              <i class="pi pi-clone text-sm shrink-0"></i>
-              @if (!effectiveSidebarCollapsed()) {
-                <span class="truncate">{{ 'nav.decks' | transloco }}</span>
-              }
-            </a>
-
-            <a
               routerLink="/shadowing"
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
@@ -209,7 +206,7 @@
             </a>
           </div>
 
-          <!-- Category 3: Ferramentas (Dicionario, Calendario) -->
+          <!-- Category 3: Ferramentas (Dicionario, Calendario, Configuracoes) -->
           <div class="space-y-1">
             @if (!effectiveSidebarCollapsed()) {
               <div class="px-3 text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-1.5">
@@ -246,6 +243,19 @@
                 <span class="truncate">{{ 'nav.calendar' | transloco }}</span>
               }
             </a>
+
+            <button
+              type="button"
+              (click)="toggleSettings()"
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="effectiveSidebarCollapsed()"
+              [title]="'settings.title' | transloco"
+            >
+              <i class="pi pi-cog text-sm shrink-0"></i>
+              @if (!effectiveSidebarCollapsed()) {
+                <span class="truncate">{{ 'settings.title' | transloco }}</span>
+              }
+            </button>
           </div>
         </nav>
 

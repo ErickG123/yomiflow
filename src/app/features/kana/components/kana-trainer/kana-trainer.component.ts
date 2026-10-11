@@ -12,7 +12,13 @@ import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
 import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
 import { KanaService } from '../../services/kana.service'
-import { KanaAlphabetFilter, KanaCharacter } from '../../models/kana.model'
+import {
+  KanaAlphabetSelection,
+  KanaCharacter,
+  KanaQuizConfig,
+} from '../../models/kana.model'
+
+export type KanaTrainerStep = 'config' | 'quiz'
 
 @Component({
   selector: 'app-kana-trainer',
@@ -28,7 +34,19 @@ export class KanaTrainerComponent implements OnInit, OnDestroy {
 
   @ViewChild('answerInput') answerInputRef?: ElementRef<HTMLInputElement>
 
-  readonly filterMode = signal<KanaAlphabetFilter>('both')
+  // Trainer state: 'config' screen or 'quiz' flashcards screen
+  readonly currentStep = signal<KanaTrainerStep>('config')
+
+  // Quiz Configuration
+  readonly quizConfig = signal<KanaQuizConfig>({
+    alphabet: 'both',
+    includeBase: true,
+    includeDakuon: true,
+    includeYoon: false,
+  })
+
+  // Quiz Execution state
+  readonly activePool = signal<KanaCharacter[]>([])
   readonly currentKana = signal<KanaCharacter | null>(null)
   readonly userInput = signal<string>('')
   readonly streak = signal<number>(0)
@@ -44,7 +62,7 @@ export class KanaTrainerComponent implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     await this.kanaService.loadProficiency()
     await this.kanaService.loadMasteryList()
-    this.nextQuestion()
+    await this.kanaService.loadKanaCharacters()
   }
 
   ngOnDestroy(): void {
@@ -53,12 +71,46 @@ export class KanaTrainerComponent implements OnInit, OnDestroy {
     }
   }
 
-  setFilter(mode: KanaAlphabetFilter): void {
-    this.filterMode.set(mode)
+  setAlphabet(alphabet: KanaAlphabetSelection): void {
+    this.quizConfig.update((cfg) => ({ ...cfg, alphabet }))
+  }
+
+  toggleVariation(category: 'base' | 'dakuon' | 'yoon'): void {
+    this.quizConfig.update((cfg) => {
+      if (category === 'base') return { ...cfg, includeBase: !cfg.includeBase }
+      if (category === 'dakuon') return { ...cfg, includeDakuon: !cfg.includeDakuon }
+      return { ...cfg, includeYoon: !cfg.includeYoon }
+    })
+  }
+
+  startQuiz(): void {
+    const cfg = this.quizConfig()
+    // Validation: At least one variation must be selected
+    if (!cfg.includeBase && !cfg.includeDakuon && !cfg.includeYoon) {
+      return
+    }
+
+    const pool = this.kanaService.getFilteredCharacters(cfg)
+    if (pool.length === 0) return
+
+    this.activePool.set(pool)
     this.streak.set(0)
+    this.sessionTotal.set(0)
+    this.sessionCorrect.set(0)
+    this.responseTimes.set([])
     this.lastResult.set(null)
     this.lastWrongAnswer.set(null)
+    this.currentStep.set('quiz')
+
     this.nextQuestion()
+  }
+
+  backToConfig(): void {
+    if (this.nextQuestionTimeout) {
+      clearTimeout(this.nextQuestionTimeout)
+      this.nextQuestionTimeout = null
+    }
+    this.currentStep.set('config')
   }
 
   nextQuestion(): void {
@@ -67,10 +119,10 @@ export class KanaTrainerComponent implements OnInit, OnDestroy {
       this.nextQuestionTimeout = null
     }
 
-    const pool = this.kanaService.getCharacters(this.filterMode())
+    const pool = this.activePool()
     if (pool.length === 0) return
 
-    // Avoid repeating exactly the same character in consecutive questions if pool > 1
+    // Avoid immediate duplicate if pool has multiple cards
     const current = this.currentKana()
     let candidates = pool
     if (pool.length > 1 && current) {
@@ -115,19 +167,15 @@ export class KanaTrainerComponent implements OnInit, OnDestroy {
       })
     }
 
-    await this.kanaService.recordAttempt(
-      current.character,
-      current.romaji,
-      current.type,
-      isCorrect
-    )
+    // Persist mastery score to Rust SQLite backend
+    await this.kanaService.updateKanaScore(current.character, isCorrect)
 
     if (isCorrect) {
       this.nextQuestionTimeout = setTimeout(() => {
         this.nextQuestion()
       }, 350)
     } else {
-      // Allow user a moment to see the expected romaji before advancing
+      // Allow user a moment to review the correct pronunciation
       this.nextQuestionTimeout = setTimeout(() => {
         this.nextQuestion()
       }, 1200)
@@ -146,12 +194,7 @@ export class KanaTrainerComponent implements OnInit, OnDestroy {
       expected: current.romaji,
     })
 
-    void this.kanaService.recordAttempt(
-      current.character,
-      current.romaji,
-      current.type,
-      false
-    )
+    void this.kanaService.updateKanaScore(current.character, false)
 
     this.nextQuestionTimeout = setTimeout(() => {
       this.nextQuestion()
@@ -179,15 +222,5 @@ export class KanaTrainerComponent implements OnInit, OnDestroy {
     if (times.length === 0) return '0.0s'
     const avg = times.reduce((a, b) => a + b, 0) / times.length
     return `${(avg / 1000).toFixed(1)}s`
-  }
-
-  restartSession(): void {
-    this.streak.set(0)
-    this.sessionTotal.set(0)
-    this.sessionCorrect.set(0)
-    this.responseTimes.set([])
-    this.lastResult.set(null)
-    this.lastWrongAnswer.set(null)
-    this.nextQuestion()
   }
 }

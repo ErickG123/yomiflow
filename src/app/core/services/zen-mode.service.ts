@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, effect } from '@angular/core'
+import { Injectable, signal, computed } from '@angular/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 
 export type PomodoroMode = 'work' | 'break'

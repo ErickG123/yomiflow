@@ -142,6 +142,10 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             character TEXT PRIMARY KEY,
             romaji TEXT NOT NULL,
             kana_type TEXT NOT NULL,
+            alphabet TEXT,
+            category TEXT,
+            correct_count INTEGER DEFAULT 0,
+            wrong_count INTEGER DEFAULT 0,
             total_attempts INTEGER DEFAULT 0,
             correct_attempts INTEGER DEFAULT 0,
             accuracy_percentage REAL DEFAULT 0.0,
@@ -177,10 +181,23 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
         "ALTER TABLE notebook_entries ADD COLUMN srs_stage INTEGER DEFAULT 0",
         [],
     );
+    let _ = conn.execute("ALTER TABLE kana_mastery ADD COLUMN alphabet TEXT", []);
+    let _ = conn.execute("ALTER TABLE kana_mastery ADD COLUMN category TEXT", []);
+    let _ = conn.execute(
+        "ALTER TABLE kana_mastery ADD COLUMN correct_count INTEGER DEFAULT 0",
+        [],
+    );
+    let _ = conn.execute(
+        "ALTER TABLE kana_mastery ADD COLUMN wrong_count INTEGER DEFAULT 0",
+        [],
+    );
     let _ = conn.execute(
         "CREATE VIEW IF NOT EXISTS flashcards AS SELECT id, entry_id, deck_id, due_date, stability, difficulty, reps, state FROM cards",
         [],
     );
+
+    // Seed kana table with all characters (Base, Dakuon, Yoon)
+    let _ = crate::db::kana_seed::seed_kana_mastery(conn);
 
     // Seed default deck if none exists
     let deck_count: i64 = conn

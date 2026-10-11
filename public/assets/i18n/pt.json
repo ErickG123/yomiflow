@@ -51,7 +51,19 @@
     "hiragana_mastery": "Maestria em Hiragana",
     "katakana_mastery": "Maestria em Katakana",
     "overall_mastery": "Proficiência Global",
-    "restart": "Reiniciar Sessão"
+    "restart": "Reiniciar Sessão",
+    "configure_quiz": "Configurar Quiz",
+    "setup_title": "Configuração da Sessão de Treino",
+    "setup_desc": "Personalize quais alfabetos e variações sonoras deseja exercitar nesta sessão.",
+    "select_alphabet": "1. Selecionar Alfabeto",
+    "mode_all_desc": "Treino misto de Hiragana e Katakana",
+    "mode_hiragana_desc": "Foco exclusivo no silabário Hiragana",
+    "mode_katakana_desc": "Foco exclusivo no silabário Katakana",
+    "select_variations": "2. Variações Fonéticas",
+    "var_base": "Gojūon (Base)",
+    "var_dakuon": "Dakuon / Handakuon (Ten-ten & Maru)",
+    "var_yoon": "Yōon (Junções / Dígrafos)",
+    "start_training": "Começar Treino no Dojo"
   },
   "dashboard": {
     "kana_proficiency_title": "Proficiência em Alfabetos (Kana Dojo)",
