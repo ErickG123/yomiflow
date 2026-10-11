@@ -1,122 +1,197 @@
-# YomiFlow - Japanese Language Immersion & Acquisition Studio
+# YomiFlow
 
-[![Tauri v2](https://img.shields.io/badge/Tauri-v2.12-24C8D8?style=flat-square&logo=tauri&logoColor=white)](https://v2.tauri.app/)
-[![Rust](https://img.shields.io/badge/Rust-2024%20Edition-DEA584?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+> The Offline-First Japanese Immersion & Second Brain Ecosystem
+
 [![Angular](https://img.shields.io/badge/Angular-22%20Signals-DD0031?style=flat-square&logo=angular&logoColor=white)](https://angular.dev/)
+[![Tauri](https://img.shields.io/badge/Tauri-v2.12-24C8D8?style=flat-square&logo=tauri&logoColor=white)](https://v2.tauri.app/)
+[![Rust](https://img.shields.io/badge/Rust-2024%20Edition-DEA584?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![SQLite](https://img.shields.io/badge/SQLite-WAL%20Mode-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Offline First](https://img.shields.io/badge/Offline--First-100%25-10B981?style=flat-square&logo=speedtest&logoColor=white)](https://github.com/)
 
-> **YomiFlow** é uma aplicação desktop *offline-first* ultrarrápida desenhada para unificar todo o ecossistema de aquisição e imersão no idioma japonês: desde a leitura e mineração de vocabulário em mangás e vídeos até à retenção na memória por SRS e prática ativa de caligrafia vetorial.
+---
+
+## Overview
+
+Mastering Japanese through immersion traditionally requires stitching together a fragmented web of separate, cloud-reliant tools: browser pop-up dictionaries, external flashcard programs, cloud sync subscriptions, third-party note editors, and fragile media integrations. When internet access drops or remote APIs shift, the learning workflow breaks.
+
+**YomiFlow** unifies the entire Japanese acquisition lifecycle into a single high-performance, offline-first desktop environment. It seamlessly fuses static and dynamic media consumption (Manga and Video) with knowledge production and retention (Linguistic Notebook and Relational Spaced Repetition). Operating 100% locally with zero cloud dependencies, YomiFlow ensures your private study data, annotations, media corpus, and flashcard history remain strictly yours.
 
 ---
 
-## 📸 Visão Geral da Interface
+## Core Features
 
-| Dashboard & Heatmap | Leitor de Mangás & OCR | Prática de Caligrafia (Kanji Pad) |
-| :---: | :---: | :---: |
-| ![Dashboard Screenshot](https://raw.githubusercontent.com/yomiflow/assets/main/screenshots/dashboard.png) | ![Manga Reader Screenshot](https://raw.githubusercontent.com/yomiflow/assets/main/screenshots/reader.png) | ![Kanji Pad Screenshot](https://raw.githubusercontent.com/yomiflow/assets/main/screenshots/kanjipad.png) |
+### Smart Media Consumption
+- **Manga Reader with Zero-Copy Neural OCR:** Open archive packages (`.cbz`, `.zip`, `.cbr`, `.rar`) directly from memory without extracting directories to disk. Box speech bubbles on the page to trigger local vision-to-text inference powered by MangaOCR on ONNX Runtime (`ort`).
+- **Video Player with FFmpeg Extraction:** Stream `.mkv` and `.mp4` video locally with sub-millisecond hover dictionary lookups on embedded subtitle streams. Automatically slice native audio clips and extract context screenshots via FFmpeg to generate rich multimedia flashcards with a single click.
+- **NHK Web Easy Offline Reader:** Cache articles and native audio clips into local SQLite storage for distraction-free reading with integrated morphological hover breakdown.
 
----
+### Relational SRS & Gamification
+- **Modern Spaced Repetition (FSRS & SM-2):** Advanced memory scheduler built on pure mathematical domain models, tracking card stability and item difficulty across multiple user-defined Decks.
+- **Relational Integrity:** Foreign key enforcement (`PRAGMA foreign_keys = ON;`) with cascading deletions between dictionary entries, cards, custom decks, tags, and review logs.
+- **Temporal Analytics & Heatmaps:** GitHub-style 16-week consistency heatmaps, review forecast projections, and JLPT coverage metrics (N5 through N1) mapped against dictionary and card corpora.
+- **Achievement & Badge Engine:** Persistent milestone awards (e.g., streak milestones, kanji master badges) evaluated locally against review records.
 
-## 🌟 Destaques e Funcionalidades
+### Hybrid Linguistic Notebook
+- **Notion-Style TipTap Rich-Text:** Clean block and markdown editor with slash command capabilities, split-screen viewing, and autosaving.
+- **Real-Time Morphological NLP (Lindera):** Integrated Lindera tokenizer with IPADIC dictionary running on Rust. Parses Japanese text in real time to categorize and syntax-highlight parts of speech (verbs, particles, nouns, adjectives, and auxiliaries) with debounced IPC updates.
+- **Strict Content Sanitization:** Comprehensive XSS mitigation utilizing Angular `DomSanitizer` in conjunction with HTML security contexts.
 
-### 1. Dicionário & SRS (O Núcleo de Aquisição)
-- **Pesquisa Instantânea Yomichan:** Busca indexada em SQLite local por Kanji, Leitura em Hiragana/Katakana e Significados, com suporte a decomposição detalhada de radicais.
-- **Importação Massiva de Dados:** Ingestão atômica de bancos de termos Yomichan (`term_bank_*.json`), bancos de Kanjis (`kanji_bank_*.json`) e bases JLPT (N5 a N1).
-- **Algoritmo SRS (Repetição Espaçada FSRS):** Agendamento inteligente de revisões baseado nos feedbacks *Again (1)*, *Hard (2)*, *Good (3)* e *Easy (4)*, persistido diretamente no SQLite.
+### Kana Dojo
+- **Speed Flashcard Drill Engine:** Practice Hiragana and Katakana across Gojūon (base), Dakuon/Handakuon (ten-ten / maru), and Yōon (combination) character sets.
+- **Granular Mastery Tracking:** Database persistence (`kana_mastery`) recording character-level accuracy and velocity to power global proficiency metrics on the dashboard.
 
-### 2. Gamificação & Métricas de Estudo
-- **Heatmap de Contribuições:** Visualização visual no estilo GitHub das revisões dos últimos 112 dias (16 semanas) com 5 níveis de intensidade cromática.
-- **Contador de Ofensivas (Streaks):** Cálculo de ofensiva atual (*Current Streak*) e recorde histórico (*Max Streak*), mantendo a motivação diária.
-
-### 3. Leitor de Mangás & OCR (Consumo Estático)
-- **Suporte Multiformato em Memória:** Leitura direta de ficheiros `.cbz`, `.zip`, `.cbr` e `.rar` sem necessidade de descompactar pastas inteiras no disco.
-- **Motor de Recorte Cirúrgico & OCR:** Seleção livre com retângulo interativo sobre balões de fala, com pré-processamento de padding branco e conversão Luma8 para OCR preciso sem alucinações de bordas.
-- **Upgrade de IA Local (MangaOCR com ONNX):** Pipeline opcional de visão-texto executado em ONNX Runtime (`ort`) 100% local e offline.
-
-### 4. Prática Ativa (Audição e Escrita)
-- **Áudio Nativo (TTS Offline):** Reprodução instantânea de pronúncia em japonês nativo (`ja-JP`) integrada ao dicionário e às sessões de estudo via atalhos de teclado.
-- **Kanji Pad Vetorial (KanjiVG):** Renderização vetorial dos traços oficiais do KanjiVG com canvas de caligrafia interativo e motor matemático de avaliação geométrica de escrita.
-
-### 5. Consumo Dinâmico de Vídeo (Fase 4)
-- **Player de Vídeo com Hover Dictionary:** Reprodução de arquivos `.mkv` e `.mp4` via streaming local do Tauri, com extração de legendas embutidas via FFmpeg e pausa instantânea ao passar o cursor sobre as palavras.
-- **Corte de Áudio Nativo para SRS:** Recorte automatizado do intervalo exato da legenda em arquivo `.mp3` via FFmpeg, criando flashcards multimídia completos.
-
-### 6. Ferramentas de Alta Imersão & Nuvem (Fase 5)
-- **Dicionário de Frequência:** Badges visuais de classificação de palavras (*Core Top 1.5K*, *Comum Top 5K*, *Rara*) via `LEFT JOIN` indexado no SQLite e ingestão massiva atômica de corpus (ex: Innocent Corpus).
-- **Pitch Accent Visual:** Curvatura de acento tonal com suporte a padrões binários (`[0, 1, 1, 0]`), strings HL e índices de queda (*drop*), integrado a botão de áudio nativo TTS.
-- **Decomposição de Kanjis & Mnemónicas (WaniKani Style):** Visualização de radicais e histórico de mnemónicas do utilizador com auto-save invisível (`(blur)`) no SQLite.
-- **Cloud Sync (Bring Your Own Storage - Google Drive):** Sincronização e backup direto do banco `yomiflow.db` no Google Drive via OAuth2 nativo (utilizando as crates `oauth2`, `tiny_http` e `reqwest`). O utilizador mantém **100% da propriedade e privacidade dos seus dados**, sem necessidade de servidores intermediários de terceiros.
+### Offline-First & BYOS (Bring Your Own Storage)
+- **Zero Third-Party Cloud Lock-In:** No remote proprietary telemetry or forced cloud backends.
+- **Native Google Drive Backup:** Direct synchronization of the local SQLite database to the user's personal Google Drive using native OAuth2 (`oauth2`, `tiny_http`, and `reqwest`). Users retain absolute ownership and privacy of their data.
+- **Discord Rich Presence (Zen Mode):** Optional desktop status broadcast via `discord-rich-presence` displaying real-time immersion sessions and study duration.
 
 ---
 
-## 🛠️ Stack Tecnológico & Filosofia de Arquitetura
+## Architecture & Technology Stack
 
-- **Frontend:** [Angular 22](https://angular.dev/) (Standalone Components, Signals reativos, OnPush Change Detection, Tailwind CSS Zinc Palette, i18n via `@ngneat/transloco`).
-- **Desktop Runtime:** [Tauri v2](https://v2.tauri.app/) (Pegada de memória mínima, isolamento seguro entre processos).
-- **Backend Core:** [Rust](https://www.rust-lang.org/) (2024 Edition, zero alocações desnecessárias, IPC tipado com `oauth2`, `tiny_http`, `reqwest`, `rusqlite`, `ort`).
-- **Banco de Dados Local:** [SQLite](https://sqlite.org/) via crate `rusqlite` com modos de alta performance (`PRAGMA journal_mode = WAL`, `PRAGMA synchronous = NORMAL`, `PRAGMA temp_store = MEMORY`).
+```
++------------------------------------------------------------------------+
+|                          Angular 22 Frontend                           |
+|       Signals State  *  Tailwind CSS (Zinc)  *  Transloco i18n         |
+|         TipTap Markdown Editor  *  Feature-Based Modular Design        |
++------------------------------------------------------------------------+
+                                    |
+                          Tauri v2 IPC Layer
+                     (Strictly Typed Rust Commands)
+                                    |
++------------------------------------------------------------------------+
+|                         Rust Core Application                          |
+|  * Domain-Driven Design (Pure Domain Logic vs Application Adapters)    |
+|  * Asynchronous Runtime (Tokio)                                        |
+|  * Heavy I/O & Compute in `tokio::task::spawn_blocking`                |
+|    - Lindera NLP Tokenization                                          |
+|    - ONNX Runtime MangaOCR Inference                                   |
+|    - Archive & FFmpeg Media Processing                                 |
++------------------------------------------------------------------------+
+                                    |
++------------------------------------------------------------------------+
+|                         SQLite Storage Layer                           |
+|  * `PRAGMA journal_mode = WAL` (Concurrent Read/Write Performance)     |
+|  * `PRAGMA foreign_keys = ON` (Cascading Referential Integrity)        |
+|  * Prepared Statements Exclusively (Parameterized SQLi Immunity)       |
++------------------------------------------------------------------------+
+```
 
-### Filosofia Arquitetural
-1. **Domain-Driven Design (DDD):** Separação estrita entre o Domínio puro (cálculos matemáticos de SRS, validação de coordenadas, modelos de dados), a Aplicação (comandos e eventos Tauri) e a Infraestrutura (SQLite, FFmpeg, IO de arquivos).
-2. **Princípio DRY (Don't Repeat Yourself):** Reutilização de utilitários puros de texto, higienização de inputs e tipos desacoplados.
-3. **Segurança Rigorosa:**
-   - Prevenção contra *SQL Injection* utilizando exclusivamente prepared statements parametrizados.
-   - Proteção contra *Path Traversal* com validação e sanitização estrita de nomes de arquivos e caminhos no backend Rust.
-   - Proteção contra *XSS* sanitizando conteúdo dinâmico através do `DomSanitizer` (`SecurityContext.HTML`).
+### IPC Bridge Pattern
+The frontend interacts with the native runtime exclusively through typed IPC invocations using `@tauri-apps/api/core`. Computationally intensive tasks—such as morphological tokenization, OCR tensor evaluation, archive decompression, and database batch imports—are offloaded from the UI and event loop to worker threads via `tokio::task::spawn_blocking`.
 
 ---
 
-## 🚀 Instalação e Desenvolvimento
+## Project Structure
 
-### Pré-requisitos
-1. **Node.js** (v20+ recomendado) e **npm**
-2. **Rust & Cargo** (v1.90+ via [rustup.rs](https://rustup.rs/))
-3. **FFmpeg** (opcional, para extração de legendas e cortes de áudio em vídeos `.mkv`)
+The project follows a clean separation between feature-driven UI modules, reusable components, and native Rust domain services:
 
-### Passo a Passo
+```
+yomiflow/
+|-- .agents/                          # Architectural guidelines, context, and agent rules
+|   |-- rules.md                      # Engineering standards, testing, and formatting rules
+|   |-- context_gamification.md       # Temporal aggregation, streaks, and heatmap specs
+|   |-- context_nlp_notebook.md       # Lindera tokenization and TipTap notebook specs
+|   |-- context_srs_relational.md     # Relational SQLite SRS and cascade delete specs
+|-- src/                              # Angular 22 Frontend Application
+|   |-- app/
+|   |   |-- core/                     # Application singletons, guards, and root services
+|   |   |-- features/                 # Feature-based business modules
+|   |   |   |-- calendar/             # Temporal review forecast and heatmap calendar
+|   |   |   |-- dashboard/            # Proficiency analytics and quick-action hub
+|   |   |   |-- decks/                # Deck management, tag assignments, and card stats
+|   |   |   |-- dictionary/           # Yomichan entry search and radical breakdown
+|   |   |   |-- kana/                 # Kana Dojo speed training and mastery tracking
+|   |   |   |-- notebook/             # TipTap rich-text editor with Lindera NLP highlighting
+|   |   |   |-- reader/               # Manga reader (.cbz), web news, and EPUB viewer
+|   |   |   |-- settings/             # System preferences and Google Drive BYOS sync
+|   |   |   |-- shadowing/            # Audio transcription and shadowing drill room
+|   |   |   |-- srs/                  # FSRS / SM-2 flashcard study session
+|   |   |   |-- stats/                # JLPT analytics and progress charts
+|   |   |   |-- video/                # Video player with subtitle hover dictionary
+|   |   |-- shared/                   # Generic UI components, pipes, and directives
+|-- src-tauri/                        # Tauri v2 Backend & Rust Core
+|   |-- src/
+|   |   |-- commands/                 # Tauri IPC command entry points
+|   |   |   |-- ai_ocr.rs             # ONNX Runtime MangaOCR pipeline
+|   |   |   |-- dictionary.rs         # Yomichan SQLite indexed lookups
+|   |   |   |-- drive_sync.rs         # OAuth2 Google Drive synchronization
+|   |   |   |-- kana.rs               # Kana Dojo mastery score persistence
+|   |   |   |-- news.rs               # NHK News Web Easy offline scraper and cache
+|   |   |   |-- nlp.rs                # Lindera morphological analysis adapter
+|   |   |   |-- reader.rs             # In-memory archive extraction and EPUB handling
+|   |   |   |-- srs.rs                # FSRS calculation, deck routing, and reviews
+|   |   |   |-- stats.rs              # Heatmap aggregations and JLPT coverage
+|   |   |   |-- video.rs              # FFmpeg subtitle and audio extraction
+|   |   |-- db/                       # Schema migrations and seed initializers
+|   |   |-- domain/                   # Pure business logic (SRS math, NLP tagging, OCR)
+|   |   |-- models/                   # Rust struct definitions and data transfer objects
+|   |-- Cargo.toml                    # Rust dependencies and compiler configuration
+|-- package.json                      # Frontend dependencies and npm build scripts
+```
 
-1. **Clonar o Repositório:**
+---
+
+## Getting Started
+
+### Prerequisites
+
+Ensure the following runtimes and tools are installed on your workstation:
+
+1. **Node.js**: v20+ with `npm`
+2. **Rust & Cargo**: v1.90+ (via [rustup.rs](https://rustup.rs/))
+3. **Tauri System Dependencies**:
+   - **Linux**: `libwebkit2gtk-4.1-dev`, `build-essential`, `curl`, `wget`, `file`, `libssl-dev`, `libayatana-appindicator3-dev`, `librsvg2-dev`
+   - **macOS**: Xcode Command Line Tools
+   - **Windows**: Microsoft C++ Build Tools and WebView2 (preinstalled on Windows 10/11)
+4. **FFmpeg** *(Optional, recommended)*: Required for subtitle extraction and audio clipping from `.mkv`/`.mp4` media files.
+
+### Installation & Development
+
+1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/seu-usuario/yomiflow.git
+   git clone https://github.com/ErickG123/yomiflow.git
    cd yomiflow
    ```
 
-2. **Instalar Dependências:**
+2. **Install Frontend Dependencies:**
    ```bash
    npm install
    ```
 
-3. **Executar em Modo de Desenvolvimento:**
+3. **Launch in Development Mode:**
    ```bash
    npm run tauri dev
    ```
 
 ---
 
-## 🧪 Qualidade e Testes Automatizados
+## Quality Assurance & Verification
 
-O projeto conta com pipelines de testes unitários e de integração em ambas as camadas:
+YomiFlow enforces strict quality gates across both frontend and backend codebases:
 
 ```bash
-# Executar a suíte de testes do Backend Rust
-cargo test --lib --manifest-path src-tauri/Cargo.toml
-
-# Executar a verificação estrita do linter Rust (sem avisos)
-cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
-
-# Executar a suíte de testes do Frontend Angular (Vitest)
-npm run test:ci
-
-# Executar o linter TypeScript/Angular
+# Frontend: Run ESLint inspection
 npm run lint
 
-# Compilar o bundle de produção
+# Frontend: Run Unit & Component tests (Vitest)
+npm run test:ci
+
+# Frontend: Compile Angular production bundle
 npm run build
+
+# Backend: Verify Rust formatting
+cargo fmt -- --check --manifest-path src-tauri/Cargo.toml
+
+# Backend: Run Clippy static analysis with zero warnings allowed
+cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+
+# Backend: Execute Rust test suite (SQLite in-memory test coverage)
+cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
 ---
 
-## 📄 Licença
+## License
 
-Distribuído sob a licença MIT. Consulte `LICENSE` para mais detalhes.
+Distributed under the MIT License. See `LICENSE` for more information.
