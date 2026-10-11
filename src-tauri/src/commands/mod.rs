@@ -8,6 +8,7 @@ pub mod nlp;
 pub mod reader;
 pub mod settings;
 pub mod srs;
+pub mod stats;
 pub mod system;
 pub mod video;
 

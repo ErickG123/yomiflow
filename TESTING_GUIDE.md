@@ -286,4 +286,22 @@ Checklists rigorosos para validar o comportamento das novas ferramentas de alta 
 - [ ] **Eliminação Segura de Baralhos:**
   - Ao excluir um baralho customizado, os cartões existentes devem ser migrados automaticamente para o baralho *"Padrão"* (`default`), prevenindo a perda irreversível do histórico do estudante.
 
+### 🧪 Cenário J: Previsão Temporal e Gamificação de Estudos
+- [ ] **Acesso à Vista de Calendário:**
+  - Navegue para `/calendar` através da barra de navegação superior.
+  - Verifique se o mês atual é exibido corretamente no centro dos controles (ex: *"Outubro 2026"*).
+- [ ] **Validação de Previsão de Carga SRS (Dias Futuros):**
+  - No banco SQLite ou inserindo cartões pelo sistema, agende revisões com intervalos calculados para datas futuras (ex: daqui a 1, 3 e 7 dias).
+  - Observe as células dos dias futuros correspondentes no calendário:
+    - *Critério de Sucesso:* Pequenas badges vermelhas (`bg-rose-500/20 text-rose-300`) devem surgir indicando o número exato de cartões agendados (`X cards`).
+- [ ] **Avanço Manual de Data do Sistema para Testes de Ofensiva (Heatmap):**
+  - Complete uma sessão de estudos em `/study` para gerar registros na tabela `review_logs`.
+  - O dia atual deve exibir imediatamente a marcação verde de revisões concluídas.
+  - Avance o relógio do sistema operacional em 1 dia (ou simule registros com timestamps do dia seguinte via query SQLite).
+  - Recarregue o `/calendar`: o dia anterior agora deve figurar como passado com o tom de verde correspondente ao volume de revisões, enquanto o novo dia atual recebe a borda índigo de destaque.
+- [ ] **Sincronização com o Caderno Híbrido:**
+  - Crie uma nota em `/notebook`.
+  - No `/calendar`, verifique se o dia de criação recebe o ponto indicador âmbar pulsante (`bg-amber-400`).
+  - Ao clicar no dia, o painel lateral deve listar a nota com título e prévia do Markdown, contendo o botão "Abrir Caderno".
+
 

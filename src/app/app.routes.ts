@@ -80,6 +80,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'calendar',
+    loadComponent: () =>
+      import('./features/calendar/components/calendar-view/calendar-view.component').then(
+        (m) => m.CalendarViewComponent
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'dashboard',
   },

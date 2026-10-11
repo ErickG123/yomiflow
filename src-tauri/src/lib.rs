@@ -143,7 +143,9 @@ pub fn run() {
             commands::srs::update_deck,
             commands::srs::delete_deck,
             commands::srs::get_tags,
-            commands::srs::create_tag
+            commands::srs::create_tag,
+            commands::stats::get_review_forecast,
+            commands::stats::get_study_history
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");
