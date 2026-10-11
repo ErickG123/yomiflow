@@ -32,6 +32,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'readability',
+    canActivate: [onboardingGuard],
+    loadComponent: () =>
+      import('./features/readability/components/readability-analyzer/readability-analyzer.component').then(
+        (m) => m.ReadabilityAnalyzerComponent
+      ),
+  },
+  {
     path: 'study',
     canActivate: [onboardingGuard],
     loadComponent: () =>

@@ -245,6 +245,20 @@
             </a>
 
             <a
+              routerLink="/readability"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="effectiveSidebarCollapsed()"
+              [title]="'readability.nav' | transloco"
+            >
+              <i class="pi pi-chart-pie text-sm shrink-0"></i>
+              @if (!effectiveSidebarCollapsed()) {
+                <span class="truncate">{{ 'readability.nav' | transloco }}</span>
+              }
+            </a>
+
+            <a
               routerLink="/calendar"
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"

@@ -7,6 +7,35 @@ pub struct MorphologicalToken {
     pub pos: String, // "verb", "noun", "particle", or original/other category
 }
 
+#[derive(Debug, Clone)]
+pub struct LexicalToken {
+    pub surface: String,
+    pub lemma: String,
+    pub reading: String,
+    pub start_byte: usize,
+    pub end_byte: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct UnknownWordOccurrence {
+    pub surface: String,
+    pub lemma: String,
+    pub start: usize,
+    pub end: usize,
+    pub retention_percentage: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadabilityAnalysis {
+    pub total_words: usize,
+    pub known_words: usize,
+    pub comprehension_percentage: f64,
+    pub average_retention_percentage: f64,
+    pub unknown_words: Vec<UnknownWordOccurrence>,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NotebookEntry {
     pub id: String,

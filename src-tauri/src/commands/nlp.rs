@@ -1,11 +1,130 @@
 use crate::AppState;
 use crate::models::{BunsetsuChunk, MorphologicalToken, NotebookEntry};
+use crate::models::{ReadabilityAnalysis, UnknownWordOccurrence};
 use rusqlite::params;
+use std::collections::HashMap;
 use tauri::State;
 
 #[tauri::command]
 pub fn analyze_japanese_text(text: String) -> Result<Vec<MorphologicalToken>, String> {
     crate::domain::nlp::segment_and_tag_japanese(&text)
+}
+
+#[tauri::command]
+pub fn analyze_text_readability(
+    text: String,
+    state: State<'_, AppState>,
+) -> Result<ReadabilityAnalysis, String> {
+    let tokens = crate::domain::nlp::extract_lexical_tokens(&text)?;
+    if tokens.is_empty() {
+        return Ok(ReadabilityAnalysis {
+            total_words: 0,
+            known_words: 0,
+            comprehension_percentage: 0.0,
+            average_retention_percentage: 0.0,
+            unknown_words: Vec::new(),
+        });
+    }
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|e| e.to_string())?
+        .as_secs() as i64;
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+    let mut statement = conn
+        .prepare(
+            "SELECT c.state, c.stability, c.reps, COALESCE(MAX(log.review_datetime), 0)
+             FROM dictionary_entries d
+             JOIN cards c ON c.entry_id = d.id
+             LEFT JOIN review_logs log ON log.card_id = c.id
+             WHERE d.kanji = ?1 COLLATE NOCASE OR d.reading = ?2 COLLATE NOCASE
+             GROUP BY c.id",
+        )
+        .map_err(|e| e.to_string())?;
+    let mut retention_cache: HashMap<(String, String), (bool, f64)> = HashMap::new();
+    let mut unknown_words = Vec::new();
+    let mut known_words = 0;
+    let mut total_retention = 0.0;
+
+    for token in &tokens {
+        let key = (token.lemma.clone(), token.reading.clone());
+        let (is_known, retention) = if let Some(value) = retention_cache.get(&key) {
+            *value
+        } else {
+            let rows = statement
+                .query_map(rusqlite::params![token.lemma, token.reading], |row| {
+                    Ok((
+                        row.get::<_, i32>(0)?,
+                        row.get::<_, f64>(1)?,
+                        row.get::<_, i32>(2)?,
+                        row.get::<_, i64>(3)?,
+                    ))
+                })
+                .map_err(|e| e.to_string())?;
+            let mut best_retention: f64 = 0.0;
+            let mut found_card = false;
+            for row in rows {
+                let (card_state, stability, reps, last_review) = row.map_err(|e| e.to_string())?;
+                found_card = true;
+                best_retention = best_retention.max(calculate_retention(
+                    card_state,
+                    stability,
+                    reps,
+                    last_review,
+                    now,
+                ));
+            }
+            retention_cache.insert(key, (found_card, best_retention));
+            (found_card, best_retention)
+        };
+
+        total_retention += retention;
+        if is_known {
+            known_words += 1;
+        } else {
+            let start = text[..token.start_byte].encode_utf16().count();
+            let end = text[..token.end_byte].encode_utf16().count();
+            unknown_words.push(UnknownWordOccurrence {
+                surface: token.surface.clone(),
+                lemma: token.lemma.clone(),
+                start,
+                end,
+                retention_percentage: 0.0,
+            });
+        }
+    }
+
+    Ok(ReadabilityAnalysis {
+        total_words: tokens.len(),
+        known_words,
+        comprehension_percentage: (known_words as f64 * 1000.0 / tokens.len() as f64).round()
+            / 10.0,
+        average_retention_percentage: if known_words > 0 {
+            (total_retention * 1000.0 / known_words as f64).round() / 10.0
+        } else {
+            0.0
+        },
+        unknown_words,
+    })
+}
+
+fn calculate_retention(
+    card_state: i32,
+    stability: f64,
+    reps: i32,
+    last_review: i64,
+    now: i64,
+) -> f64 {
+    if card_state == 0 || reps <= 0 || stability <= 0.0 {
+        return 0.0;
+    }
+    let elapsed_days = (now.saturating_sub(last_review) as f64 / 86_400.0).max(0.1);
+    let retrievability = (1.0 + 19.0 * elapsed_days / (9.0 * stability)).powf(-0.5);
+    match card_state {
+        1 => retrievability * 0.65,
+        2 => retrievability,
+        _ => 0.0,
+    }
 }
 
 #[tauri::command]

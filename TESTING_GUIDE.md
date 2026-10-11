@@ -326,6 +326,16 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 5. Responda a cada tipo: avalie vocabulário, revele todas as máscaras e avalie a imagem, avalie a nota e responda kana. Confirme que vocabulário/imagem/notas são persistidos nos seus agendadores e kana incrementa `kana_mastery`.
 6. Reabra a sessão e confirme que os itens avaliados que ainda não venceram não retornam imediatamente à fila.
 
+### Cenário I: Analisador Lexical
+**Objetivo:** Verificar a estimativa de cobertura lexical, os destaques de palavras sem cartão e a atualização do resultado após adicionar vocabulário ao SRS.
+
+1. Abra **Nível de Leitura** na Sidebar, cole um parágrafo em japonês com palavras que já tenham cartões e pelo menos uma palavra sem cartão, e selecione **Analisar compreensão**.
+2. Conte as ocorrências lexicais reconhecidas no texto. O gráfico deve apresentar `known_words / total_words × 100`, arredondado a uma casa decimal; por exemplo, 7 ocorrências com 5 presentes nos baralhos devem resultar em 71,4%.
+3. Confirme que somente as ocorrências da lista `unknown_words` aparecem destacadas no texto. Repetições da mesma palavra desconhecida devem estar destacadas em cada posição.
+4. Observe a métrica de retenção média SRS, que complementa a cobertura: ela considera o estágio, estabilidade e data da última revisão dos cartões conhecidos. Uma palavra com cartão novo conta como conhecida para cobertura, mesmo que sua retenção seja inicialmente 0%.
+5. Adicione a palavra desconhecida a um baralho pelo dicionário, crie seu cartão e reteste o mesmo texto. O total de palavras deve permanecer igual, `known_words` deve aumentar pelas ocorrências daquela palavra e a percentagem deve subir conforme o cálculo acima; o destaque deve desaparecer dessas ocorrências.
+6. Repita em EN e ES e confirme que os rótulos do analisador mudam com a localidade ativa.
+
 ## 4. Pipeline de Integração Contínua (CI/CD Quality Gates)
 
 Antes de qualquer `git commit` e `git push`, a suíte de validação obrigatória abaixo deve ser executada sem erros:

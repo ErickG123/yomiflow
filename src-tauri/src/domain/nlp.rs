@@ -92,6 +92,62 @@ pub fn segment_and_tag_japanese(text: &str) -> Result<Vec<MorphologicalToken>, S
     })
 }
 
+pub fn extract_lexical_tokens(text: &str) -> Result<Vec<crate::models::LexicalToken>, String> {
+    if text.trim().is_empty() {
+        return Ok(Vec::new());
+    }
+    if text.len() > MAX_JAPANESE_TEXT_BYTES {
+        return Err(format!(
+            "Payload de texto excede o limite máximo permitido de {} bytes",
+            MAX_JAPANESE_TEXT_BYTES
+        ));
+    }
+
+    get_or_create_segmenter(|segmenter| {
+        let mut tokens = segmenter
+            .segment(Cow::Borrowed(text))
+            .map_err(|e| format!("Erro durante análise morfológica Lindera: {}", e))?;
+        let mut cursor = 0;
+        let mut result = Vec::new();
+        for token in tokens.iter_mut() {
+            let surface = token.surface.to_string();
+            if surface.is_empty() {
+                continue;
+            }
+            let Some(relative_start) = text[cursor..].find(&surface) else {
+                continue;
+            };
+            let start_byte = cursor + relative_start;
+            let end_byte = start_byte + surface.len();
+            cursor = end_byte;
+
+            let details = token.details();
+            let pos = details.first().copied().unwrap_or("");
+            if pos.starts_with("記号") || surface.chars().all(char::is_whitespace) {
+                continue;
+            }
+            let lemma = details.get(6).copied().unwrap_or("*");
+            if lemma.is_empty() || lemma == "*" {
+                continue;
+            }
+            let reading = details
+                .get(7)
+                .copied()
+                .filter(|value| !value.is_empty() && *value != "*")
+                .map(katakana_to_hiragana)
+                .unwrap_or_default();
+            result.push(crate::models::LexicalToken {
+                surface,
+                lemma: lemma.to_string(),
+                reading,
+                start_byte,
+                end_byte,
+            });
+        }
+        Ok(result)
+    })
+}
+
 pub fn katakana_to_hiragana(katakana: &str) -> String {
     let mut hiragana = String::new();
     for c in katakana.chars() {

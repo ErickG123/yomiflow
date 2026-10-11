@@ -1,0 +1,54 @@
+<main class="min-h-full bg-zinc-950 px-5 py-8 text-zinc-100 md:px-10">
+  <div class="mx-auto max-w-6xl space-y-7">
+    <header>
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">{{ 'readability.eyebrow' | transloco }}</p>
+      <h1 class="mt-2 text-3xl font-semibold tracking-tight">{{ 'readability.title' | transloco }}</h1>
+      <p class="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-400">{{ 'readability.subtitle' | transloco }}</p>
+    </header>
+
+    <section class="analyzer-panel space-y-4">
+      <label for="readability-text" class="block text-sm font-medium text-zinc-200">{{ 'readability.input_label' | transloco }}</label>
+      <textarea id="readability-text" class="readability-input" rows="8" maxlength="50000" [ngModel]="text()" (ngModelChange)="updateText($event)" [placeholder]="'readability.placeholder' | transloco"></textarea>
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <span class="text-xs text-zinc-500">{{ text().length }} / 50000</span>
+        <button class="analyze-button" type="button" [disabled]="!text().trim() || isAnalyzing()" (click)="analyze()">
+          @if (isAnalyzing()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-chart-pie"></i> }
+          {{ (isAnalyzing() ? 'readability.analyzing' : 'readability.analyze') | transloco }}
+        </button>
+      </div>
+    </section>
+
+    @if (errorMessage(); as error) {
+      <div class="rounded-xl border border-rose-900/70 bg-rose-950/30 px-4 py-3 text-sm text-rose-300">{{ error }}</div>
+    }
+
+    @if (analysis(); as result) {
+      <section class="grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)]">
+        <div class="analyzer-panel flex flex-col items-center justify-center text-center">
+          <div class="readability-chart" role="img" [attr.aria-label]="('readability.chart_label' | transloco) + ': ' + result.comprehensionPercentage + '%'">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <circle class="chart-track" cx="50" cy="50" r="42"></circle>
+              <circle class="chart-progress" cx="50" cy="50" r="42" [attr.stroke-dasharray]="ringDasharray()"></circle>
+            </svg>
+            <div class="chart-value"><strong>{{ result.comprehensionPercentage | number: '1.0-1' }}%</strong><span>{{ 'readability.understood' | transloco }}</span></div>
+          </div>
+          <p class="mt-5 text-sm text-zinc-300">{{ result.knownWords }} / {{ result.totalWords }} {{ 'readability.known_words' | transloco }}</p>
+          <p class="mt-1 text-xs text-zinc-500">{{ 'readability.srs_retention' | transloco }}: {{ result.averageRetentionPercentage | number: '1.0-1' }}%</p>
+          <p class="mt-1 text-xs text-zinc-500">{{ result.unknownWords.length }} {{ 'readability.unknown_count' | transloco }}</p>
+        </div>
+
+        <div class="analyzer-panel min-w-0">
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 class="font-medium">{{ 'readability.annotated_text' | transloco }}</h2>
+            <span class="legend"><span class="legend-swatch"></span>{{ 'readability.unknown_legend' | transloco }}</span>
+          </div>
+          <p class="annotated-text" lang="ja">
+            @for (segment of segments(); track $index) {
+              @if (segment.isUnknown) { <mark class="unknown-word">{{ segment.text }}</mark> } @else { {{ segment.text }} }
+            }
+          </p>
+        </div>
+      </section>
+    }
+  </div>
+</main>

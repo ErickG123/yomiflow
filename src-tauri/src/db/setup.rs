@@ -68,6 +68,7 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             FOREIGN KEY(entry_id) REFERENCES dictionary_entries(id) ON DELETE CASCADE,
             FOREIGN KEY(deck_id) REFERENCES decks(id) ON DELETE CASCADE
         );
+        CREATE INDEX IF NOT EXISTS idx_cards_entry_id ON cards(entry_id);
 
         CREATE TABLE IF NOT EXISTS card_tags (
             card_id TEXT NOT NULL,
@@ -84,6 +85,7 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             review_datetime INTEGER NOT NULL,
             FOREIGN KEY(card_id) REFERENCES cards(id) ON DELETE CASCADE
         );
+        CREATE INDEX IF NOT EXISTS idx_review_logs_card_id ON review_logs(card_id);
 
         CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
