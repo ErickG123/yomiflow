@@ -90,6 +90,11 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             value TEXT
         );
 
+        CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        );
+
         CREATE TABLE IF NOT EXISTS kanjis (
             character TEXT PRIMARY KEY,
             onyomi TEXT,
@@ -126,7 +131,11 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             title TEXT,
             content_md TEXT,
             created_at DATETIME,
-            updated_at DATETIME
+            updated_at DATETIME,
+            deck_id TEXT,
+            next_review_date DATETIME,
+            srs_stage INTEGER DEFAULT 0,
+            FOREIGN KEY(deck_id) REFERENCES decks(id) ON DELETE SET NULL
         );
         ",
     )?;
@@ -137,6 +146,15 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
     let _ = conn.execute("ALTER TABLE cards ADD COLUMN deck_id TEXT", []);
     let _ = conn.execute("ALTER TABLE tags ADD COLUMN name TEXT", []);
     let _ = conn.execute("ALTER TABLE tags ADD COLUMN color TEXT", []);
+    let _ = conn.execute("ALTER TABLE notebook_entries ADD COLUMN deck_id TEXT", []);
+    let _ = conn.execute(
+        "ALTER TABLE notebook_entries ADD COLUMN next_review_date DATETIME",
+        [],
+    );
+    let _ = conn.execute(
+        "ALTER TABLE notebook_entries ADD COLUMN srs_stage INTEGER DEFAULT 0",
+        [],
+    );
 
     // Seed default deck if none exists
     let deck_count: i64 = conn
@@ -336,5 +354,20 @@ mod tests {
             )
             .unwrap();
         assert_eq!(card_after, 0);
+
+        // Verify app_settings table exists and persists onboarding status
+        conn.execute(
+            "INSERT OR REPLACE INTO app_settings (key, value) VALUES ('onboarding_completed', 'true')",
+            [],
+        )
+        .unwrap();
+        let onboarding_val: String = conn
+            .query_row(
+                "SELECT value FROM app_settings WHERE key = 'onboarding_completed'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(onboarding_val, "true");
     }
 }

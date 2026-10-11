@@ -3,104 +3,23 @@
 }
 
 .tiptap-editor-surface {
-  min-height: 380px;
   outline: none;
   font-size: 1rem;
   line-height: 1.75;
   color: #f4f4f5;
 
-  p {
-    margin-bottom: 0.85rem;
-  }
+  ::ng-deep .ProseMirror {
+    min-height: calc(100vh - 200px);
+    outline: none;
+    cursor: text;
 
-  p.is-editor-empty:first-child::before {
-    color: #52525b;
-    content: attr(data-placeholder);
-    float: left;
-    height: 0;
-    pointer-events: none;
-  }
-
-  h1 {
-    font-size: 1.75rem;
-    font-weight: 800;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    color: #ffffff;
-    letter-spacing: -0.025em;
-  }
-
-  h2 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-top: 1.25rem;
-    margin-bottom: 0.5rem;
-    color: #e4e4e7;
-    letter-spacing: -0.02em;
-  }
-
-  h3 {
-    font-size: 1.15rem;
-    font-weight: 600;
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
-    color: #d4d4d8;
-  }
-
-  ul {
-    list-style-type: disc;
-    padding-left: 1.5rem;
-    margin-bottom: 1rem;
-
-    li {
-      margin-bottom: 0.25rem;
-    }
-  }
-
-  ol {
-    list-style-type: decimal;
-    padding-left: 1.5rem;
-    margin-bottom: 1rem;
-
-    li {
-      margin-bottom: 0.25rem;
-    }
-  }
-
-  blockquote {
-    border-left: 3px solid #6366f1;
-    padding-left: 1rem;
-    margin-left: 0;
-    margin-right: 0;
-    margin-bottom: 1rem;
-    color: #a1a1aa;
-    font-style: italic;
-  }
-
-  table {
-    border-collapse: collapse;
-    margin: 1rem 0;
-    width: 100%;
-    table-layout: fixed;
-    border: 1px solid #27272a;
-    border-radius: 0.5rem;
-    overflow: hidden;
-
-    td,
-    th {
-      min-width: 1em;
-      border: 1px solid #27272a;
-      padding: 0.5rem 0.75rem;
-      vertical-align: top;
-      box-sizing: border-box;
-      position: relative;
-    }
-
-    th {
-      font-weight: 600;
-      text-align: left;
-      background-color: #18181b;
-      color: #e4e4e7;
+    p.is-editor-empty:first-child::before {
+      color: #52525b;
+      content: attr(data-placeholder);
+      float: left;
+      height: 0;
+      pointer-events: none;
     }
   }
 }
+

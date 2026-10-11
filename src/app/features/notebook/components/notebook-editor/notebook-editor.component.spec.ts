@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NotebookEditorComponent } from './notebook-editor.component'
 import { NotebookService } from '../../services/notebook.service'
+import { DeckService } from '../../../decks/services/deck.service'
 import { signal, EnvironmentInjector, createEnvironmentInjector, runInInjectionContext } from '@angular/core'
 import { MorphologicalToken, NotebookEntry } from '../../models/notebook.model'
 
@@ -14,6 +15,10 @@ describe('NotebookEditorComponent', () => {
     loadEntries: ReturnType<typeof vi.fn>
     saveEntry: ReturnType<typeof vi.fn>
     formatTokensToHtml: ReturnType<typeof vi.fn>
+  }
+  let deckServiceMock: {
+    decks: ReturnType<typeof signal<any[]>>
+    loadDecks: ReturnType<typeof vi.fn>
   }
 
   const mockTokens: MorphologicalToken[] = [
@@ -38,7 +43,15 @@ describe('NotebookEditorComponent', () => {
       ),
     }
 
-    const providers = [{ provide: NotebookService, useValue: notebookServiceMock }]
+    deckServiceMock = {
+      decks: signal([]),
+      loadDecks: vi.fn().mockResolvedValue([]),
+    }
+
+    const providers = [
+      { provide: NotebookService, useValue: notebookServiceMock },
+      { provide: DeckService, useValue: deckServiceMock },
+    ]
     const parentInjector = {
       get: (token: unknown) => providers.find((p) => p.provide === token)?.useValue ?? null,
     } as unknown as EnvironmentInjector
@@ -53,6 +66,7 @@ describe('NotebookEditorComponent', () => {
     await component.ngOnInit()
 
     expect(notebookServiceMock.loadEntries).toHaveBeenCalledTimes(1)
+    expect(deckServiceMock.loadDecks).toHaveBeenCalledTimes(1)
     expect(component.markdownContent()).toContain('私は学生です')
     expect(component.tokens().length).toBe(4)
   })
@@ -66,7 +80,10 @@ describe('NotebookEditorComponent', () => {
     expect(notebookServiceMock.saveEntry).toHaveBeenCalledWith(
       component.currentId(),
       'Capítulo 1: Introdução',
-      '# Lição 1\nこれはペンです。'
+      '# Lição 1\nこれはペンです。',
+      null,
+      null,
+      0
     )
   })
 

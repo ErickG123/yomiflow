@@ -63,24 +63,44 @@
 
   <!-- Right Side: Editor & Realtime Morphological Breakdown -->
   <main class="flex-1 flex flex-col gap-4">
-    <!-- Note Title Header -->
-    <div class="flex items-center justify-between gap-4">
+    <!-- Note Title Header & Deck Selector -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
       <input
         type="text"
         [value]="title()"
         (input)="onTitleChange($event)"
         [placeholder]="t('notebook.title_placeholder')"
-        class="bg-transparent text-2xl font-bold text-white focus:outline-none w-full placeholder-zinc-600"
+        class="bg-transparent text-2xl font-bold text-white focus:outline-none flex-1 placeholder-zinc-600"
       />
 
-      <button
-        type="button"
-        (click)="saveNote()"
-        class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs rounded-xl transition-all shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
-      >
-        <i class="pi pi-save text-xs"></i>
-        <span>{{ t('notebook.save_note') }}</span>
-      </button>
+      <div class="flex items-center gap-3 shrink-0">
+        <!-- Deck Linkage Dropdown -->
+        <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs">
+          <svg class="w-3.5 h-3.5 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          <select
+            [value]="selectedDeckId() ?? ''"
+            (change)="onDeckChange($event)"
+            class="bg-transparent text-zinc-300 focus:outline-none cursor-pointer max-w-40 truncate"
+            [title]="t('notebook.deck_label')"
+          >
+            <option value="" class="bg-zinc-900 text-zinc-400">{{ t('notebook.no_deck') }}</option>
+            @for (deck of deckService.decks(); track deck.id) {
+              <option [value]="deck.id" class="bg-zinc-900 text-zinc-100">{{ deck.name }}</option>
+            }
+          </select>
+        </div>
+
+        <button
+          type="button"
+          (click)="saveNote()"
+          class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs rounded-xl transition-all shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
+        >
+          <i class="pi pi-save text-xs"></i>
+          <span>{{ t('notebook.save_note') }}</span>
+        </button>
+      </div>
     </div>
 
     <!-- Main Editor Paper Canvas (Obsidian/Notion Style) -->
@@ -255,8 +275,52 @@
       </div>
 
       <!-- Borderless Infinite-Page Editor Surface (Obsidian feel) -->
-      <div class="p-6 md:p-8 flex-1 overflow-y-auto">
-        <div #editorElement class="tiptap-editor-surface text-base text-zinc-100"></div>
+      <div class="p-6 md:p-8 flex-1 overflow-y-auto relative">
+        <div #editorElement class="tiptap-editor-surface prose prose-invert max-w-none text-base text-zinc-100"></div>
+
+        <!-- Floating Slash Command (/) Menu (Notion Style) -->
+        @if (showSlashMenu()) {
+          <div
+            class="absolute z-50 w-72 bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-2xl py-2 overflow-hidden backdrop-blur-md"
+            [style.top.px]="slashMenuPosition().top"
+            [style.left.px]="slashMenuPosition().left"
+          >
+            <div class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-zinc-500 border-b border-zinc-800">
+              Blocos & Comandos (/)
+            </div>
+            <div class="max-h-60 overflow-y-auto py-1">
+              @for (item of slashMenuItems; track item.id; let idx = $index) {
+                <button
+                  type="button"
+                  (click)="item.action()"
+                  class="w-full text-left px-3 py-2 flex items-center gap-3 transition-colors cursor-pointer text-xs"
+                  [class.bg-indigo-600]="selectedSlashIndex() === idx"
+                  [class.text-white]="selectedSlashIndex() === idx"
+                  [class.text-zinc-300]="selectedSlashIndex() !== idx"
+                  [class.hover:bg-zinc-800]="selectedSlashIndex() !== idx"
+                >
+                  <div
+                    class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border text-xs font-bold"
+                    [class.border-indigo-400]="selectedSlashIndex() === idx"
+                    [class.bg-indigo-500]="selectedSlashIndex() === idx"
+                    [class.border-zinc-700]="selectedSlashIndex() !== idx"
+                    [class.bg-zinc-800]="selectedSlashIndex() !== idx"
+                  >
+                    @if (item.icon.startsWith('pi ')) {
+                      <i [class]="item.icon + ' text-xs'"></i>
+                    } @else {
+                      <span>{{ item.icon }}</span>
+                    }
+                  </div>
+                  <div class="truncate">
+                    <div class="font-semibold">{{ t(item.titleKey) }}</div>
+                    <div class="text-[10px] text-zinc-400 truncate">{{ t(item.descKey) }}</div>
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+        }
       </div>
 
       <!-- Toast Feedback Popup -->

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router'
 
-import { setupGuard } from './core/guards/setup.guard'
+import { onboardingGuard } from './core/guards/onboarding.guard'
 
 export const routes: Routes = [
   {
@@ -17,7 +17,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    canActivate: [setupGuard],
+    canActivate: [onboardingGuard],
     loadComponent: () =>
       import('./features/dashboard/components/dashboard-main/dashboard-main.component').then(
         (m) => m.DashboardMainComponent
@@ -25,6 +25,7 @@ export const routes: Routes = [
   },
   {
     path: 'dictionary',
+    canActivate: [onboardingGuard],
     loadComponent: () =>
       import('./features/dictionary/components/dictionary-search/dictionary-search.component').then(
         (m) => m.DictionarySearchComponent
@@ -32,6 +33,7 @@ export const routes: Routes = [
   },
   {
     path: 'study',
+    canActivate: [onboardingGuard],
     loadComponent: () =>
       import('./features/srs/components/study-session/study-session.component').then(
         (m) => m.StudySessionComponent
@@ -39,6 +41,7 @@ export const routes: Routes = [
   },
   {
     path: 'manga',
+    canActivate: [onboardingGuard],
     loadComponent: () =>
       import('./features/reader/components/manga-library/manga-library.component').then(
         (m) => m.MangaLibraryComponent
@@ -46,6 +49,7 @@ export const routes: Routes = [
   },
   {
     path: 'reader',
+    canActivate: [onboardingGuard],
     loadComponent: () =>
       import('./features/reader/components/manga-reader/manga-reader.component').then(
         (m) => m.MangaReaderComponent
@@ -53,6 +57,7 @@ export const routes: Routes = [
   },
   {
     path: 'video',
+    canActivate: [onboardingGuard],
     loadComponent: () =>
       import('./features/video/components/video-player/video-player.component').then(
         (m) => m.VideoPlayerComponent
@@ -60,6 +65,7 @@ export const routes: Routes = [
   },
   {
     path: 'notebook',
+    canActivate: [onboardingGuard],
     loadComponent: () =>
       import('./features/notebook/components/notebook-editor/notebook-editor.component').then(
         (m) => m.NotebookEditorComponent
@@ -67,6 +73,7 @@ export const routes: Routes = [
   },
   {
     path: 'decks',
+    canActivate: [onboardingGuard],
     loadComponent: () =>
       import('./features/decks/components/deck-list/deck-list.component').then(
         (m) => m.DeckListComponent
@@ -74,6 +81,7 @@ export const routes: Routes = [
   },
   {
     path: 'decks/:id/settings',
+    canActivate: [onboardingGuard],
     loadComponent: () =>
       import('./features/decks/components/deck-settings/deck-settings.component').then(
         (m) => m.DeckSettingsComponent
@@ -81,6 +89,7 @@ export const routes: Routes = [
   },
   {
     path: 'calendar',
+    canActivate: [onboardingGuard],
     loadComponent: () =>
       import('./features/calendar/components/calendar-view/calendar-view.component').then(
         (m) => m.CalendarViewComponent

@@ -176,6 +176,8 @@
     "particle": "Particle",
     "noun": "Noun",
     "title_placeholder": "Note title...",
+    "deck_label": "Link to Deck (SRS):",
+    "no_deck": "No deck (Notes only)",
     "save_note": "Save Note",
     "mode_auto": "Auto Mode",
     "mode_manual": "Manual Mode",
@@ -198,6 +200,22 @@
       "ordered_list": "Numbered List",
       "blockquote": "Quote (Blockquote)",
       "table": "Insert Table (3x3)"
+    },
+    "slash_menu": {
+      "h1_title": "Heading 1",
+      "h1_desc": "Large section heading",
+      "h2_title": "Heading 2",
+      "h2_desc": "Medium section heading",
+      "h3_title": "Heading 3",
+      "h3_desc": "Small section heading",
+      "bullet_title": "Bullet List",
+      "bullet_desc": "Create a bulleted list",
+      "ordered_title": "Numbered List",
+      "ordered_desc": "Create a numbered list",
+      "quote_title": "Quote",
+      "quote_desc": "Capture a block quote",
+      "table_title": "Table",
+      "table_desc": "Insert a 3x3 table grid"
     }
   },
   "calendar": {
@@ -269,6 +287,7 @@
     "settings_subtitle": "Edit deck name and parameters"
   },
   "onboarding": {
+    "back": "Back",
     "steps": {
       "welcome": "1. Welcome",
       "ai_model": "2. AI Model (OCR)",

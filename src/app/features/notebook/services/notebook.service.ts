@@ -36,16 +36,39 @@ export class NotebookService {
     }
   }
 
-  async saveEntry(id: string, title: string, contentMd: string): Promise<void> {
+  async saveEntry(
+    id: string,
+    title: string,
+    contentMd: string,
+    deckId?: string | null,
+    nextReviewDate?: number | null,
+    srsStage?: number | null
+  ): Promise<void> {
     try {
       await invoke('save_notebook_entry', {
         id,
         title,
         contentMd,
+        deckId: deckId ?? null,
+        nextReviewDate: nextReviewDate ?? null,
+        srsStage: srsStage ?? 0,
       })
       await this.loadEntries()
     } catch (err) {
       console.error('Erro ao guardar nota do caderno:', err)
+      throw err
+    }
+  }
+
+  async linkToDeck(id: string, deckId: string | null): Promise<void> {
+    try {
+      await invoke('link_notebook_to_deck', {
+        id,
+        deckId,
+      })
+      await this.loadEntries()
+    } catch (err) {
+      console.error('Erro ao vincular nota ao baralho:', err)
       throw err
     }
   }

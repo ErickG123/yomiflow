@@ -14,4 +14,7 @@ pub struct NotebookEntry {
     pub content_md: String,
     pub created_at: String,
     pub updated_at: String,
+    pub deck_id: Option<String>,
+    pub next_review_date: Option<i64>,
+    pub srs_stage: Option<i32>,
 }

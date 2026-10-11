@@ -1,29 +1,115 @@
 <div *transloco="let t" class="onboarding-container bg-zinc-950 text-zinc-100 flex flex-col justify-center items-center p-6 select-none">
   <!-- Progress Header (Enhanced Stepper) -->
-  <div class="w-full max-w-2xl mb-10">
-    <div class="flex items-center justify-between text-sm md:text-base font-semibold text-zinc-400 uppercase tracking-wide gap-4 md:gap-8 mb-3">
-      <span class="flex items-center gap-2 transition-colors duration-300" [class.text-emerald-400]="step() === 'welcome' || step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'">
-        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" [class.bg-emerald-500]="step() === 'welcome' || step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'" [class.text-zinc-950]="step() === 'welcome' || step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'" [class.bg-zinc-800]="step() !== 'welcome' && step() !== 'ai-model' && step() !== 'kanjivg' && step() !== 'completed'" [class.text-zinc-400]="step() !== 'welcome' && step() !== 'ai-model' && step() !== 'kanjivg' && step() !== 'completed'">1</span>
-        {{ t('onboarding.steps.welcome') }}
-      </span>
-      <span class="flex items-center gap-2 transition-colors duration-300" [class.text-emerald-400]="step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'">
-        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" [class.bg-emerald-500]="step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'" [class.text-zinc-950]="step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'" [class.bg-zinc-800]="step() === 'welcome'" [class.text-zinc-400]="step() === 'welcome'">2</span>
-        {{ t('onboarding.steps.ai_model') }}
-      </span>
-      <span class="flex items-center gap-2 transition-colors duration-300" [class.text-emerald-400]="step() === 'kanjivg' || step() === 'completed'">
-        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" [class.bg-emerald-500]="step() === 'kanjivg' || step() === 'completed'" [class.text-zinc-950]="step() === 'kanjivg' || step() === 'completed'" [class.bg-zinc-800]="step() === 'welcome' || step() === 'ai-model'" [class.text-zinc-400]="step() === 'welcome' || step() === 'ai-model'">3</span>
-        {{ t('onboarding.steps.kanjivg') }}
-      </span>
-      <span class="flex items-center gap-2 transition-colors duration-300" [class.text-emerald-400]="step() === 'completed'">
-        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" [class.bg-emerald-500]="step() === 'completed'" [class.text-zinc-950]="step() === 'completed'" [class.bg-zinc-800]="step() !== 'completed'" [class.text-zinc-400]="step() !== 'completed'">4</span>
-        {{ t('onboarding.steps.completed') }}
-      </span>
-    </div>
-    <div class="h-2.5 w-full bg-zinc-800/80 rounded-full overflow-hidden p-0.5 shadow-inner">
+  <div class="w-full max-w-4xl mx-auto px-4 mb-10">
+    <div class="flex items-center justify-between w-full">
+      <!-- Step 1: Welcome -->
+      <div class="flex items-center gap-3 shrink-0">
+        <div
+          class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300"
+          [class.bg-emerald-500]="step() === 'welcome' || step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'"
+          [class.text-zinc-950]="step() === 'welcome' || step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'"
+          [class.bg-zinc-800]="step() !== 'welcome' && step() !== 'ai-model' && step() !== 'kanjivg' && step() !== 'completed'"
+          [class.text-zinc-400]="step() !== 'welcome' && step() !== 'ai-model' && step() !== 'kanjivg' && step() !== 'completed'"
+        >
+          1
+        </div>
+        <div class="flex flex-col">
+          <span
+            class="text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors duration-300"
+            [class.text-emerald-400]="step() === 'welcome' || step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'"
+            [class.text-zinc-400]="step() !== 'welcome' && step() !== 'ai-model' && step() !== 'kanjivg' && step() !== 'completed'"
+          >
+            {{ t('onboarding.steps.welcome') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Connector Line 1 -> 2 -->
       <div
-        class="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out shadow-sm shadow-emerald-500/50"
-        [style.width.%]="progressPercentage()"
+        class="flex-1 h-1 mx-3 sm:mx-4 rounded-full transition-colors duration-500"
+        [class.bg-emerald-500]="step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'"
+        [class.bg-zinc-800]="step() === 'welcome'"
       ></div>
+
+      <!-- Step 2: AI Model -->
+      <div class="flex items-center gap-3 shrink-0">
+        <div
+          class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300"
+          [class.bg-emerald-500]="step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'"
+          [class.text-zinc-950]="step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'"
+          [class.bg-zinc-800]="step() === 'welcome'"
+          [class.text-zinc-400]="step() === 'welcome'"
+        >
+          2
+        </div>
+        <div class="flex flex-col">
+          <span
+            class="text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors duration-300"
+            [class.text-emerald-400]="step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'"
+            [class.text-zinc-400]="step() === 'welcome'"
+          >
+            {{ t('onboarding.steps.ai_model') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Connector Line 2 -> 3 -->
+      <div
+        class="flex-1 h-1 mx-3 sm:mx-4 rounded-full transition-colors duration-500"
+        [class.bg-emerald-500]="step() === 'kanjivg' || step() === 'completed'"
+        [class.bg-zinc-800]="step() === 'welcome' || step() === 'ai-model'"
+      ></div>
+
+      <!-- Step 3: KanjiVG -->
+      <div class="flex items-center gap-3 shrink-0">
+        <div
+          class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300"
+          [class.bg-emerald-500]="step() === 'kanjivg' || step() === 'completed'"
+          [class.text-zinc-950]="step() === 'kanjivg' || step() === 'completed'"
+          [class.bg-zinc-800]="step() === 'welcome' || step() === 'ai-model'"
+          [class.text-zinc-400]="step() === 'welcome' || step() === 'ai-model'"
+        >
+          3
+        </div>
+        <div class="flex flex-col">
+          <span
+            class="text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors duration-300"
+            [class.text-emerald-400]="step() === 'kanjivg' || step() === 'completed'"
+            [class.text-zinc-400]="step() === 'welcome' || step() === 'ai-model'"
+          >
+            {{ t('onboarding.steps.kanjivg') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Connector Line 3 -> 4 -->
+      <div
+        class="flex-1 h-1 mx-3 sm:mx-4 rounded-full transition-colors duration-500"
+        [class.bg-emerald-500]="step() === 'completed'"
+        [class.bg-zinc-800]="step() !== 'completed'"
+      ></div>
+
+      <!-- Step 4: Completed -->
+      <div class="flex items-center gap-3 shrink-0">
+        <div
+          class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300"
+          [class.bg-emerald-500]="step() === 'completed'"
+          [class.text-zinc-950]="step() === 'completed'"
+          [class.bg-zinc-800]="step() !== 'completed'"
+          [class.text-zinc-400]="step() !== 'completed'"
+        >
+          4
+        </div>
+        <div class="flex flex-col">
+          <span
+            class="text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors duration-300"
+            [class.text-emerald-400]="step() === 'completed'"
+            [class.text-zinc-400]="step() !== 'completed'"
+          >
+            {{ t('onboarding.steps.completed') }}
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -133,14 +219,29 @@
         }
 
         <div class="flex items-center justify-between pt-4 border-t border-zinc-800/80">
-          <button
-            type="button"
-            (click)="skipAiModel()"
-            class="text-xs text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
-            [disabled]="aiService.isDownloading()"
-          >
-            {{ t('onboarding.ai_step.skip_btn') }}
-          </button>
+          <div class="flex items-center gap-4">
+            @if (currentStep() > 1) {
+              <button
+                type="button"
+                (click)="previousStep()"
+                class="text-zinc-400 hover:text-white flex items-center gap-2 text-xs transition-colors cursor-pointer"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>{{ t('onboarding.back') }}</span>
+              </button>
+            }
+
+            <button
+              type="button"
+              (click)="skipAiModel()"
+              class="text-xs text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+              [disabled]="aiService.isDownloading()"
+            >
+              {{ t('onboarding.ai_step.skip_btn') }}
+            </button>
+          </div>
 
           <div class="flex gap-3">
             @if (!isAiReady()) {
@@ -221,14 +322,29 @@
         }
 
         <div class="flex items-center justify-between pt-4 border-t border-zinc-800/80">
-          <button
-            type="button"
-            (click)="goToStep('completed')"
-            class="text-xs text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
-            [disabled]="isImporting()"
-          >
-            {{ t('onboarding.kanjivg_step.skip_btn') }}
-          </button>
+          <div class="flex items-center gap-4">
+            @if (currentStep() > 1) {
+              <button
+                type="button"
+                (click)="previousStep()"
+                class="text-zinc-400 hover:text-white flex items-center gap-2 text-xs transition-colors cursor-pointer"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>{{ t('onboarding.back') }}</span>
+              </button>
+            }
+
+            <button
+              type="button"
+              (click)="goToStep('completed')"
+              class="text-xs text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+              [disabled]="isImporting()"
+            >
+              {{ t('onboarding.kanjivg_step.skip_btn') }}
+            </button>
+          </div>
 
           <div class="flex gap-3">
             <button
@@ -274,11 +390,26 @@
           {{ t('onboarding.completed.description') }}
         </p>
 
-        <div class="pt-4">
+        <div class="pt-4 flex items-center justify-between w-full">
+          @if (currentStep() > 1) {
+            <button
+              type="button"
+              (click)="previousStep()"
+              class="text-zinc-400 hover:text-white flex items-center gap-2 text-xs transition-colors cursor-pointer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span>{{ t('onboarding.back') }}</span>
+            </button>
+          } @else {
+            <div></div>
+          }
+
           <button
             type="button"
             (click)="finishOnboarding()"
-            class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-xl transition-colors shadow-lg shadow-emerald-950/60 cursor-pointer"
+            class="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-xl transition-colors shadow-lg shadow-emerald-950/60 cursor-pointer"
           >
             {{ t('onboarding.completed.dashboard_btn') }}
           </button>

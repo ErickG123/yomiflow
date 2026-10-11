@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  HostListener,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -20,9 +21,18 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { Subject, Subscription } from 'rxjs'
 import { debounceTime } from 'rxjs/operators'
 import { NotebookService } from '../../services/notebook.service'
+import { DeckService } from '../../../decks/services/deck.service'
 import { AnalysisMode, MorphologicalToken, NotebookEntry } from '../../models/notebook.model'
 import { SafeHtmlPipe } from '../../../../shared/pipes/safe-html.pipe'
 import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
+
+export interface SlashMenuItem {
+  id: string
+  titleKey: string
+  descKey: string
+  icon: string
+  action: () => void
+}
 
 @Component({
   selector: 'app-notebook-editor',
@@ -34,6 +44,7 @@ import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
 })
 export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly notebookService = inject(NotebookService)
+  readonly deckService = inject(DeckService)
   private readonly translocoService = inject(TranslocoService, { optional: true })
 
   @ViewChild('editorElement') editorElementRef?: ElementRef<HTMLDivElement>
@@ -41,11 +52,69 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
 
   readonly analysisMode = signal<AnalysisMode>('manual')
   readonly currentId = signal<string>(crypto.randomUUID())
+  readonly selectedDeckId = signal<string | null>(null)
   readonly title = signal<string>('Minha Anotação')
   readonly markdownContent = signal<string>('私は学生です。\n毎日日本語を勉強します。')
   readonly tokens = signal<MorphologicalToken[]>([])
   readonly toastMessage = signal<string | null>(null)
   private toastTimeout: ReturnType<typeof setTimeout> | null = null
+
+  // Slash Commands state
+  readonly showSlashMenu = signal<boolean>(false)
+  readonly slashMenuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 })
+  readonly selectedSlashIndex = signal<number>(0)
+
+  readonly slashMenuItems: SlashMenuItem[] = [
+    {
+      id: 'h1',
+      titleKey: 'notebook.slash_menu.h1_title',
+      descKey: 'notebook.slash_menu.h1_desc',
+      icon: 'H1',
+      action: () => this.executeSlashAction(() => this.toggleHeading(1)),
+    },
+    {
+      id: 'h2',
+      titleKey: 'notebook.slash_menu.h2_title',
+      descKey: 'notebook.slash_menu.h2_desc',
+      icon: 'H2',
+      action: () => this.executeSlashAction(() => this.toggleHeading(2)),
+    },
+    {
+      id: 'h3',
+      titleKey: 'notebook.slash_menu.h3_title',
+      descKey: 'notebook.slash_menu.h3_desc',
+      icon: 'H3',
+      action: () => this.executeSlashAction(() => this.toggleHeading(3)),
+    },
+    {
+      id: 'bullet',
+      titleKey: 'notebook.slash_menu.bullet_title',
+      descKey: 'notebook.slash_menu.bullet_desc',
+      icon: 'pi pi-list',
+      action: () => this.executeSlashAction(() => this.toggleBulletList()),
+    },
+    {
+      id: 'ordered',
+      titleKey: 'notebook.slash_menu.ordered_title',
+      descKey: 'notebook.slash_menu.ordered_desc',
+      icon: 'pi pi-sort-numeric-down',
+      action: () => this.executeSlashAction(() => this.toggleOrderedList()),
+    },
+    {
+      id: 'quote',
+      titleKey: 'notebook.slash_menu.quote_title',
+      descKey: 'notebook.slash_menu.quote_desc',
+      icon: 'pi pi-comment',
+      action: () => this.executeSlashAction(() => this.toggleBlockquote()),
+    },
+    {
+      id: 'table',
+      titleKey: 'notebook.slash_menu.table_title',
+      descKey: 'notebook.slash_menu.table_desc',
+      icon: 'pi pi-table',
+      action: () => this.executeSlashAction(() => this.insertTable()),
+    },
+  ]
 
   readonly formattedHtml = computed<string>(() => {
     return this.notebookService.formatTokensToHtml(this.tokens())
@@ -59,7 +128,10 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   private isApplyingGrammarHighlight = false
 
   async ngOnInit(): Promise<void> {
-    await this.notebookService.loadEntries()
+    await Promise.all([
+      this.notebookService.loadEntries(),
+      this.deckService.loadDecks(),
+    ])
     await this.triggerAnalysis(this.markdownContent())
 
     // Configure RxJS debounceTime(750) for auto mode
@@ -90,7 +162,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
         TableHeader,
         TableCell,
         Placeholder.configure({
-          placeholder: 'Comece a digitar em japonês ou anote seus estudos (estilo Obsidian)...',
+          placeholder: 'Digite \'/\' para blocos e comandos, ou anote em japonês...',
         }),
       ],
       content: `<p>${this.markdownContent().replace(/\n/g, '</p><p>')}</p>`,
@@ -98,6 +170,8 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
         if (this.isApplyingGrammarHighlight) {
           return
         }
+
+        this.checkSlashCommand(editor)
 
         const text = editor.getText()
         this.markdownContent.set(text)
@@ -202,15 +276,73 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     }
   }
 
+  checkSlashCommand(editor: Editor): void {
+    const { from } = editor.state.selection
+    const textBefore = editor.state.doc.textBetween(Math.max(0, from - 1), from, '\n', '\0')
+    if (textBefore === '/') {
+      const coords = editor.view.coordsAtPos(from)
+      const containerRect = this.editorElementRef?.nativeElement.getBoundingClientRect()
+      if (containerRect) {
+        this.slashMenuPosition.set({
+          top: coords.bottom - containerRect.top + 8,
+          left: Math.max(0, coords.left - containerRect.left),
+        })
+      }
+      this.selectedSlashIndex.set(0)
+      this.showSlashMenu.set(true)
+    } else if (this.showSlashMenu()) {
+      this.showSlashMenu.set(false)
+    }
+  }
+
+  executeSlashAction(action: () => void): void {
+    if (!this.editor) return
+    const { from } = this.editor.state.selection
+    // Remove the trailing '/' character typed by the user
+    const textBefore = this.editor.state.doc.textBetween(Math.max(0, from - 1), from, '\n', '\0')
+    if (textBefore === '/') {
+      this.editor.commands.deleteRange({ from: from - 1, to: from })
+    }
+    this.showSlashMenu.set(false)
+    action()
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyDown(event: KeyboardEvent): void {
+    if (!this.showSlashMenu()) return
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      this.selectedSlashIndex.update((i) => (i + 1) % this.slashMenuItems.length)
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      this.selectedSlashIndex.update((i) => (i - 1 + this.slashMenuItems.length) % this.slashMenuItems.length)
+    } else if (event.key === 'Enter') {
+      event.preventDefault()
+      const item = this.slashMenuItems[this.selectedSlashIndex()]
+      if (item) {
+        item.action()
+      }
+    } else if (event.key === 'Escape') {
+      this.showSlashMenu.set(false)
+    }
+  }
+
   onTitleChange(event: Event): void {
     const val = (event.target as HTMLInputElement).value
     this.title.set(val)
+  }
+
+  onDeckChange(event: Event): void {
+    const val = (event.target as HTMLSelectElement).value
+    this.selectedDeckId.set(val ? val : null)
   }
 
   selectEntry(entry: NotebookEntry): void {
     this.currentId.set(entry.id)
     this.title.set(entry.title)
     this.markdownContent.set(entry.content_md)
+    this.selectedDeckId.set(entry.deck_id ?? null)
 
     if (this.editor) {
       this.editor.commands.setContent(`<p>${entry.content_md.replace(/\n/g, '</p><p>')}</p>`)
@@ -224,6 +356,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     const defaultTitle = this.translocoService?.translate('notebook.default_new_note') ?? 'Nova Anotação'
     this.title.set(defaultTitle)
     this.markdownContent.set('')
+    this.selectedDeckId.set(null)
 
     if (this.editor) {
       this.editor.commands.setContent('<p></p>')
@@ -251,8 +384,14 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
       await this.notebookService.saveEntry(
         this.currentId(),
         currentTitle || untitled,
-        currentText
+        currentText,
+        this.selectedDeckId(),
+        null,
+        0
       )
+
+      // Guarantee immediate reactive reload of notes list
+      await this.notebookService.loadEntries()
 
       const successMsg = this.translocoService?.translate('notebook.save_success') ?? 'Nota guardada com sucesso!'
       this.showToast(successMsg)

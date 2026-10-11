@@ -176,6 +176,8 @@
     "particle": "Partícula",
     "noun": "Sustantivo",
     "title_placeholder": "Título de la nota...",
+    "deck_label": "Vincular a Mazo (SRS):",
+    "no_deck": "Sin mazo (Solo notas)",
     "save_note": "Guardar Nota",
     "mode_auto": "Modo Auto",
     "mode_manual": "Modo Manual",
@@ -198,6 +200,22 @@
       "ordered_list": "Lista Numerada",
       "blockquote": "Cita (Blockquote)",
       "table": "Insertar Tabla (3x3)"
+    },
+    "slash_menu": {
+      "h1_title": "Título 1",
+      "h1_desc": "Encabezado de sección grande",
+      "h2_title": "Título 2",
+      "h2_desc": "Subtítulo de sección media",
+      "h3_title": "Título 3",
+      "h3_desc": "Subtítulo pequeño",
+      "bullet_title": "Lista con Viñetas",
+      "bullet_desc": "Crear una lista de viñetas simple",
+      "ordered_title": "Lista Numerada",
+      "ordered_desc": "Crear una lista con numeración secuencial",
+      "quote_title": "Cita",
+      "quote_desc": "Capturar una cita o bloque destacado",
+      "table_title": "Tabla",
+      "table_desc": "Insertar una cuadrícula de tabla 3x3"
     }
   },
   "calendar": {
@@ -269,6 +287,7 @@
     "settings_subtitle": "Edita el nombre y parámetros de este mazo"
   },
   "onboarding": {
+    "back": "Volver",
     "steps": {
       "welcome": "1. Bienvenido",
       "ai_model": "2. Modelo IA (OCR)",

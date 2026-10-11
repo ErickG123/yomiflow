@@ -13,6 +13,9 @@ pub fn save_notebook_entry(
     id: String,
     title: String,
     content_md: String,
+    deck_id: Option<String>,
+    next_review_date: Option<i64>,
+    srs_stage: Option<i32>,
     state: State<'_, AppState>,
 ) -> Result<(), String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
@@ -22,10 +25,37 @@ pub fn save_notebook_entry(
         .as_secs();
 
     conn.execute(
-        "INSERT INTO notebook_entries (id, title, content_md, created_at, updated_at) 
-         VALUES (?1, ?2, ?3, ?4, ?4)
-         ON CONFLICT(id) DO UPDATE SET title = ?2, content_md = ?3, updated_at = ?4",
-        params![id, title, content_md, now.to_string()],
+        "INSERT INTO notebook_entries (id, title, content_md, created_at, updated_at, deck_id, next_review_date, srs_stage) 
+         VALUES (?1, ?2, ?3, ?4, ?4, ?5, ?6, ?7)
+         ON CONFLICT(id) DO UPDATE SET 
+            title = ?2, 
+            content_md = ?3, 
+            updated_at = ?4,
+            deck_id = COALESCE(?5, notebook_entries.deck_id),
+            next_review_date = COALESCE(?6, notebook_entries.next_review_date),
+            srs_stage = COALESCE(?7, notebook_entries.srs_stage)",
+        params![id, title, content_md, now.to_string(), deck_id, next_review_date, srs_stage.unwrap_or(0)],
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn link_notebook_to_deck(
+    id: String,
+    deck_id: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
+    conn.execute(
+        "UPDATE notebook_entries SET deck_id = ?1, updated_at = ?2 WHERE id = ?3",
+        params![deck_id, now.to_string(), id],
     )
     .map_err(|e| e.to_string())?;
 
@@ -37,7 +67,7 @@ pub fn get_notebook_entries(state: State<'_, AppState>) -> Result<Vec<NotebookEn
     let conn = state.db.lock().map_err(|e| e.to_string())?;
 
     let mut stmt = conn
-        .prepare("SELECT id, title, content_md, created_at, updated_at FROM notebook_entries ORDER BY updated_at DESC")
+        .prepare("SELECT id, title, content_md, created_at, updated_at, deck_id, next_review_date, srs_stage FROM notebook_entries ORDER BY updated_at DESC")
         .map_err(|e| e.to_string())?;
 
     let entries = stmt
@@ -48,6 +78,9 @@ pub fn get_notebook_entries(state: State<'_, AppState>) -> Result<Vec<NotebookEn
                 content_md: row.get(2)?,
                 created_at: row.get(3)?,
                 updated_at: row.get(4)?,
+                deck_id: row.get(5)?,
+                next_review_date: row.get(6)?,
+                srs_stage: row.get(7)?,
             })
         })
         .map_err(|e| e.to_string())?

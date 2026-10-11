@@ -176,6 +176,8 @@
     "particle": "Partícula",
     "noun": "Substantivo",
     "title_placeholder": "Título da anotação...",
+    "deck_label": "Vincular ao Baralho (SRS):",
+    "no_deck": "Nenhum baralho (Apenas Notas)",
     "save_note": "Guardar Nota",
     "mode_auto": "Modo Auto",
     "mode_manual": "Modo Manual",
@@ -198,6 +200,22 @@
       "ordered_list": "Lista Numerada",
       "blockquote": "Citação (Blockquote)",
       "table": "Inserir Tabela (3x3)"
+    },
+    "slash_menu": {
+      "h1_title": "Título 1",
+      "h1_desc": "Título de secção grande",
+      "h2_title": "Título 2",
+      "h2_desc": "Subtítulo de secção média",
+      "h3_title": "Título 3",
+      "h3_desc": "Subtítulo pequeno",
+      "bullet_title": "Lista com Marcadores",
+      "bullet_desc": "Criar lista de tópicos simples",
+      "ordered_title": "Lista Numerada",
+      "ordered_desc": "Criar lista com numeração sequencial",
+      "quote_title": "Citação",
+      "quote_desc": "Capturar uma citação ou bloco destacado",
+      "table_title": "Tabela",
+      "table_desc": "Inserir tabela com grelha 3x3"
     }
   },
   "calendar": {
@@ -269,6 +287,7 @@
     "settings_subtitle": "Edite o nome e parâmetros deste baralho"
   },
   "onboarding": {
+    "back": "Voltar",
     "steps": {
       "welcome": "1. Bem-vindo",
       "ai_model": "2. Modelo IA (OCR)",

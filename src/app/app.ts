@@ -1,8 +1,10 @@
 import { Component, OnInit, inject, signal } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
+import { filter } from 'rxjs'
 import { TranslocoDirective, TranslocoPipe, TranslocoService } from '@ngneat/transloco'
 import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification'
+import { invoke } from '@tauri-apps/api/core'
 import { SettingsService } from './core/services/settings.service'
 import { NotificationState, SettingsTab } from './core/models/settings.model'
 import { SchedulerService } from './core/services/scheduler.service'
@@ -19,6 +21,7 @@ import { CloudSyncComponent } from './features/settings/components/cloud-sync/cl
   styleUrl: './app.scss',
 })
 export class App implements OnInit {
+  private readonly router = inject(Router, { optional: true })
   private readonly translocoService = inject(TranslocoService, { optional: true })
   readonly settingsService = inject(SettingsService)
   readonly schedulerService = inject(SchedulerService)
@@ -30,6 +33,7 @@ export class App implements OnInit {
   readonly settingsActiveTab = signal<SettingsTab>('general')
   readonly isAiReady = signal<boolean>(false)
   readonly settingsToast = signal<string | null>(null)
+  readonly isOnboardingRoute = signal<boolean>(false)
 
   readonly availableLangs = [
     { id: 'pt', label: 'PT' },
@@ -40,6 +44,16 @@ export class App implements OnInit {
   readonly activeLang = signal<string>(this.translocoService?.getActiveLang() ?? 'en')
 
   async ngOnInit(): Promise<void> {
+    if (this.router) {
+      this.isOnboardingRoute.set(this.router.url.includes('/onboarding'))
+      this.router.events
+        .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+        .subscribe((event) => {
+          this.isOnboardingRoute.set(event.urlAfterRedirects.includes('/onboarding'))
+        })
+    }
+
+    await this.checkInitialOnboarding()
     await this.appState.initTauriListeners()
     await this.refreshAiStatus()
 
@@ -61,6 +75,27 @@ export class App implements OnInit {
       }
     } catch (error) {
       console.warn('Tauri notification plugin not active or supported in this context:', error)
+    }
+  }
+
+  private async checkInitialOnboarding(): Promise<void> {
+    if (!this.router) return
+
+    try {
+      const isCompleted = await invoke<boolean>('has_completed_onboarding')
+      const currentUrl = this.router.url
+
+      if (isCompleted) {
+        if (currentUrl === '/' || currentUrl === '/onboarding') {
+          await this.router.navigate(['/dashboard'])
+        }
+      } else {
+        if (currentUrl !== '/onboarding') {
+          await this.router.navigate(['/onboarding'])
+        }
+      }
+    } catch (err) {
+      console.warn('Could not check onboarding status on startup:', err)
     }
   }
 

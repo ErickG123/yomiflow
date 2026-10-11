@@ -90,3 +90,28 @@ pub fn check_onboarding_needed(state: State<'_, AppState>) -> Result<bool, Strin
     // If dictionary has only seed data (<= 3) and no kanji strokes imported yet
     Ok(dictionary_count <= 3 || kanji_strokes_count == 0)
 }
+
+#[tauri::command]
+pub fn complete_onboarding(state: State<'_, AppState>) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+    conn.execute(
+        "INSERT OR REPLACE INTO app_settings (key, value) VALUES ('onboarding_completed', 'true')",
+        [],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn has_completed_onboarding(state: State<'_, AppState>) -> Result<bool, String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+    let completed: Option<String> = conn
+        .query_row(
+            "SELECT value FROM app_settings WHERE key = 'onboarding_completed'",
+            [],
+            |row| row.get(0),
+        )
+        .ok();
+
+    Ok(completed.as_deref() == Some("true"))
+}

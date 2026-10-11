@@ -16,11 +16,22 @@ pub fn get_review_forecast(
 
     let mut stmt = conn
         .prepare(
-            "SELECT 
-                DATE(datetime(due_date, 'unixepoch', 'localtime')) as forecast_date, 
-                COUNT(*) as count 
-             FROM cards 
-             WHERE DATE(datetime(due_date, 'unixepoch', 'localtime')) BETWEEN ?1 AND ?2
+            "SELECT forecast_date, SUM(count) as total_count FROM (
+                SELECT 
+                    DATE(datetime(due_date, 'unixepoch', 'localtime')) as forecast_date, 
+                    COUNT(*) as count 
+                FROM cards 
+                WHERE DATE(datetime(due_date, 'unixepoch', 'localtime')) BETWEEN ?1 AND ?2
+                GROUP BY forecast_date 
+                UNION ALL 
+                SELECT 
+                    DATE(datetime(next_review_date, 'unixepoch', 'localtime')) as forecast_date, 
+                    COUNT(*) as count 
+                FROM notebook_entries 
+                WHERE next_review_date IS NOT NULL 
+                  AND DATE(datetime(next_review_date, 'unixepoch', 'localtime')) BETWEEN ?1 AND ?2
+                GROUP BY forecast_date
+             )
              GROUP BY forecast_date 
              ORDER BY forecast_date ASC",
         )

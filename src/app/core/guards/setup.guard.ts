@@ -6,8 +6,8 @@ export const setupGuard: CanActivateFn = async () => {
   const router = inject(Router)
 
   try {
-    const isNeeded = await invoke<boolean>('check_onboarding_needed')
-    if (isNeeded) {
+    const isCompleted = await invoke<boolean>('has_completed_onboarding')
+    if (!isCompleted) {
       return router.createUrlTree(['/onboarding'])
     }
     return true

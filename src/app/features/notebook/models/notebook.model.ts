@@ -10,6 +10,9 @@ export interface NotebookEntry {
   content_md: string
   created_at: string
   updated_at: string
+  deck_id?: string | null
+  next_review_date?: number | null
+  srs_stage?: number | null
 }
 
 export type AnalysisMode = 'auto' | 'manual'

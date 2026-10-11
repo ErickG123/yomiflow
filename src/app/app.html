@@ -1,104 +1,106 @@
-<header class="w-full bg-zinc-950/80 backdrop-blur border-b border-zinc-900 sticky top-0 z-40">
-  <div class="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-    <div class="flex items-center space-x-2">
-      <span class="text-lg font-bold text-zinc-100 tracking-tight">YomiFlow</span>
+@if (!isOnboardingRoute()) {
+  <header class="w-full bg-zinc-950/80 backdrop-blur border-b border-zinc-900 sticky top-0 z-40">
+    <div class="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <span class="text-lg font-bold text-zinc-100 tracking-tight">YomiFlow</span>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <nav class="flex items-center space-x-1">
+          <a
+            routerLink="/dashboard"
+            routerLinkActive="bg-zinc-800 text-zinc-100"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
+          >
+            <i class="pi pi-home text-xs"></i>
+            <span>{{ 'nav.dashboard' | transloco }}</span>
+          </a>
+
+          <a
+            routerLink="/dictionary"
+            routerLinkActive="bg-zinc-800 text-zinc-100"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
+          >
+            <i class="pi pi-search text-xs"></i>
+            <span>{{ 'nav.dictionary' | transloco }}</span>
+          </a>
+
+          <a
+            routerLink="/study"
+            routerLinkActive="bg-zinc-800 text-zinc-100"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
+          >
+            <i class="pi pi-bolt text-xs"></i>
+            <span>{{ 'nav.study' | transloco }}</span>
+          </a>
+
+          <a
+            routerLink="/manga"
+            routerLinkActive="bg-zinc-800 text-zinc-100"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
+          >
+            <i class="pi pi-book text-xs"></i>
+            <span>{{ 'nav.reader' | transloco }}</span>
+          </a>
+
+          <a
+            routerLink="/video"
+            routerLinkActive="bg-zinc-800 text-zinc-100"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
+          >
+            <i class="pi pi-video text-xs"></i>
+            <span>{{ 'nav.video' | transloco }}</span>
+          </a>
+
+          <a
+            routerLink="/notebook"
+            routerLinkActive="bg-zinc-800 text-zinc-100"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
+          >
+            <i class="pi pi-file-edit text-xs"></i>
+            <span>{{ 'nav.notebook' | transloco }}</span>
+          </a>
+
+          <a
+            routerLink="/decks"
+            routerLinkActive="bg-zinc-800 text-zinc-100"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
+          >
+            <i class="pi pi-clone text-xs"></i>
+            <span>{{ 'nav.decks' | transloco }}</span>
+          </a>
+
+          <a
+            routerLink="/calendar"
+            routerLinkActive="bg-zinc-800 text-zinc-100"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
+          >
+            <i class="pi pi-calendar text-xs"></i>
+            <span>{{ 'nav.calendar' | transloco }}</span>
+          </a>
+        </nav>
+
+        <button
+          type="button"
+          title="{{ 'settings.title' | transloco }}"
+          aria-label="{{ 'settings.title' | transloco }}"
+          (click)="toggleSettings()"
+          class="p-2 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors cursor-pointer"
+        >
+          <i class="pi pi-cog text-base"></i>
+        </button>
+      </div>
     </div>
-
-    <div class="flex items-center space-x-4">
-      <nav class="flex items-center space-x-1">
-        <a
-          routerLink="/dashboard"
-          routerLinkActive="bg-zinc-800 text-zinc-100"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-        >
-          <i class="pi pi-home text-xs"></i>
-          <span>{{ 'nav.dashboard' | transloco }}</span>
-        </a>
-
-        <a
-          routerLink="/dictionary"
-          routerLinkActive="bg-zinc-800 text-zinc-100"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-        >
-          <i class="pi pi-search text-xs"></i>
-          <span>{{ 'nav.dictionary' | transloco }}</span>
-        </a>
-
-        <a
-          routerLink="/study"
-          routerLinkActive="bg-zinc-800 text-zinc-100"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-        >
-          <i class="pi pi-bolt text-xs"></i>
-          <span>{{ 'nav.study' | transloco }}</span>
-        </a>
-
-        <a
-          routerLink="/manga"
-          routerLinkActive="bg-zinc-800 text-zinc-100"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-        >
-          <i class="pi pi-book text-xs"></i>
-          <span>{{ 'nav.reader' | transloco }}</span>
-        </a>
-
-        <a
-          routerLink="/video"
-          routerLinkActive="bg-zinc-800 text-zinc-100"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-        >
-          <i class="pi pi-video text-xs"></i>
-          <span>{{ 'nav.video' | transloco }}</span>
-        </a>
-
-        <a
-          routerLink="/notebook"
-          routerLinkActive="bg-zinc-800 text-zinc-100"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-        >
-          <i class="pi pi-file-edit text-xs"></i>
-          <span>{{ 'nav.notebook' | transloco }}</span>
-        </a>
-
-        <a
-          routerLink="/decks"
-          routerLinkActive="bg-zinc-800 text-zinc-100"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-        >
-          <i class="pi pi-clone text-xs"></i>
-          <span>{{ 'nav.decks' | transloco }}</span>
-        </a>
-
-        <a
-          routerLink="/calendar"
-          routerLinkActive="bg-zinc-800 text-zinc-100"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-        >
-          <i class="pi pi-calendar text-xs"></i>
-          <span>{{ 'nav.calendar' | transloco }}</span>
-        </a>
-      </nav>
-
-      <button
-        type="button"
-        title="{{ 'settings.title' | transloco }}"
-        aria-label="{{ 'settings.title' | transloco }}"
-        (click)="toggleSettings()"
-        class="p-2 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors cursor-pointer"
-      >
-        <i class="pi pi-cog text-base"></i>
-      </button>
-    </div>
-  </div>
-</header>
+  </header>
+}
 
 <main>
   <router-outlet />

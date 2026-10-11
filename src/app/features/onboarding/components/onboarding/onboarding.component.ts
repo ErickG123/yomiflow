@@ -44,6 +44,30 @@ export class OnboardingComponent implements OnInit {
     this.isAiReady.set(aiExists)
   }
 
+  readonly currentStep = computed<number>(() => {
+    switch (this.step()) {
+      case 'welcome':
+        return 1
+      case 'ai-model':
+        return 2
+      case 'kanjivg':
+        return 3
+      case 'completed':
+        return 4
+      default:
+        return 1
+    }
+  })
+
+  previousStep(): void {
+    const cur = this.currentStep()
+    if (cur > 1) {
+      if (cur === 2) this.step.set('welcome')
+      else if (cur === 3) this.step.set('ai-model')
+      else if (cur === 4) this.step.set('kanjivg')
+    }
+  }
+
   goToStep(target: OnboardingStep): void {
     this.step.set(target)
   }
@@ -91,7 +115,12 @@ export class OnboardingComponent implements OnInit {
     }
   }
 
-  finishOnboarding(): void {
-    this.router.navigate(['/dashboard'])
+  async finishOnboarding(): Promise<void> {
+    try {
+      await invoke('complete_onboarding')
+    } catch (err) {
+      console.error('Failed to mark onboarding as completed:', err)
+    }
+    await this.router.navigate(['/dashboard'])
   }
 }
