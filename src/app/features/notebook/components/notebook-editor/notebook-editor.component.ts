@@ -22,17 +22,9 @@ import { Subject, Subscription } from 'rxjs'
 import { debounceTime } from 'rxjs/operators'
 import { NotebookService } from '../../services/notebook.service'
 import { DeckService } from '../../../decks/services/deck.service'
-import { AnalysisMode, MorphologicalToken, NotebookEntry } from '../../models/notebook.model'
+import { AnalysisMode, MorphologicalToken, NotebookEntry, SlashMenuItem } from '../../models/notebook.model'
 import { SafeHtmlPipe } from '../../../../shared/pipes/safe-html.pipe'
 import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
-
-export interface SlashMenuItem {
-  id: string
-  titleKey: string
-  descKey: string
-  icon: string
-  action: () => void
-}
 
 @Component({
   selector: 'app-notebook-editor',

@@ -9,3 +9,8 @@ export interface NhkNewsItem {
   published_at: string | null
   audio_url: string | null
 }
+
+export interface TokenSpan {
+  text: string
+  isWord: boolean
+}

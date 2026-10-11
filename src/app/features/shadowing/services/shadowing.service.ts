@@ -1,31 +1,9 @@
 import { Injectable, signal } from '@angular/core'
-
-export interface ShadowingComparisonResult {
-  expectedText: string
-  transcribedText: string
-  accuracy: number
-  matchedWords: { word: string; isCorrect: boolean }[]
-}
-
-interface SpeechRecognitionInterface {
-  lang: string
-  continuous: boolean
-  interimResults: boolean
-  start: () => void
-  stop: () => void
-  onresult: ((event: { results: ArrayLike<{ [index: number]: { transcript: string } }> }) => void) | null
-  onerror: ((event: { error: string }) => void) | null
-  onend: (() => void) | null
-}
-
-interface SpeechRecognitionConstructor {
-  new (): SpeechRecognitionInterface
-}
-
-interface WindowWithSpeech {
-  SpeechRecognition?: SpeechRecognitionConstructor
-  webkitSpeechRecognition?: SpeechRecognitionConstructor
-}
+import {
+  ShadowingComparisonResult,
+  SpeechRecognitionInterface,
+  WindowWithSpeech,
+} from '../models/shadowing.model'
 
 @Injectable({
   providedIn: 'root',

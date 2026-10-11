@@ -537,5 +537,12 @@ mod tests {
             )
             .unwrap();
         assert_eq!(onboarding_val, "true");
+
+        // Verify foreign key constraint fails when card has an invalid/non-existent deck_id
+        let invalid_insert_res = conn.execute(
+            "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params!["card-invalid-deck", 1, "nonexistent-deck-id", 1700000000, 2.5, 0.3, 0, 0],
+        );
+        assert!(invalid_insert_res.is_err(), "Card with non-existent deck_id must violate foreign key constraint");
     }
 }

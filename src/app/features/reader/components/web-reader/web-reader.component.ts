@@ -9,17 +9,12 @@ import {
 import { CommonModule } from '@angular/common'
 import { TranslocoDirective } from '@ngneat/transloco'
 import { NewsService } from '../../services/news.service'
-import { NhkNewsItem } from '../../models/news.model'
+import { NhkNewsItem, TokenSpan } from '../../models/news.model'
 import { DictionaryService } from '../../../dictionary/services/dictionary.service'
 import { DictionaryEntry } from '../../../dictionary/models/dictionary.model'
 import { NotebookService } from '../../../notebook/services/notebook.service'
 import { PitchAccentComponent } from '../../../../shared/components/pitch-accent/pitch-accent.component'
 import { DeckService } from '../../../decks/services/deck.service'
-
-interface TokenSpan {
-  text: string
-  isWord: boolean
-}
 
 @Component({
   selector: 'app-web-reader',

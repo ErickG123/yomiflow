@@ -17,3 +17,11 @@ export interface NotebookEntry {
 
 export type AnalysisMode = 'auto' | 'manual'
 
+export interface SlashMenuItem {
+  id: string
+  titleKey: string
+  descKey: string
+  icon: string
+  action: () => void
+}
+

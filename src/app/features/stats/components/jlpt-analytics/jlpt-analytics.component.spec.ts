@@ -2,13 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { JlptAnalyticsComponent } from './jlpt-analytics.component'
 import { JlptStatsService } from '../../services/jlpt-stats.service'
 import { signal, EnvironmentInjector, createEnvironmentInjector, runInInjectionContext } from '@angular/core'
-import { JlptAnalyticsStats } from '../../models/jlpt-stats.model'
+import { Badge, JlptAnalyticsStats } from '../../models/jlpt-stats.model'
 
 describe('JlptAnalyticsComponent', () => {
   let component: JlptAnalyticsComponent
   let statsServiceMock: {
     stats: ReturnType<typeof signal<JlptAnalyticsStats | null>>
-    badges: ReturnType<typeof signal<any[]>>
+    badges: ReturnType<typeof signal<Badge[]>>
     isLoading: ReturnType<typeof signal<boolean>>
     error: ReturnType<typeof signal<string | null>>
     fetchJlptStats: ReturnType<typeof vi.fn>

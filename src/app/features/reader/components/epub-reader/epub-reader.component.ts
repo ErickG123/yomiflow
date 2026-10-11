@@ -18,22 +18,8 @@ import { DictionaryEntry } from '../../../dictionary/models/dictionary.model'
 import { PitchAccentComponent } from '../../../../shared/components/pitch-accent/pitch-accent.component'
 import { DeckService } from '../../../decks/services/deck.service'
 import { NotebookService } from '../../../notebook/services/notebook.service'
+import { EpubBookInstance, EpubRenditionInstance } from '../../models/epub.model'
 import ePub from 'epubjs'
-
-interface EpubBookInstance {
-  loaded?: { metadata?: Promise<{ title?: string }> }
-  renderTo?: (el: HTMLElement, opts: unknown) => unknown
-  destroy?: () => void
-}
-
-interface EpubRenditionInstance {
-  hooks?: { content?: { register?: (cb: (contents: { document: Document }) => Promise<void>) => void } }
-  display?: (target?: string) => Promise<void> | void
-  next?: () => void
-  prev?: () => void
-  on?: (event: string, callback: (...args: unknown[]) => void) => void
-  destroy?: () => void
-}
 
 @Component({
   selector: 'app-epub-reader',

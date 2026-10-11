@@ -1,5 +1,6 @@
 export type KanaAlphabetSelection = 'hiragana' | 'katakana' | 'both'
 export type KanaVariationCategory = 'base' | 'dakuon' | 'yoon'
+export type KanaTrainerStep = 'config' | 'quiz'
 
 export interface KanaCharacter {
   character: string

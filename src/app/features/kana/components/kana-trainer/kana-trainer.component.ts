@@ -16,9 +16,8 @@ import {
   KanaAlphabetSelection,
   KanaCharacter,
   KanaQuizConfig,
+  KanaTrainerStep,
 } from '../../models/kana.model'
-
-export type KanaTrainerStep = 'config' | 'quiz'
 
 @Component({
   selector: 'app-kana-trainer',

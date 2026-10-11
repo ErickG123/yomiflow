@@ -2,7 +2,7 @@ import { Injectable, signal, computed } from '@angular/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { invoke } from '@tauri-apps/api/core'
 
-export type PomodoroMode = 'work' | 'break'
+import { PomodoroMode } from '../models/zen-mode.model'
 
 @Injectable({
   providedIn: 'root',
