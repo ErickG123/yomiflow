@@ -309,4 +309,21 @@ Checklists rigorosos para validar o comportamento das novas ferramentas de alta 
   - No `/calendar`, verifique se o dia de criação recebe o ponto indicador âmbar pulsante (`bg-amber-400`).
   - Ao clicar no dia, o painel lateral deve listar a nota com título e prévia do Markdown, contendo o botão "Abrir Caderno".
 
+### 🧪 Cenário K: Auditoria de Segurança e DDD (Sanitização e Robustez de Domínio)
+- [ ] **Prevenção de XSS no Frontend (Caderno Híbrido & Dicionário):**
+  - No editor `/notebook` e em componentes com renderização de HTML dinâmico, injetar strings maliciosas com tags `<script>` e vetores de eventos (`<img src="x" onerror="window.__xss=true">`).
+  - *Critério de Sucesso:* O pipe `safeHtml` e o `DomSanitizer` (SecurityContext.HTML) devem desarmar e higienizar qualquer tag de script ou handler executável. `window.__xss` deve permanecer indefinido.
+- [ ] **Mitigação de DoS por Exaustão de Payload (IPC Lindera):**
+  - Tentar enviar via IPC um payload de texto com tamanho superior ao limite de segurança (`MAX_JAPANESE_TEXT_BYTES = 50.000` bytes).
+  - *Critério de Sucesso:* A camada de domínio `crate::domain::nlp::segment_and_tag_japanese` rejeita a requisição retornando `Err("Payload de texto excede o limite máximo permitido...")`, impedindo travamento de CPU ou esgotamento de memória no backend.
+- [ ] **Auditoria de Injeção SQL (Prepared Statements Rígidos):**
+  - Verificar todas as rotas SQLite em `src-tauri/src/commands/` (`nlp.rs`, `stats.rs`, `srs.rs`, `decks.rs`).
+  - *Critério de Sucesso:* Todas as queries utilizam prepared statements com parâmetros posicionais `?1`, `?2` via `rusqlite::params!`. Nenhuma consulta é montada por concatenação de strings com dados de entrada.
+- [ ] **Validação Estrita de Parâmetros de Domínio Temporal:**
+  - Enviar datas em formatos anômalos (ex: `"2026-13-45"`, strings com formatações inconsistentes) para os comandos de estatísticas e previsão.
+  - *Critério de Sucesso:* A camada `crate::domain::stats::validate_date_ymd` intercepta e rejeita os dados antes de atingirem o banco de dados.
+- [ ] **Isolamento de Domínio (DDD) e DRY:**
+  - Confirmar que as lógicas puras de tokenização morfológica e formatação temporal residem em `src-tauri/src/domain/`, sendo cobertas por testes unitários sem dependência direta do runtime do Tauri.
+
+
 

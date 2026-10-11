@@ -9,6 +9,9 @@ pub fn get_review_forecast(
     end_date: String,
     state: State<'_, AppState>,
 ) -> Result<Vec<HeatmapEntry>, String> {
+    crate::domain::stats::validate_date_ymd(&start_date)?;
+    crate::domain::stats::validate_date_ymd(&end_date)?;
+
     let conn = state.db.lock().map_err(|e| e.to_string())?;
 
     let mut stmt = conn
@@ -43,9 +46,8 @@ pub fn get_study_history(
     month: u32,
     state: State<'_, AppState>,
 ) -> Result<Vec<HeatmapEntry>, String> {
+    let prefix = crate::domain::stats::format_year_month(year, month)?;
     let conn = state.db.lock().map_err(|e| e.to_string())?;
-
-    let prefix = format!("{:04}-{:02}", year, month);
 
     let mut stmt = conn
         .prepare(

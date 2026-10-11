@@ -1,79 +1,11 @@
 use crate::AppState;
 use crate::models::{MorphologicalToken, NotebookEntry};
-use lindera::dictionary::load_dictionary;
-use lindera::mode::Mode;
-use lindera::segmenter::Segmenter;
 use rusqlite::params;
-use std::borrow::Cow;
-use std::sync::Mutex;
 use tauri::State;
-
-static SEGMENTER: Mutex<Option<Segmenter>> = Mutex::new(None);
-
-fn get_or_create_segmenter<F, R>(f: F) -> Result<R, String>
-where
-    F: FnOnce(&mut Segmenter) -> Result<R, String>,
-{
-    let mut lock = SEGMENTER
-        .lock()
-        .map_err(|e| format!("Falha no mutex do segmenter: {}", e))?;
-
-    if lock.is_none() {
-        let dictionary = load_dictionary("embedded://ipadic")
-            .map_err(|e| format!("Falha ao carregar dicionário IPADIC embutido do Lindera: {}", e))?;
-        *lock = Some(Segmenter::new(Mode::Normal, dictionary, None));
-    }
-
-    let segmenter = lock.as_mut().unwrap();
-    f(segmenter)
-}
-
-fn map_pos_category(pos_str: &str) -> String {
-    if pos_str.starts_with("動詞") {
-        "verb".to_string()
-    } else if pos_str.starts_with("助詞") {
-        "particle".to_string()
-    } else if pos_str.starts_with("名詞") {
-        "noun".to_string()
-    } else if pos_str.starts_with("形容詞") {
-        "adjective".to_string()
-    } else if pos_str.starts_with("助動詞") {
-        "auxiliary".to_string()
-    } else {
-        "other".to_string()
-    }
-}
 
 #[tauri::command]
 pub fn analyze_japanese_text(text: String) -> Result<Vec<MorphologicalToken>, String> {
-    if text.trim().is_empty() {
-        return Ok(Vec::new());
-    }
-
-    get_or_create_segmenter(|segmenter| {
-        let mut tokens = segmenter
-            .segment(Cow::Borrowed(&text))
-            .map_err(|e| format!("Erro durante análise morfológica Lindera: {}", e))?;
-
-        let mut result = Vec::new();
-        for token in tokens.iter_mut() {
-            let surface = token.surface.to_string();
-            let details = token.details();
-
-            let raw_pos = details.first().copied().unwrap_or("未知語");
-            let pos = map_pos_category(raw_pos);
-
-            let reading = details.get(7).map(|s| s.to_string());
-
-            result.push(MorphologicalToken {
-                surface,
-                reading,
-                pos,
-            });
-        }
-
-        Ok(result)
-    })
+    crate::domain::nlp::segment_and_tag_japanese(&text)
 }
 
 #[tauri::command]

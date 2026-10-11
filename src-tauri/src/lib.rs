@@ -1,5 +1,6 @@
 pub mod commands;
 pub mod db;
+pub mod domain;
 pub mod importer;
 pub mod models;
 

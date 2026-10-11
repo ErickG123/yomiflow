@@ -64,7 +64,14 @@ erDiagram
 - **Inserção Direta (Manga & Vídeo):**
   - Tanto o `MangaReaderComponent` quanto o `VideoPlayerComponent` contam com um seletor `<select>` de baralho no painel lateral do *Hover Dictionary*, persistindo o novo card diretamente no baralho selecionado pelo utilizador via `add_to_srs(entryId, deckId)`.
 
-## 4. Comandos de Validação e Testes
+## 4. Segurança e Prepared Statements
+- **Imunidade a SQL Injection (SQLi):**
+  - Todas as queries de busca, inserção e deleção em `src-tauri/src/commands/srs.rs` e `src-tauri/src/commands/decks.rs` utilizam estritamente *Prepared Statements* com marcadores posicionais `?1`, `?2` através da macro `rusqlite::params!`.
+  - Nenhuma string de entrada do usuário ou ID gerado dinamicamente é concatenada diretamente com o SQL.
+- **Validação de Entrada:**
+  - Parâmetros opcionais como `deck_id` são tratados como `Option<String>` e repassados por binding seguro nos prepared statements.
+
+## 5. Comandos de Validação e Testes
 - **Testes Backend (Rust):**
   ```bash
   cargo test --manifest-path src-tauri/Cargo.toml commands::srs

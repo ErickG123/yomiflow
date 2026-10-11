@@ -65,7 +65,18 @@ O backend (`lindera`) categoriza cada morfema de acordo com o dicionário IPADIC
     2. Invoca-se `editor.commands.setContent(wrappedHtml, { emitUpdate: false })` com a flag `emitUpdate: false` para evitar ciclos infinitos no listener de update.
     3. Restaura-se a seleção clampada ao novo tamanho do documento: `editor.commands.setTextSelection({ from: safeFrom, to: safeTo })`.
 
-## 6. Comandos de Validação e Testes
+## 6. Arquitetura de Domínio (DDD) e Segurança (SecOps)
+- **Isolamento de Domínio Puro (`src-tauri/src/domain/nlp.rs`):**
+  - A lógica pura de segmentação morfológica Lindera e classificação gramatical (`segment_and_tag_japanese`, `map_pos_category`) está desacoplada da camada Tauri.
+  - O comando `analyze_japanese_text` em `src-tauri/src/commands/nlp.rs` atua estritamente como adaptador de aplicação.
+- **Prevenção de DoS por Exaustão de Recursos (IPC Limit):**
+  - Constante de proteção: `MAX_JAPANESE_TEXT_BYTES = 50_000` bytes (~50 KB de texto em UTF-8).
+  - Previne exaustão de memória ou bloqueio prolongado da CPU se o utilizador colar textos de proporções astronômicas no editor.
+- **Prevenção de XSS (Cross-Site Scripting):**
+  - O pipe `SafeHtmlPipe` (`src/app/shared/pipes/safe-html.pipe.ts`) realiza sanitização estrita via `DomSanitizer.sanitize(SecurityContext.HTML, ...)`.
+  - Tags `<script>` e manipuladores de eventos (`onerror`, `onload`, `onclick`) são neutralizados antes de qualquer injeção no DOM do TipTap ou da interface.
+
+## 7. Comandos de Validação e Testes
 - **Backend (Rust):**
   ```bash
   cargo test commands::nlp
