@@ -40,6 +40,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'kana',
+    canActivate: [onboardingGuard],
+    loadComponent: () =>
+      import('./features/kana/components/kana-trainer/kana-trainer.component').then(
+        (m) => m.KanaTrainerComponent
+      ),
+  },
+  {
     path: 'manga',
     canActivate: [onboardingGuard],
     loadComponent: () =>

@@ -1,4 +1,5 @@
 pub mod dictionary;
+pub mod kana;
 pub mod kanji;
 pub mod media;
 pub mod nlp;
@@ -7,6 +8,7 @@ pub mod srs;
 pub mod system;
 
 pub use dictionary::*;
+pub use kana::*;
 pub use kanji::*;
 pub use media::*;
 pub use nlp::*;

@@ -149,7 +149,10 @@ pub fn run() {
             commands::srs::get_tags,
             commands::srs::create_tag,
             commands::stats::get_review_forecast,
-            commands::stats::get_study_history
+            commands::stats::get_study_history,
+            commands::kana::record_kana_attempt,
+            commands::kana::get_kana_mastery_list,
+            commands::kana::get_kana_proficiency_stats
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

@@ -1,110 +1,222 @@
-@if (!isOnboardingRoute()) {
-  <header class="w-full bg-zinc-950/80 backdrop-blur border-b border-zinc-900 sticky top-0 z-40">
-    <div class="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-      <div class="flex items-center space-x-2">
-        <span class="text-lg font-bold text-zinc-100 tracking-tight">YomiFlow</span>
-      </div>
+<div class="flex h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100">
+  @if (!isOnboardingRoute()) {
+    <!-- Collapsible Left Sidebar -->
+    <aside
+      class="bg-zinc-950 border-r border-zinc-800/80 flex flex-col justify-between shrink-0 transition-all duration-300 z-30 select-none"
+      [class.w-64]="!isSidebarCollapsed()"
+      [class.w-20]="isSidebarCollapsed()"
+    >
+      <div class="flex flex-col h-full overflow-hidden">
+        <!-- Brand & Collapse Toggle Header -->
+        <div class="h-14 border-b border-zinc-800/80 px-4 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-3 overflow-hidden" [class.justify-center]="isSidebarCollapsed()">
+            <div class="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold shrink-0">
+              <i class="pi pi-bolt text-sm"></i>
+            </div>
+            @if (!isSidebarCollapsed()) {
+              <span class="text-base font-bold tracking-tight text-white truncate">YomiFlow</span>
+            }
+          </div>
 
-      <div class="flex items-center space-x-4">
-        <nav class="flex items-center space-x-1">
-          <a
-            routerLink="/dashboard"
-            routerLinkActive="bg-zinc-800 text-zinc-100"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
+          <button
+            type="button"
+            (click)="toggleSidebar()"
+            class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer shrink-0"
+            [title]="isSidebarCollapsed() ? ('nav.expand_sidebar' | transloco) : ('nav.collapse_sidebar' | transloco)"
           >
-            <i class="pi pi-home text-xs"></i>
-            <span>{{ 'nav.dashboard' | transloco }}</span>
-          </a>
+            <i class="pi" [class.pi-chevron-left]="!isSidebarCollapsed()" [class.pi-chevron-right]="isSidebarCollapsed()"></i>
+          </button>
+        </div>
 
-          <a
-            routerLink="/dictionary"
-            routerLinkActive="bg-zinc-800 text-zinc-100"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-          >
-            <i class="pi pi-search text-xs"></i>
-            <span>{{ 'nav.dictionary' | transloco }}</span>
-          </a>
+        <!-- Grouped Navigation List -->
+        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+          <!-- Overview: Dashboard -->
+          <div class="space-y-1">
+            <a
+              routerLink="/dashboard"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="isSidebarCollapsed()"
+              [title]="'nav.dashboard' | transloco"
+            >
+              <i class="pi pi-home text-sm shrink-0"></i>
+              @if (!isSidebarCollapsed()) {
+                <span class="truncate">{{ 'nav.dashboard' | transloco }}</span>
+              }
+            </a>
+          </div>
 
-          <a
-            routerLink="/study"
-            routerLinkActive="bg-zinc-800 text-zinc-100"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-          >
-            <i class="pi pi-bolt text-xs"></i>
-            <span>{{ 'nav.study' | transloco }}</span>
-          </a>
+          <!-- Category 1: Consumo (Manga, Video) -->
+          <div class="space-y-1">
+            @if (!isSidebarCollapsed()) {
+              <div class="px-3 text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-1.5">
+                {{ 'nav.categories.consumption' | transloco }}
+              </div>
+            } @else {
+              <div class="h-px bg-zinc-800 my-2 mx-1"></div>
+            }
 
-          <a
-            routerLink="/manga"
-            routerLinkActive="bg-zinc-800 text-zinc-100"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-          >
-            <i class="pi pi-book text-xs"></i>
-            <span>{{ 'nav.reader' | transloco }}</span>
-          </a>
+            <a
+              routerLink="/manga"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="isSidebarCollapsed()"
+              [title]="'nav.reader' | transloco"
+            >
+              <i class="pi pi-book text-sm shrink-0"></i>
+              @if (!isSidebarCollapsed()) {
+                <span class="truncate">{{ 'nav.reader' | transloco }}</span>
+              }
+            </a>
 
-          <a
-            routerLink="/video"
-            routerLinkActive="bg-zinc-800 text-zinc-100"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-          >
-            <i class="pi pi-video text-xs"></i>
-            <span>{{ 'nav.video' | transloco }}</span>
-          </a>
+            <a
+              routerLink="/video"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="isSidebarCollapsed()"
+              [title]="'nav.video' | transloco"
+            >
+              <i class="pi pi-video text-sm shrink-0"></i>
+              @if (!isSidebarCollapsed()) {
+                <span class="truncate">{{ 'nav.video' | transloco }}</span>
+              }
+            </a>
+          </div>
 
-          <a
-            routerLink="/notebook"
-            routerLinkActive="bg-zinc-800 text-zinc-100"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-          >
-            <i class="pi pi-file-edit text-xs"></i>
-            <span>{{ 'nav.notebook' | transloco }}</span>
-          </a>
+          <!-- Category 2: Estudo Ativo (SRS, Kana Dojo, Caderno) -->
+          <div class="space-y-1">
+            @if (!isSidebarCollapsed()) {
+              <div class="px-3 text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-1.5">
+                {{ 'nav.categories.active_study' | transloco }}
+              </div>
+            } @else {
+              <div class="h-px bg-zinc-800 my-2 mx-1"></div>
+            }
 
-          <a
-            routerLink="/decks"
-            routerLinkActive="bg-zinc-800 text-zinc-100"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-          >
-            <i class="pi pi-clone text-xs"></i>
-            <span>{{ 'nav.decks' | transloco }}</span>
-          </a>
+            <a
+              routerLink="/study"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="isSidebarCollapsed()"
+              [title]="'nav.study' | transloco"
+            >
+              <i class="pi pi-bolt text-sm shrink-0"></i>
+              @if (!isSidebarCollapsed()) {
+                <span class="truncate">{{ 'nav.study' | transloco }}</span>
+              }
+            </a>
 
-          <a
-            routerLink="/calendar"
-            routerLinkActive="bg-zinc-800 text-zinc-100"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
-          >
-            <i class="pi pi-calendar text-xs"></i>
-            <span>{{ 'nav.calendar' | transloco }}</span>
-          </a>
+            <a
+              routerLink="/kana"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="isSidebarCollapsed()"
+              [title]="'nav.kana' | transloco"
+            >
+              <i class="pi pi-flag text-sm shrink-0"></i>
+              @if (!isSidebarCollapsed()) {
+                <span class="truncate">{{ 'nav.kana' | transloco }}</span>
+              }
+            </a>
+
+            <a
+              routerLink="/notebook"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="isSidebarCollapsed()"
+              [title]="'nav.notebook' | transloco"
+            >
+              <i class="pi pi-file-edit text-sm shrink-0"></i>
+              @if (!isSidebarCollapsed()) {
+                <span class="truncate">{{ 'nav.notebook' | transloco }}</span>
+              }
+            </a>
+
+            <a
+              routerLink="/decks"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="isSidebarCollapsed()"
+              [title]="'nav.decks' | transloco"
+            >
+              <i class="pi pi-clone text-sm shrink-0"></i>
+              @if (!isSidebarCollapsed()) {
+                <span class="truncate">{{ 'nav.decks' | transloco }}</span>
+              }
+            </a>
+          </div>
+
+          <!-- Category 3: Ferramentas (Dicionario, Calendario) -->
+          <div class="space-y-1">
+            @if (!isSidebarCollapsed()) {
+              <div class="px-3 text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-1.5">
+                {{ 'nav.categories.tools' | transloco }}
+              </div>
+            } @else {
+              <div class="h-px bg-zinc-800 my-2 mx-1"></div>
+            }
+
+            <a
+              routerLink="/dictionary"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="isSidebarCollapsed()"
+              [title]="'nav.dictionary' | transloco"
+            >
+              <i class="pi pi-search text-sm shrink-0"></i>
+              @if (!isSidebarCollapsed()) {
+                <span class="truncate">{{ 'nav.dictionary' | transloco }}</span>
+              }
+            </a>
+
+            <a
+              routerLink="/calendar"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="isSidebarCollapsed()"
+              [title]="'nav.calendar' | transloco"
+            >
+              <i class="pi pi-calendar text-sm shrink-0"></i>
+              @if (!isSidebarCollapsed()) {
+                <span class="truncate">{{ 'nav.calendar' | transloco }}</span>
+              }
+            </a>
+          </div>
         </nav>
 
-        <button
-          type="button"
-          title="{{ 'settings.title' | transloco }}"
-          aria-label="{{ 'settings.title' | transloco }}"
-          (click)="toggleSettings()"
-          class="p-2 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors cursor-pointer"
-        >
-          <i class="pi pi-cog text-base"></i>
-        </button>
+        <!-- Sidebar Footer: Settings -->
+        <div class="p-3 border-t border-zinc-800/80 shrink-0">
+          <button
+            type="button"
+            (click)="toggleSettings()"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors cursor-pointer"
+            [class.justify-center]="isSidebarCollapsed()"
+            [title]="'settings.title' | transloco"
+          >
+            <i class="pi pi-cog text-base shrink-0"></i>
+            @if (!isSidebarCollapsed()) {
+              <span class="truncate">{{ 'settings.title' | transloco }}</span>
+            }
+          </button>
+        </div>
       </div>
-    </div>
-  </header>
-}
+    </aside>
+  }
 
-<main>
-  <router-outlet />
-</main>
+  <!-- Main View Area -->
+  <main class="flex-1 overflow-y-auto bg-zinc-950">
+    <router-outlet />
+  </main>
+</div>
 
 @if (isSettingsOpen()) {
   <div class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs animate-fadeIn">

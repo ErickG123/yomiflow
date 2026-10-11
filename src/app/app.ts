@@ -34,6 +34,11 @@ export class App implements OnInit {
   readonly isAiReady = signal<boolean>(false)
   readonly settingsToast = signal<string | null>(null)
   readonly isOnboardingRoute = signal<boolean>(false)
+  readonly isSidebarCollapsed = signal<boolean>(false)
+
+  toggleSidebar(): void {
+    this.isSidebarCollapsed.update((v) => !v)
+  }
 
   readonly availableLangs = [
     { id: 'pt', label: 'PT' },

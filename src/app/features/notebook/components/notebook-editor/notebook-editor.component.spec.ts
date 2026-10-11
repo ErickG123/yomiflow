@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NotebookEditorComponent } from './notebook-editor.component'
 import { NotebookService } from '../../services/notebook.service'
 import { DeckService } from '../../../decks/services/deck.service'
+import { DeckWithCounts } from '../../../decks/models/deck.model'
 import { signal, EnvironmentInjector, createEnvironmentInjector, runInInjectionContext } from '@angular/core'
 import { MorphologicalToken, NotebookEntry } from '../../models/notebook.model'
 
@@ -17,7 +18,7 @@ describe('NotebookEditorComponent', () => {
     formatTokensToHtml: ReturnType<typeof vi.fn>
   }
   let deckServiceMock: {
-    decks: ReturnType<typeof signal<any[]>>
+    decks: ReturnType<typeof signal<DeckWithCounts[]>>
     loadDecks: ReturnType<typeof vi.fn>
   }
 

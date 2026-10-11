@@ -3,6 +3,7 @@ pub mod dictionary;
 pub mod drive_sync;
 pub mod grading;
 pub mod importer;
+pub mod kana;
 pub mod kanji;
 pub mod nlp;
 pub mod reader;

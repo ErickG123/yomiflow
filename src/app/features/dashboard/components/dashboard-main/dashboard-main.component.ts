@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router'
 import { TranslocoDirective } from '@ngneat/transloco'
 import { DashboardService } from '../../services/dashboard.service'
 import { DeckService } from '../../../decks/services/deck.service'
+import { KanaService } from '../../../kana/services/kana.service'
 import { HeatmapDay } from '../../models/dashboard-stats.model'
 
 @Component({
@@ -17,12 +18,14 @@ import { HeatmapDay } from '../../models/dashboard-stats.model'
 export class DashboardMainComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService)
   readonly deckService = inject(DeckService)
+  readonly kanaService = inject(KanaService)
   private readonly router = inject(Router)
 
   readonly stats = this.dashboardService.stats
   readonly heatmapData = this.dashboardService.heatmapData
   readonly streakStats = this.dashboardService.streakStats
   readonly isLoading = this.dashboardService.isLoading
+  readonly kanaProficiency = this.kanaService.proficiency
 
   // Generates the past 16 weeks (112 days) of heatmap squares
   readonly calendarDays = computed<HeatmapDay[]>(() => {
@@ -57,6 +60,7 @@ export class DashboardMainComponent implements OnInit {
     this.dashboardService.getHeatmap()
     this.dashboardService.getStreaks()
     void this.deckService.loadDecks()
+    void this.kanaService.loadProficiency()
   }
 
   startStudy(): void {

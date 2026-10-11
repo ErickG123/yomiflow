@@ -137,6 +137,16 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             srs_stage INTEGER DEFAULT 0,
             FOREIGN KEY(deck_id) REFERENCES decks(id) ON DELETE SET NULL
         );
+
+        CREATE TABLE IF NOT EXISTS kana_mastery (
+            character TEXT PRIMARY KEY,
+            romaji TEXT NOT NULL,
+            kana_type TEXT NOT NULL,
+            total_attempts INTEGER DEFAULT 0,
+            correct_attempts INTEGER DEFAULT 0,
+            accuracy_percentage REAL DEFAULT 0.0,
+            last_practiced INTEGER DEFAULT 0
+        );
         ",
     )?;
 
