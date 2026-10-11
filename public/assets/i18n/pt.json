@@ -135,7 +135,9 @@
     "back_to_dashboard": "Voltar ao Dashboard",
     "go_to_dictionary": "Adicionar Palavras",
     "writing_practice": "Prática de Escrita",
-    "listen_audio": "Ouvir Pronúncia (R / P)"
+    "listen_audio": "Ouvir Pronúncia (R / P)",
+    "card_types": {"vocabulary":"Vocabulário","image_occlusion":"Oclusão de Imagem","grammar":"Gramática","kana":"Kana Dojo"},
+    "interleaving": {"image_prompt":"Lembre-se do conteúdo oculto e revele cada área.","image_alt":"Cartão de oclusão de imagem","reveal_mask":"Revelar área","grammar_fallback":"Revisão de gramática","reveal_grammar":"Mostrar nota e exemplo","kana_prompt":"Digite a leitura em romaji","kana_placeholder":"Romaji","check":"Verificar","correct":"Correto!","answer":"Resposta:","next":"Próxima carta"}
   },
   "settings": {
     "title": "Configurações",

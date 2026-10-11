@@ -1,145 +1,108 @@
-<div class="min-h-[calc(100vh-4rem)] flex flex-col justify-between items-center p-8 bg-zinc-950 text-zinc-100">
+<div class="min-h-[calc(100vh-4rem)] flex flex-col items-center bg-zinc-950 p-6 text-zinc-100 md:p-8">
   @if (isLoading()) {
-    <div class="m-auto text-center space-y-3">
-      <i class="pi pi-spin pi-spinner text-4xl text-indigo-400"></i>
-      <p class="text-zinc-500 text-sm">{{ 'study.loading' | transloco }}</p>
-    </div>
+    <div class="m-auto space-y-3 text-center"><i class="pi pi-spin pi-spinner text-4xl text-indigo-400"></i><p class="text-sm text-zinc-500">{{ 'study.loading' | transloco }}</p></div>
   } @else if (currentCard(); as card) {
-    <!-- Top Progress Info -->
-    <div class="w-full max-w-xl flex justify-between items-center text-xs text-zinc-500 font-mono tracking-wider">
-      <span>{{ 'study.remaining' | transloco }}: {{ dueCards().length }}</span>
-      <span class="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
-        {{ card.state === 0 ? ('study.new' | transloco) : ('study.review' | transloco) }}
-      </span>
+    <div class="flex w-full max-w-4xl items-center justify-between text-xs font-mono tracking-wider text-zinc-500">
+      <span>{{ 'study.remaining' | transloco }}: {{ queue().length }}</span>
+      <span class="rounded border border-indigo-900/70 bg-indigo-950/40 px-2 py-1 text-indigo-300">{{ ('study.card_types.' + card.cardType) | transloco }}</span>
     </div>
 
-    <!-- Center Card View (Zen Mode) -->
-    <div class="flex-1 flex flex-col items-center justify-center text-center space-y-6 my-6 max-w-2xl w-full">
-      <div class="flex items-center justify-center space-x-4">
-        <div class="text-7xl md:text-8xl font-serif text-zinc-100 select-none tracking-wide">
-          {{ card.kanji || card.reading }}
-        </div>
-        <button
-          type="button"
-          (click)="speakCurrentWord()"
-          [title]="'study.listen_audio' | transloco"
-          class="p-3 rounded-full bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 hover:border-indigo-500/50 text-zinc-400 hover:text-indigo-400 transition-all cursor-pointer shadow-sm active:scale-90"
-        >
-          <i class="pi pi-volume-up text-xl"></i>
-        </button>
-      </div>
+    @if (answerError(); as error) { <div class="mt-4 w-full max-w-4xl rounded-lg border border-rose-900 bg-rose-950/30 p-3 text-sm text-rose-300">{{ error }}</div> }
 
-      @if (isFlipped()) {
-        <div class="space-y-6 animate-fadeIn w-full flex flex-col items-center">
-          <div class="space-y-3 flex flex-col items-center">
-            <!-- Visual Pitch Accent Curvature -->
-            <app-pitch-accent [reading]="card.reading" [pitch]="card.pitch"></app-pitch-accent>
-
-            <div class="text-xl text-zinc-300 max-w-lg mx-auto">
-              {{ card.meaning }}
+    <section class="flex w-full flex-1 flex-col items-center justify-center py-8">
+      @switch (card.cardType) {
+        @case ('vocabulary') {
+          <div class="flex w-full max-w-2xl flex-col items-center gap-7 text-center">
+            <div class="flex items-center gap-4">
+              <div class="select-none font-serif text-7xl tracking-wide text-zinc-100 md:text-8xl">{{ card.kanji || card.reading }}</div>
+              <button type="button" (click)="speakCurrentWord()" [title]="'study.listen_audio' | transloco" class="rounded-full border border-zinc-800 bg-zinc-900 p-3 text-zinc-400 hover:text-indigo-300"><i class="pi pi-volume-up text-xl"></i></button>
             </div>
+            @if (isFlipped()) {
+              <div class="flex w-full flex-col items-center gap-5 animate-fadeIn">
+                <app-pitch-accent [reading]="card.reading" [pitch]="card.pitch"></app-pitch-accent>
+                <p class="max-w-lg text-xl text-zinc-300">{{ card.meaning }}</p>
+                @if (hasKanji(card.kanji || card.reading)) {
+                  <div class="w-full space-y-3 pt-2">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500">{{ 'study.writing_practice' | transloco }}</p>
+                    <div class="flex flex-wrap justify-center gap-4">@for (kanji of getKanjiCharacters(card.kanji || card.reading); track kanji) { <app-kanji-pad [kanji]="kanji"></app-kanji-pad> }</div>
+                    <div class="space-y-3">@for (kanji of getKanjiCharacters(card.kanji || card.reading); track kanji) { <app-kanji-breakdown [kanji]="kanji"></app-kanji-breakdown> }</div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <button type="button" class="reveal-answer" (click)="flipCard()">{{ 'study.show_answer' | transloco }} <span class="text-xs text-zinc-500">{{ 'study.space' | transloco }}</span></button>
+            }
           </div>
-
-          <!-- Kanji Stroke Practice Pad (when card has Kanjis) -->
-          @if (hasKanji(card.kanji || card.reading)) {
-            <div class="flex flex-col items-center space-y-4 pt-2 w-full max-w-lg">
-              <span class="text-xs uppercase tracking-wider font-semibold text-zinc-500">
-                {{ 'study.writing_practice' | transloco }}
-              </span>
-              <div class="flex flex-wrap justify-center gap-4">
-                @for (k of getKanjiCharacters(card.kanji || card.reading); track k) {
-                  <app-kanji-pad [kanji]="k"></app-kanji-pad>
-                }
+        }
+        @case ('image_occlusion') {
+          @if (imageCard(); as visual) {
+            <div class="w-full max-w-4xl space-y-5">
+              <p class="text-center text-sm text-zinc-400">{{ 'study.interleaving.image_prompt' | transloco }}</p>
+              <div class="image-review-stage">
+                <img [src]="visual.imageData" [alt]="'study.interleaving.image_alt' | transloco" draggable="false" />
+                <svg class="image-mask-layer" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                  @for (mask of visual.masks; track $index) {
+                    @if (!revealedMasks().includes($index)) {
+                      <g role="button" tabindex="0" [attr.aria-label]="('study.interleaving.reveal_mask' | transloco) + ' ' + ($index + 1)" (click)="revealMask($index)" (keydown.enter)="revealMask($index)" (keydown.space)="revealMask($index); $event.preventDefault()">
+                        <rect class="visual-mask" [attr.x]="mask.x * 1000" [attr.y]="mask.y * 1000" [attr.width]="mask.width * 1000" [attr.height]="mask.height * 1000" />
+                        <text class="visual-mask-number" [attr.x]="(mask.x + mask.width / 2) * 1000" [attr.y]="(mask.y + mask.height / 2) * 1000">{{ $index + 1 }}</text>
+                      </g>
+                    }
+                  }
+                </svg>
               </div>
-
-              <!-- Kanji Decomposition & Mnemonic (WaniKani Style) -->
-              <div class="w-full space-y-3">
-                @for (k of getKanjiCharacters(card.kanji || card.reading); track k) {
-                  <app-kanji-breakdown [kanji]="k"></app-kanji-breakdown>
-                }
-              </div>
+              <p class="text-center text-xs text-zinc-500">{{ revealedMasks().length }} / {{ visual.masks.length }}</p>
+              @if (revealedMasks().length === visual.masks.length) { <ng-container *ngTemplateOutlet="ratings"></ng-container> }
             </div>
+          } @else {
+            <div class="m-auto text-center"><i class="pi pi-spin pi-spinner text-3xl text-indigo-400"></i><p class="mt-3 text-sm text-zinc-500">{{ 'study.loading' | transloco }}</p></div>
           }
-        </div>
+        }
+        @case ('grammar') {
+          <div class="w-full max-w-2xl space-y-7 text-center">
+            <h2 class="text-3xl font-semibold text-zinc-100">{{ card.title || ('study.interleaving.grammar_fallback' | transloco) }}</h2>
+            @if (isFlipped()) {
+              <div class="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6 text-left text-zinc-300"><pre class="whitespace-pre-wrap font-sans text-sm leading-relaxed">{{ card.contentMd }}</pre></div>
+              <ng-container *ngTemplateOutlet="ratings"></ng-container>
+            } @else {
+              <button type="button" class="reveal-answer" (click)="flipCard()">{{ 'study.interleaving.reveal_grammar' | transloco }}</button>
+            }
+          </div>
+        }
+        @case ('kana') {
+          <div class="w-full max-w-xl space-y-7 text-center">
+            <p class="text-xs uppercase tracking-[0.2em] text-zinc-500">{{ 'study.interleaving.kana_prompt' | transloco }}</p>
+            <div class="font-serif text-8xl text-zinc-100">{{ card.character }}</div>
+            @if (!kanaAnswered()) {
+              <form class="mx-auto flex max-w-sm gap-2" (ngSubmit)="submitKana()">
+                <input class="kana-answer-input" name="kana-answer" [ngModel]="kanaInput()" (ngModelChange)="kanaInput.set($event)" [placeholder]="'study.interleaving.kana_placeholder' | transloco" autocomplete="off" />
+                <button class="kana-submit" type="submit" [disabled]="isAnswering() || !kanaInput().trim()">{{ 'study.interleaving.check' | transloco }}</button>
+              </form>
+            } @else {
+              <div class="space-y-4">
+                <p class="text-lg" [class.text-emerald-300]="kanaCorrect()" [class.text-rose-300]="!kanaCorrect()">{{ (kanaCorrect() ? 'study.interleaving.correct' : 'study.interleaving.answer') | transloco }} <strong>{{ card.romaji }}</strong></p>
+                <button class="reveal-answer" type="button" (click)="advance()">{{ 'study.interleaving.next' | transloco }}</button>
+              </div>
+            }
+          </div>
+        }
       }
-    </div>
+    </section>
 
-    <!-- Bottom Actions -->
-    <div class="w-full max-w-xl pb-4">
-      @if (!isFlipped()) {
-        <button
-          type="button"
-          (click)="flipCard()"
-          class="w-full py-4 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-850 hover:border-zinc-700 transition-all font-medium cursor-pointer shadow-lg active:scale-[0.99]"
-        >
-          {{ 'study.show_answer' | transloco }} <span class="text-xs text-zinc-500 ml-1">{{ 'study.space' | transloco }}</span>
-        </button>
-      } @else {
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <button
-            type="button"
-            (click)="rateCard(1)"
-            class="py-3 px-2 rounded-xl bg-rose-950/40 border border-rose-900/60 text-rose-300 hover:bg-rose-900/60 hover:text-rose-100 transition-all cursor-pointer font-medium text-center shadow-md active:scale-95"
-          >
-            <div class="text-xs text-rose-400/80 mb-0.5 font-mono">1</div>
-            <div>{{ 'study.again' | transloco }}</div>
-          </button>
-
-          <button
-            type="button"
-            (click)="rateCard(2)"
-            class="py-3 px-2 rounded-xl bg-orange-950/40 border border-orange-900/60 text-orange-300 hover:bg-orange-900/60 hover:text-orange-100 transition-all cursor-pointer font-medium text-center shadow-md active:scale-95"
-          >
-            <div class="text-xs text-orange-400/80 mb-0.5 font-mono">2</div>
-            <div>{{ 'study.hard' | transloco }}</div>
-          </button>
-
-          <button
-            type="button"
-            (click)="rateCard(3)"
-            class="py-3 px-2 rounded-xl bg-emerald-950/40 border border-emerald-900/60 text-emerald-300 hover:bg-emerald-900/60 hover:text-emerald-100 transition-all cursor-pointer font-medium text-center shadow-md active:scale-95"
-          >
-            <div class="text-xs text-emerald-400/80 mb-0.5 font-mono">3</div>
-            <div>{{ 'study.good' | transloco }}</div>
-          </button>
-
-          <button
-            type="button"
-            (click)="rateCard(4)"
-            class="py-3 px-2 rounded-xl bg-cyan-950/40 border border-cyan-900/60 text-cyan-300 hover:bg-cyan-900/60 hover:text-cyan-100 transition-all cursor-pointer font-medium text-center shadow-md active:scale-95"
-          >
-            <div class="text-xs text-cyan-400/80 mb-0.5 font-mono">4</div>
-            <div>{{ 'study.easy' | transloco }}</div>
-          </button>
-        </div>
-      }
-    </div>
+    @if ((card.cardType === 'vocabulary' || card.cardType === 'grammar') && isFlipped()) { <ng-container *ngTemplateOutlet="ratings"></ng-container> }
+    <ng-template #ratings>
+      <div class="grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
+        <button type="button" (click)="rateCard(1)" [disabled]="isAnswering()" class="rating rating-again">1 · {{ 'study.again' | transloco }}</button>
+        <button type="button" (click)="rateCard(2)" [disabled]="isAnswering()" class="rating rating-hard">2 · {{ 'study.hard' | transloco }}</button>
+        <button type="button" (click)="rateCard(3)" [disabled]="isAnswering()" class="rating rating-good">3 · {{ 'study.good' | transloco }}</button>
+        <button type="button" (click)="rateCard(4)" [disabled]="isAnswering()" class="rating rating-easy">4 · {{ 'study.easy' | transloco }}</button>
+      </div>
+    </ng-template>
   } @else {
-    <!-- Empty State / All Caught Up -->
-    <div class="m-auto text-center space-y-6 max-w-md p-6 animate-fadeIn">
-      <div class="w-20 h-20 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto shadow-inner border border-emerald-500/20">
-        <i class="pi pi-check-circle text-4xl"></i>
-      </div>
-      <div class="space-y-2">
-        <h2 class="text-3xl font-bold tracking-tight text-zinc-100">{{ 'study.all_caught_up' | transloco }}</h2>
-        <p class="text-zinc-400 text-sm leading-relaxed">{{ 'study.no_cards_message' | transloco }}</p>
-      </div>
-      <div class="flex items-center justify-center gap-3 pt-2">
-        <a
-          routerLink="/dashboard"
-          class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 hover:border-zinc-700 transition-all font-medium text-sm shadow-md cursor-pointer active:scale-95"
-        >
-          <i class="pi pi-home text-xs"></i>
-          <span>{{ 'study.back_to_dashboard' | transloco }}</span>
-        </a>
-        <a
-          routerLink="/dictionary"
-          class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition-all font-medium text-sm shadow-md cursor-pointer active:scale-95"
-        >
-          <i class="pi pi-search text-xs"></i>
-          <span>{{ 'study.go_to_dictionary' | transloco }}</span>
-        </a>
-      </div>
+    <div class="m-auto max-w-md space-y-6 p-6 text-center">
+      <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-400"><i class="pi pi-check-circle text-4xl"></i></div>
+      <div class="space-y-2"><h2 class="text-3xl font-bold text-zinc-100">{{ 'study.all_caught_up' | transloco }}</h2><p class="text-sm leading-relaxed text-zinc-400">{{ 'study.no_cards_message' | transloco }}</p></div>
+      <div class="flex justify-center gap-3"><a routerLink="/dashboard" class="secondary-link"><i class="pi pi-home"></i>{{ 'study.back_to_dashboard' | transloco }}</a><a routerLink="/dictionary" class="primary-link"><i class="pi pi-search"></i>{{ 'study.go_to_dictionary' | transloco }}</a></div>
     </div>
   }
 </div>

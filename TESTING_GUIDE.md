@@ -315,6 +315,17 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
    ```
    Confirme que `image_path` aponta para um arquivo na pasta `image_occlusion` do diretório de dados local e que `masks_json` contém os dois retângulos com coordenadas entre 0 e 1. A avaliação deve aparecer em `image_occlusion_review_logs` para o cartão.
 
+### Cenário H: Prática Intercalada
+**Objetivo:** Confirmar que a fila reúne tipos variados e que o renderizador Angular troca a interface e limpa o estado ao avançar entre cartas diferentes.
+
+1. Garanta que existam revisões vencidas ou novas de vocabulário em pelo menos dois baralhos, um cartão de oclusão, uma nota de gramática vinculada a um baralho com revisão vencida e kana sem prática recente.
+2. Abra `/study`. A fila deve incluir cartas de todos os baralhos com revisões pendentes e os demais tipos disponíveis em uma sequência intercalada. Com pelo menos dois tipos disponíveis, tipos consecutivos devem alternar.
+3. Avance por **Good** ou **Next** até observar transições entre vocabulário, oclusão, gramática e Kana Dojo. A etiqueta de tipo deve acompanhar cada UI.
+4. Vire uma carta de vocabulário ou gramática, revele uma máscara de imagem e digite uma resposta parcial de kana. Avance para outro tipo a cada vez.
+   **Critério de aceite:** a nova carta começa no estado inicial próprio (resposta escondida, máscaras opacas ou campo kana limpo); nenhum estado da carta anterior pode aparecer na UI seguinte.
+5. Responda a cada tipo: avalie vocabulário, revele todas as máscaras e avalie a imagem, avalie a nota e responda kana. Confirme que vocabulário/imagem/notas são persistidos nos seus agendadores e kana incrementa `kana_mastery`.
+6. Reabra a sessão e confirme que os itens avaliados que ainda não venceram não retornam imediatamente à fila.
+
 ## 4. Pipeline de Integração Contínua (CI/CD Quality Gates)
 
 Antes de qualquer `git commit` e `git push`, a suíte de validação obrigatória abaixo deve ser executada sem erros:

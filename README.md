@@ -39,6 +39,10 @@ Mastering Japanese through immersion traditionally requires stitching together a
 - **SVG Mask Editor:** Upload or paste manga panels and draw multiple rectangular masks over speech bubbles, kanji, or other visual details.
 - **Native Visual Recall:** Review image cards with opaque regions and reveal each hidden area on click, then schedule recall with the existing FSRS ratings while keeping images and mask coordinates local.
 
+### Neuroscience-Based Interleaved SRS
+- **Dynamic Component Rendering:** One review queue interleaves vocabulary, image occlusion, grammar notes, and Kana Dojo prompts across decks; Angular switches the card UI by its explicit type and resets response state between cards.
+- **Interleaved Practice:** The Rust backend gathers pending reviews and shuffles the combined queue to encourage active recall across different study domains instead of repetitive single-deck sessions.
+
 ### Hybrid Linguistic Notebook
 - **Notion-Style TipTap Rich-Text:** Clean block and markdown editor with slash command capabilities, split-screen viewing, and autosaving.
 - **Real-Time Morphological NLP (Lindera):** Integrated Lindera tokenizer with IPADIC dictionary running on Rust. Parses Japanese text in real time to categorize and syntax-highlight parts of speech (verbs, particles, nouns, adjectives, and auxiliaries) with debounced IPC updates.

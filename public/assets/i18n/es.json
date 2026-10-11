@@ -135,7 +135,9 @@
     "back_to_dashboard": "Volver al Panel",
     "go_to_dictionary": "Añadir Palabras",
     "writing_practice": "Práctica de Escritura",
-    "listen_audio": "Escuchar Pronunciación (R / P)"
+    "listen_audio": "Escuchar Pronunciación (R / P)",
+    "card_types": {"vocabulary":"Vocabulario","image_occlusion":"Oclusión de Imagen","grammar":"Gramática","kana":"Kana Dojo"},
+    "interleaving": {"image_prompt":"Recuerda el contenido oculto y revela cada área.","image_alt":"Tarjeta de repaso con oclusión de imagen","reveal_mask":"Revelar área","grammar_fallback":"Repaso de gramática","reveal_grammar":"Mostrar nota y ejemplo","kana_prompt":"Escribe la lectura en romaji","kana_placeholder":"Romaji","check":"Comprobar","correct":"¡Correcto!","answer":"Respuesta:","next":"Siguiente tarjeta"}
   },
   "settings": {
     "title": "Configuración",

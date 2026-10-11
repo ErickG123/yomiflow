@@ -135,7 +135,9 @@
     "back_to_dashboard": "Back to Dashboard",
     "go_to_dictionary": "Add Words",
     "writing_practice": "Writing Practice",
-    "listen_audio": "Listen Audio (R / P)"
+    "listen_audio": "Listen Audio (R / P)",
+    "card_types": {"vocabulary":"Vocabulary","image_occlusion":"Image Occlusion","grammar":"Grammar","kana":"Kana Dojo"},
+    "interleaving": {"image_prompt":"Recall the hidden content, then reveal each area.","image_alt":"Image occlusion review card","reveal_mask":"Reveal area","grammar_fallback":"Grammar review","reveal_grammar":"Show note and example","kana_prompt":"Enter the reading in romaji","kana_placeholder":"Romaji","check":"Check","correct":"Correct!","answer":"Answer:","next":"Next card"}
   },
   "settings": {
     "title": "Settings",

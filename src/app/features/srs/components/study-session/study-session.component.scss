@@ -1,1 +1,21 @@
 /* Study session styles */
+.reveal-answer, .primary-link, .secondary-link, .kana-submit { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 1px solid #3f3f46; border-radius: 0.85rem; background: #18181b; padding: 0.9rem 1.2rem; color: #e4e4e7; font-size: 0.875rem; cursor: pointer; }
+.reveal-answer:hover, .secondary-link:hover { border-color: #6366f1; color: white; }
+.primary-link, .kana-submit { border-color: #4f46e5; background: #4f46e5; color: white; }
+.kana-submit:disabled { cursor: not-allowed; opacity: 0.5; }
+.secondary-link, .primary-link { padding: 0.65rem 0.9rem; font-size: 0.8rem; text-decoration: none; }
+.kana-answer-input { min-width: 0; flex: 1; border: 1px solid #3f3f46; border-radius: 0.8rem; background: #09090b; padding: 0.85rem 1rem; color: #fafafa; outline: none; }
+.kana-answer-input:focus { border-color: #6366f1; }
+.image-review-stage { position: relative; display: inline-block; max-width: 100%; overflow: hidden; border-radius: 0.85rem; background: #09090b; line-height: 0; }
+.image-review-stage img { display: block; max-width: 100%; max-height: 62vh; width: auto; height: auto; user-select: none; }
+.image-mask-layer { position: absolute; inset: 0; width: 100%; height: 100%; }
+.image-mask-layer g { cursor: pointer; outline: none; }
+.visual-mask { fill: #09090b; stroke: #a5b4fc; stroke-width: 3; vector-effect: non-scaling-stroke; }
+.image-mask-layer g:hover .visual-mask, .image-mask-layer g:focus .visual-mask { fill: #27272a; }
+.visual-mask-number { fill: white; font-size: 40px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.rating { border: 1px solid #3f3f46; border-radius: 0.8rem; padding: 0.85rem 0.5rem; font-size: 0.8rem; cursor: pointer; }
+.rating:disabled { cursor: wait; opacity: 0.5; }
+.rating-again { border-color: #7f1d1d; background: #450a0a66; color: #fda4af; }
+.rating-hard { border-color: #7c2d12; background: #43140766; color: #fdba74; }
+.rating-good { border-color: #14532d; background: #052e1666; color: #86efac; }
+.rating-easy { border-color: #155e75; background: #08334466; color: #67e8f9; }

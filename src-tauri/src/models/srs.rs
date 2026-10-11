@@ -30,6 +30,40 @@ pub struct ReviewCard {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(
+    tag = "cardType",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase"
+)]
+pub enum InterleavedReviewCard {
+    Vocabulary {
+        card_id: String,
+        deck_id: String,
+        kanji: Option<String>,
+        reading: String,
+        meaning: String,
+        state: i32,
+        pitch: Option<String>,
+    },
+    ImageOcclusion {
+        card_id: String,
+        deck_id: String,
+    },
+    Grammar {
+        card_id: String,
+        deck_id: String,
+        title: String,
+        content_md: String,
+    },
+    Kana {
+        character: String,
+        romaji: String,
+        alphabet: String,
+        category: String,
+    },
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct HeatmapEntry {
     pub date: String,
     pub count: i32,
