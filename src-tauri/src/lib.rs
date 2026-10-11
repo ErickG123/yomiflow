@@ -137,7 +137,13 @@ pub fn run() {
             commands::drive_sync::backup_database_to_drive,
             commands::nlp::analyze_japanese_text,
             commands::nlp::save_notebook_entry,
-            commands::nlp::get_notebook_entries
+            commands::nlp::get_notebook_entries,
+            commands::srs::get_decks,
+            commands::srs::create_deck,
+            commands::srs::update_deck,
+            commands::srs::delete_deck,
+            commands::srs::get_tags,
+            commands::srs::create_tag
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

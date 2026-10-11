@@ -266,4 +266,24 @@ Checklists rigorosos para validar o comportamento das novas ferramentas de alta 
   - Verifique na tabela SQLite `notebook_entries` que a nota foi persistida com os campos `id`, `title`, `content_md`, `created_at` e `updated_at`.
   - Recarregue a página ou selecione a nota na listagem lateral para verificar a restauração fidedigna do conteúdo Markdown.
 
+### 🧪 Cenário I: Isolamento de Decks e Baralhos Temáticos
+- [ ] **Criação de Baralhos Temáticos:**
+  - Acesse a aba **Baralhos** (`/decks`) ou utilize o link no Dashboard principal.
+  - Crie dois baralhos distintos:
+    1. *"JLPT N3"* (ex: "Vocabulário do exame intermediário")
+    2. *"Vocabulário de Animes"* (ex: "Palavras colhidas em séries")
+  - Verifique se ambos aparecem na listagem com contadores zerados de cartões (`Novos: 0`, `Revisar: 0`).
+- [ ] **Inserção Segmentada com Dropdown de Baralho:**
+  - Abra o leitor de mangá (`/reader`) ou o reprodutor de vídeo (`/video`).
+  - Ao abrir o *Hover Dictionary* para uma palavra (ex: `食べる`), selecione o baralho *"JLPT N3"* no menu suspenso *Baralho*.
+  - Clique no botão de adicionar ao SRS (`+`).
+  - Retorne ao Dashboard (`/dashboard`) ou à tela de Baralhos (`/decks`).
+- [ ] **Garantia de Isolamento de Revisões (Sem Vazamento):**
+  - O baralho *"JLPT N3"* deve exibir `Novos: 1`, enquanto o baralho *"Vocabulário de Animes"* deve permanecer estritamente com `Novos: 0`.
+  - Clique em **"Estudar Baralho"** no baralho *"Vocabulário de Animes"* (`/study?deckId=...`).
+  - *Critério de Sucesso:* A sessão de estudo deve informar que não há cartões pendentes para este baralho, comprovando que as revisões do *"JLPT N3"* não vazam para outros baralhos.
+  - Ao iniciar os estudos no baralho *"JLPT N3"*, o cartão inserido deve surgir imediatamente para revisão.
+- [ ] **Eliminação Segura de Baralhos:**
+  - Ao excluir um baralho customizado, os cartões existentes devem ser migrados automaticamente para o baralho *"Padrão"* (`default`), prevenindo a perda irreversível do histórico do estudante.
+
 

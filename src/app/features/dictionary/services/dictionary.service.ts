@@ -53,13 +53,13 @@ export class DictionaryService {
     }
   }
 
-  async addToSrs(entryId: number): Promise<void> {
+  async addToSrs(entryId: number, deckId?: string | null): Promise<void> {
     if (this.addedCardIds().includes(entryId)) {
       return
     }
 
     try {
-      await invoke('add_to_srs', { entryId })
+      await invoke('add_to_srs', { entryId, deckId: deckId || null })
       this.addedCardIds.update((current) => [...current, entryId])
       this.searchResults.update((entries) =>
         entries.map((entry) => (entry.id === entryId ? { ...entry, in_srs: true } : entry))

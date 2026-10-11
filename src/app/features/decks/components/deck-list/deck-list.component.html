@@ -1,0 +1,162 @@
+<div class="space-y-6">
+  <!-- Decks Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-xl font-bold tracking-tight text-zinc-100 flex items-center space-x-2">
+        <i class="pi pi-clone text-indigo-400"></i>
+        <span>Baralhos de Estudo (Decks)</span>
+      </h2>
+      <p class="text-xs text-zinc-400 mt-0.5">
+        Segmentação de revisões por tópicos, listas JLPT e mídias
+      </p>
+    </div>
+
+    <button
+      type="button"
+      (click)="toggleCreateModal()"
+      class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2 px-3.5 rounded-lg transition-colors flex items-center space-x-1.5 cursor-pointer shadow-xs active:scale-95"
+    >
+      <i class="pi pi-plus text-xs"></i>
+      <span>Novo Baralho</span>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  @if (deckService.isLoading()) {
+    <div class="flex items-center justify-center py-12 text-zinc-500">
+      <i class="pi pi-spin pi-spinner text-2xl"></i>
+    </div>
+  } @else {
+    <!-- Decks Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (deck of deckService.decks(); track deck.id) {
+        <div
+          class="bg-zinc-900/90 border border-zinc-800 hover:border-zinc-700/80 rounded-xl p-5 shadow-sm transition-all flex flex-col justify-between group"
+        >
+          <div class="space-y-2">
+            <div class="flex items-start justify-between">
+              <h3 class="font-bold text-base text-zinc-100 group-hover:text-indigo-400 transition-colors truncate">
+                {{ deck.name }}
+              </h3>
+              @if (deck.id !== 'default') {
+                <button
+                  type="button"
+                  (click)="deleteDeck(deck.id, $event)"
+                  title="Excluir Baralho"
+                  class="text-zinc-600 hover:text-red-400 p-1 rounded transition-colors cursor-pointer"
+                >
+                  <i class="pi pi-trash text-xs"></i>
+                </button>
+              }
+            </div>
+
+            <p class="text-xs text-zinc-400 line-clamp-2 min-h-8">
+              {{ deck.description || 'Sem descrição cadastrada.' }}
+            </p>
+          </div>
+
+          <!-- Card Counter Badges -->
+          <div class="pt-4 border-t border-zinc-800/80 mt-4 space-y-3">
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+              <div class="bg-zinc-950/60 border border-emerald-500/20 rounded-lg py-1.5 px-1">
+                <span class="block text-[10px] text-zinc-400 font-medium">Novos</span>
+                <span class="font-bold text-emerald-400">{{ deck.new_count }}</span>
+              </div>
+              <div class="bg-zinc-950/60 border border-indigo-500/20 rounded-lg py-1.5 px-1">
+                <span class="block text-[10px] text-zinc-400 font-medium">Revisar</span>
+                <span class="font-bold text-indigo-400">{{ deck.due_count }}</span>
+              </div>
+              <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg py-1.5 px-1">
+                <span class="block text-[10px] text-zinc-400 font-medium">Total</span>
+                <span class="font-bold text-zinc-300">{{ deck.total_count }}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              (click)="studyDeck(deck.id)"
+              [disabled]="deck.new_count === 0 && deck.due_count === 0"
+              class="w-full bg-zinc-800 hover:bg-indigo-600 disabled:opacity-40 disabled:hover:bg-zinc-800 disabled:cursor-not-allowed text-zinc-100 hover:text-white text-xs font-semibold py-2 px-3 rounded-lg transition-colors flex items-center justify-center space-x-1.5 cursor-pointer"
+            >
+              <i class="pi pi-play text-[11px]"></i>
+              <span>Estudar Baralho</span>
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="col-span-full py-8 text-center text-zinc-500 text-xs">
+          Nenhum baralho disponível no momento.
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Create Deck Modal -->
+  @if (isCreateModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-scaleUp">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+          <h3 class="font-bold text-base text-zinc-100 flex items-center space-x-2">
+            <i class="pi pi-folder-plus text-indigo-400"></i>
+            <span>Criar Novo Baralho</span>
+          </h3>
+          <button
+            type="button"
+            (click)="toggleCreateModal()"
+            class="text-zinc-500 hover:text-zinc-300 p-1 cursor-pointer"
+          >
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <label for="deck-name" class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+              Nome do Baralho *
+            </label>
+            <input
+              id="deck-name"
+              type="text"
+              [value]="newDeckName()"
+              (input)="onNameInput($event)"
+              placeholder="ex: JLPT N3, Vocabulário de Anime..."
+              class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-100 focus:outline-hidden focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label for="deck-desc" class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+              Descrição (Opcional)
+            </label>
+            <textarea
+              id="deck-desc"
+              rows="3"
+              [value]="newDeckDescription()"
+              (input)="onDescInput($event)"
+              placeholder="Adicione um resumo ou objetivo de estudo..."
+              class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-100 focus:outline-hidden focus:border-indigo-500 resize-none"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-2 pt-2 border-t border-zinc-800">
+          <button
+            type="button"
+            (click)="toggleCreateModal()"
+            class="px-4 py-2 text-xs font-semibold rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="createDeck()"
+            [disabled]="!newDeckName().trim() || isSubmitting()"
+            class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer transition-colors shadow-xs"
+          >
+            Salvar Baralho
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

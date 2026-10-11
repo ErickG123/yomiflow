@@ -40,3 +40,27 @@ pub struct StreakStats {
     pub current_streak: i32,
     pub max_streak: i32,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Deck {
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Tag {
+    pub id: String,
+    pub name: String,
+    pub color: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DeckWithCounts {
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub new_count: i32,
+    pub due_count: i32,
+    pub total_count: i32,
+}

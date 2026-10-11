@@ -66,6 +66,20 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'decks',
+    loadComponent: () =>
+      import('./features/decks/components/deck-list/deck-list.component').then(
+        (m) => m.DeckListComponent
+      ),
+  },
+  {
+    path: 'decks/:id/settings',
+    loadComponent: () =>
+      import('./features/decks/components/deck-settings/deck-settings.component').then(
+        (m) => m.DeckSettingsComponent
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'dashboard',
   },

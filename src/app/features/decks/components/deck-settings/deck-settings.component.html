@@ -1,0 +1,50 @@
+<div class="space-y-6 max-w-2xl mx-auto">
+  <div class="border-b border-zinc-800 pb-4">
+    <h2 class="text-xl font-bold tracking-tight text-zinc-100 flex items-center space-x-2">
+      <i class="pi pi-cog text-indigo-400"></i>
+      <span>Configurações do Baralho</span>
+    </h2>
+    <p class="text-xs text-zinc-400 mt-0.5">
+      Edite o nome e parâmetros deste baralho
+    </p>
+  </div>
+
+  <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+    <div>
+      <label for="deck-edit-name" class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+        Nome do Baralho
+      </label>
+      <input
+        id="deck-edit-name"
+        type="text"
+        [value]="deckName()"
+        (input)="onNameChange($event)"
+        class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-100 focus:outline-hidden focus:border-indigo-500"
+      />
+    </div>
+
+    <div>
+      <label for="deck-edit-desc" class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+        Descrição
+      </label>
+      <textarea
+        id="deck-edit-desc"
+        rows="3"
+        [value]="deckDescription()"
+        (input)="onDescChange($event)"
+        class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-100 focus:outline-hidden focus:border-indigo-500 resize-none"
+      ></textarea>
+    </div>
+
+    <div class="flex items-center justify-end space-x-3 pt-2 border-t border-zinc-800">
+      <button
+        type="button"
+        (click)="saveSettings()"
+        [disabled]="!deckName().trim() || isSaving()"
+        class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer transition-colors"
+      >
+        Salvar Alterações
+      </button>
+    </div>
+  </div>
+</div>

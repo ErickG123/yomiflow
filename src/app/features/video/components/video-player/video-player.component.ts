@@ -14,6 +14,7 @@ import { DictionaryEntry } from '../../../dictionary/models/dictionary.model'
 import { AudioService } from '../../../../core/services/audio.service'
 import { tokenizeJapaneseSentence } from '../../../../shared/utils/text-utils'
 import { PitchAccentComponent } from '../../../../shared/components/pitch-accent/pitch-accent.component'
+import { DeckService } from '../../../decks/services/deck.service'
 
 @Component({
   selector: 'app-video-player',
@@ -27,11 +28,15 @@ export class VideoPlayerComponent implements OnInit {
   readonly videoService = inject(VideoService)
   readonly dictionaryService = inject(DictionaryService)
   readonly audioService = inject(AudioService)
+  readonly deckService = inject(DeckService)
 
   @ViewChild('videoElement') videoRef?: ElementRef<HTMLVideoElement>
 
+  readonly selectedDeckId = signal<string>('default')
+
   ngOnInit(): void {
     void this.videoService.checkFfmpeg()
+    void this.deckService.loadDecks()
   }
 
   readonly isDrawerOpen = signal<boolean>(false)
@@ -78,8 +83,13 @@ export class VideoPlayerComponent implements OnInit {
     if (entry.in_srs) {
       await this.dictionaryService.removeFromSrs(entry.id)
     } else {
-      await this.dictionaryService.addToSrs(entry.id)
+      await this.dictionaryService.addToSrs(entry.id, this.selectedDeckId())
     }
+  }
+
+  onDeckChange(event: Event): void {
+    const target = event.target as HTMLSelectElement
+    this.selectedDeckId.set(target.value)
   }
 
   async createFlashcardWithAudio(entry: DictionaryEntry): Promise<void> {
@@ -99,8 +109,8 @@ export class VideoPlayerComponent implements OnInit {
         filename
       )
 
-      // 2. Add entry to SRS
-      await this.dictionaryService.addToSrs(entry.id)
+      // 2. Add entry to SRS targeting selected deck
+      await this.dictionaryService.addToSrs(entry.id, this.selectedDeckId())
 
       alert(`Flashcard criado com sucesso com áudio nativo!\nÁudio salvo em: ${audioPath}`)
     } catch (err) {

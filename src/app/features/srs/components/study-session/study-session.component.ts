@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, HostListener, OnInit, inject, signal } from '@angular/core'
-import { RouterLink } from '@angular/router'
+import { ActivatedRoute, RouterLink } from '@angular/router'
 import { TranslocoPipe } from '@ngneat/transloco'
 import { SrsService } from '../../services/srs.service'
 import { AudioService } from '../../../../core/services/audio.service'
@@ -17,6 +17,7 @@ import { KanjiBreakdownComponent } from '../../../../shared/components/kanji-bre
 })
 export class StudySessionComponent implements OnInit {
   private readonly srsService = inject(SrsService)
+  private readonly route = inject(ActivatedRoute)
   readonly audioService = inject(AudioService)
 
   readonly dueCards = this.srsService.dueCards
@@ -29,7 +30,8 @@ export class StudySessionComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      await this.srsService.getDueCards()
+      const deckId = this.route.snapshot.queryParamMap.get('deckId')
+      await this.srsService.getDueCards(deckId)
     } finally {
       this.isLoading.set(false)
     }

@@ -14,10 +14,12 @@ export class SrsService {
     return list.length > 0 ? list[0] : null
   })
 
-  async getDueCards(): Promise<ReviewCard[]> {
+  async getDueCards(deckId?: string | null): Promise<ReviewCard[]> {
     this.isLoading.set(true)
     try {
-      const cards = await invoke<ReviewCard[]>('get_due_cards')
+      const cards = await invoke<ReviewCard[]>('get_due_cards', {
+        deckId: deckId || null,
+      })
       this.dueCards.set(cards)
       return cards
     } catch (error) {

@@ -19,6 +19,7 @@ import { SelectionRect } from '../../models/manga.model'
 import { AiModelService } from '../../services/ai-model.service'
 import { sanitizeJapaneseText } from '../../../../shared/utils/text-utils'
 import { PitchAccentComponent } from '../../../../shared/components/pitch-accent/pitch-accent.component'
+import { DeckService } from '../../../decks/services/deck.service'
 
 @Component({
   selector: 'app-manga-reader',
@@ -34,7 +35,9 @@ export class MangaReaderComponent implements OnInit {
   readonly dictionaryService = inject(DictionaryService)
   readonly audioService = inject(AudioService)
   readonly aiService = inject(AiModelService)
+  readonly deckService = inject(DeckService)
 
+  readonly selectedDeckId = signal<string>('default')
   readonly currentCbzPath = this.readerService.currentCbzPath
   readonly pages = this.readerService.pages
   readonly currentIndex = this.readerService.currentIndex
@@ -66,6 +69,7 @@ export class MangaReaderComponent implements OnInit {
 
     // Automatically check and download MangaOCR model on first use
     void this.aiService.ensureModelExists()
+    void this.deckService.loadDecks()
   }
 
   backToLibrary(): void {
@@ -334,8 +338,13 @@ export class MangaReaderComponent implements OnInit {
     if (entry.in_srs) {
       await this.dictionaryService.removeFromSrs(entry.id)
     } else {
-      await this.dictionaryService.addToSrs(entry.id)
+      await this.dictionaryService.addToSrs(entry.id, this.selectedDeckId())
     }
+  }
+
+  onDeckChange(event: Event): void {
+    const target = event.target as HTMLSelectElement
+    this.selectedDeckId.set(target.value)
   }
 
   @HostListener('window:keydown', ['$event'])

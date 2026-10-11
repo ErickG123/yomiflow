@@ -56,6 +56,68 @@
       </div>
     </div>
 
+    <!-- Thematic Decks Grid (Estilo Anki) -->
+    <section class="space-y-4 pt-2">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold tracking-tight text-zinc-200 flex items-center space-x-2">
+          <i class="pi pi-clone text-indigo-400"></i>
+          <span>Baralhos de Estudo (Decks)</span>
+        </h2>
+        <a
+          routerLink="/decks"
+          class="text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors flex items-center space-x-1"
+        >
+          <span>Gerenciar Baralhos</span>
+          <i class="pi pi-arrow-right text-[10px]"></i>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (deck of deckService.decks(); track deck.id) {
+          <div
+            class="bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 rounded-xl p-4 shadow-sm transition-all flex flex-col justify-between group"
+          >
+            <div class="space-y-1.5">
+              <div class="flex items-start justify-between">
+                <h3 class="font-bold text-sm text-zinc-100 group-hover:text-indigo-400 transition-colors truncate">
+                  {{ deck.name }}
+                </h3>
+                <span class="text-[10px] text-zinc-500 font-mono">{{ deck.total_count }} cards</span>
+              </div>
+              <p class="text-xs text-zinc-400 line-clamp-2">
+                {{ deck.description || 'Sem descrição.' }}
+              </p>
+            </div>
+
+            <div class="pt-3 border-t border-zinc-800/80 mt-3 flex items-center justify-between">
+              <div class="flex items-center space-x-3 text-xs">
+                <span class="text-emerald-400 font-bold" title="Novos">
+                  {{ deck.new_count }} <span class="text-[10px] font-normal text-zinc-500">novos</span>
+                </span>
+                <span class="text-indigo-400 font-bold" title="A Revisar">
+                  {{ deck.due_count }} <span class="text-[10px] font-normal text-zinc-500">revisar</span>
+                </span>
+              </div>
+
+              <button
+                type="button"
+                (click)="studyDeck(deck.id)"
+                [disabled]="deck.new_count === 0 && deck.due_count === 0"
+                class="bg-zinc-800 hover:bg-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-200 hover:text-white text-xs font-semibold px-2.5 py-1 rounded-md transition-colors cursor-pointer flex items-center space-x-1"
+              >
+                <i class="pi pi-play text-[10px]"></i>
+                <span>Estudar</span>
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <div class="col-span-full py-6 text-center text-zinc-500 text-xs bg-zinc-900/40 rounded-xl border border-zinc-800">
+            Nenhum baralho configurado ainda.
+          </div>
+        }
+      </div>
+    </section>
+
     <!-- Study Habits Section (Streaks & Activity Heatmap) -->
     <section class="space-y-4 pt-2">
       <h2 class="text-lg font-semibold tracking-tight text-zinc-200">

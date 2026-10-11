@@ -1,12 +1,16 @@
 use crate::AppState;
-use crate::models::{HeatmapEntry, ReviewCard, StreakStats};
+use crate::models::{Deck, DeckWithCounts, HeatmapEntry, ReviewCard, StreakStats, Tag};
 use rusqlite::params;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::State;
 use uuid::Uuid;
 
 #[tauri::command]
-pub fn add_to_srs(entry_id: i64, state: State<'_, AppState>) -> Result<(), String> {
+pub fn add_to_srs(
+    entry_id: i64,
+    deck_id: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
 
     let card_id = Uuid::new_v4().to_string();
@@ -15,12 +19,15 @@ pub fn add_to_srs(entry_id: i64, state: State<'_, AppState>) -> Result<(), Strin
         .map_err(|e| e.to_string())?
         .as_secs() as i64;
 
+    let target_deck = deck_id.unwrap_or_else(|| "default".to_string());
+
     conn.execute(
-        "INSERT INTO cards (id, entry_id, due_date, stability, difficulty, reps, state)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
         params![
             card_id,
             entry_id,
+            target_deck,
             current_timestamp,
             0.0_f64,
             0.0_f64,
@@ -57,6 +64,12 @@ pub fn remove_from_srs(entry_id: i64, state: State<'_, AppState>) -> Result<(), 
             params![card_id],
         )
         .map_err(|e| e.to_string())?;
+
+        tx.execute(
+            "DELETE FROM card_tags WHERE card_id = ?1",
+            params![card_id],
+        )
+        .map_err(|e| e.to_string())?;
     }
 
     // Delete cards
@@ -69,37 +82,208 @@ pub fn remove_from_srs(entry_id: i64, state: State<'_, AppState>) -> Result<(), 
 }
 
 #[tauri::command]
-pub fn get_due_cards(state: State<'_, AppState>) -> Result<Vec<ReviewCard>, String> {
+pub fn get_due_cards(
+    deck_id: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<Vec<ReviewCard>, String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+
+    let cards = match deck_id {
+        Some(d_id) => {
+            let mut stmt = conn
+                .prepare(
+                    "SELECT c.id, d.kanji, d.reading, d.meaning, c.state, d.pitch
+                     FROM cards c
+                     JOIN dictionary_entries d ON c.entry_id = d.id
+                     WHERE c.deck_id = ?1 AND (c.due_date <= strftime('%s', 'now') OR c.state = 0)
+                     ORDER BY c.due_date ASC
+                     LIMIT 20",
+                )
+                .map_err(|e| e.to_string())?;
+
+            stmt.query_map(params![d_id], |row| {
+                Ok(ReviewCard {
+                    card_id: row.get(0)?,
+                    kanji: row.get(1)?,
+                    reading: row.get(2)?,
+                    meaning: row.get(3)?,
+                    state: row.get(4)?,
+                    pitch: row.get(5)?,
+                })
+            })
+            .map_err(|e| e.to_string())?
+            .collect::<Result<Vec<ReviewCard>, rusqlite::Error>>()
+            .map_err(|e| e.to_string())?
+        }
+        None => {
+            let mut stmt = conn
+                .prepare(
+                    "SELECT c.id, d.kanji, d.reading, d.meaning, c.state, d.pitch
+                     FROM cards c
+                     JOIN dictionary_entries d ON c.entry_id = d.id
+                     WHERE c.due_date <= strftime('%s', 'now') OR c.state = 0
+                     ORDER BY c.due_date ASC
+                     LIMIT 20",
+                )
+                .map_err(|e| e.to_string())?;
+
+            stmt.query_map([], |row| {
+                Ok(ReviewCard {
+                    card_id: row.get(0)?,
+                    kanji: row.get(1)?,
+                    reading: row.get(2)?,
+                    meaning: row.get(3)?,
+                    state: row.get(4)?,
+                    pitch: row.get(5)?,
+                })
+            })
+            .map_err(|e| e.to_string())?
+            .collect::<Result<Vec<ReviewCard>, rusqlite::Error>>()
+            .map_err(|e| e.to_string())?
+        }
+    };
+
+    Ok(cards)
+}
+
+#[tauri::command]
+pub fn get_decks(state: State<'_, AppState>) -> Result<Vec<DeckWithCounts>, String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
 
     let mut stmt = conn
         .prepare(
-            "SELECT c.id, d.kanji, d.reading, d.meaning, c.state, d.pitch
-             FROM cards c
-             JOIN dictionary_entries d ON c.entry_id = d.id
-             WHERE c.due_date <= strftime('%s', 'now') OR c.state = 0
-             ORDER BY c.due_date ASC
-             LIMIT 20",
+            "SELECT 
+                d.id, 
+                d.name, 
+                d.description,
+                (SELECT COUNT(*) FROM cards c WHERE c.deck_id = d.id AND c.state = 0) as new_count,
+                (SELECT COUNT(*) FROM cards c WHERE c.deck_id = d.id AND c.state > 0 AND c.due_date <= strftime('%s', 'now')) as due_count,
+                (SELECT COUNT(*) FROM cards c WHERE c.deck_id = d.id) as total_count
+             FROM decks d
+             ORDER BY d.name ASC",
         )
         .map_err(|e| e.to_string())?;
 
-    let cards = stmt
+    let decks = stmt
         .query_map([], |row| {
-            Ok(ReviewCard {
-                card_id: row.get(0)?,
-                kanji: row.get(1)?,
-                reading: row.get(2)?,
-                meaning: row.get(3)?,
-                state: row.get(4)?,
-                pitch: row.get(5)?,
+            Ok(DeckWithCounts {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                description: row.get(2)?,
+                new_count: row.get(3)?,
+                due_count: row.get(4)?,
+                total_count: row.get(5)?,
             })
         })
         .map_err(|e| e.to_string())?
-        .collect::<Result<Vec<ReviewCard>, rusqlite::Error>>()
+        .collect::<Result<Vec<DeckWithCounts>, rusqlite::Error>>()
         .map_err(|e| e.to_string())?;
 
-    Ok(cards)
+    Ok(decks)
 }
+
+#[tauri::command]
+pub fn create_deck(
+    name: String,
+    description: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<Deck, String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+    let id = Uuid::new_v4().to_string();
+
+    conn.execute(
+        "INSERT INTO decks (id, name, description) VALUES (?1, ?2, ?3)",
+        params![id, name, description],
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok(Deck {
+        id,
+        name,
+        description,
+    })
+}
+
+#[tauri::command]
+pub fn update_deck(
+    id: String,
+    name: String,
+    description: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "UPDATE decks SET name = ?1, description = ?2 WHERE id = ?3",
+        params![name, description, id],
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn delete_deck(id: String, state: State<'_, AppState>) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+
+    if id == "default" {
+        return Err("O baralho padrão não pode ser excluído.".to_string());
+    }
+
+    // Set cards with this deck to 'default' deck before deletion to protect user cards
+    conn.execute(
+        "UPDATE cards SET deck_id = 'default' WHERE deck_id = ?1",
+        params![id],
+    )
+    .map_err(|e| e.to_string())?;
+
+    conn.execute("DELETE FROM decks WHERE id = ?1", params![id])
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn get_tags(state: State<'_, AppState>) -> Result<Vec<Tag>, String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+
+    let mut stmt = conn
+        .prepare("SELECT id, COALESCE(name, id), color FROM tags ORDER BY name ASC")
+        .map_err(|e| e.to_string())?;
+
+    let tags = stmt
+        .query_map([], |row| {
+            Ok(Tag {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                color: row.get(2)?,
+            })
+        })
+        .map_err(|e| e.to_string())?
+        .collect::<Result<Vec<Tag>, rusqlite::Error>>()
+        .map_err(|e| e.to_string())?;
+
+    Ok(tags)
+}
+
+#[tauri::command]
+pub fn create_tag(
+    name: String,
+    color: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<Tag, String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+    let id = Uuid::new_v4().to_string();
+
+    conn.execute(
+        "INSERT INTO tags (id, name, color) VALUES (?1, ?2, ?3)",
+        params![id, name, color],
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok(Tag { id, name, color })
+}
+
 
 #[tauri::command]
 pub fn answer_card(card_id: String, rating: i32, state: State<'_, AppState>) -> Result<(), String> {
@@ -390,4 +574,65 @@ mod tests {
         let res5 = calculate_srs_step(5, 0, 0, 1000);
         assert!(res5.is_err());
     }
+
+    #[test]
+    fn test_deck_isolation_in_memory() {
+        let conn = rusqlite::Connection::open_in_memory().unwrap();
+        crate::db::create_tables_and_seed(&conn).unwrap();
+
+        // Create two separate decks
+        conn.execute(
+            "INSERT INTO decks (id, name, description) VALUES (?1, ?2, ?3)",
+            params!["deck-jlpt-n3", "JLPT N3", "Decks de gramática e vocabulário"],
+        ).unwrap();
+
+        conn.execute(
+            "INSERT INTO decks (id, name, description) VALUES (?1, ?2, ?3)",
+            params!["deck-anime", "Anime Vocab", "Vocabulário extraído de animes"],
+        ).unwrap();
+
+        // Insert card in deck A
+        conn.execute(
+            "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params!["card-jlpt-1", 1, "deck-jlpt-n3", 1000, 2.5, 0.3, 0, 0],
+        ).unwrap();
+
+        // Insert card in deck B
+        conn.execute(
+            "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params!["card-anime-1", 2, "deck-anime", 1000, 2.5, 0.3, 0, 0],
+        ).unwrap();
+
+        // Query due cards for deck A only
+        let mut stmt_a = conn.prepare(
+            "SELECT c.id FROM cards c WHERE c.deck_id = ?1 AND (c.due_date <= strftime('%s', 'now') OR c.state = 0)"
+        ).unwrap();
+
+        let cards_a: Vec<String> = stmt_a.query_map(params!["deck-jlpt-n3"], |row| row.get(0))
+            .unwrap()
+            .map(|r| r.unwrap())
+            .collect();
+
+        assert_eq!(cards_a.len(), 1);
+        assert_eq!(cards_a[0], "card-jlpt-1");
+
+        // Query due cards for deck B only
+        let mut stmt_b = conn.prepare(
+            "SELECT c.id FROM cards c WHERE c.deck_id = ?1 AND (c.due_date <= strftime('%s', 'now') OR c.state = 0)"
+        ).unwrap();
+
+        let cards_b: Vec<String> = stmt_b.query_map(params!["deck-anime"], |row| row.get(0))
+            .unwrap()
+            .map(|r| r.unwrap())
+            .collect();
+
+        assert_eq!(cards_b.len(), 1);
+        assert_eq!(cards_b[0], "card-anime-1");
+
+        // Ensure deck A has no card from deck B
+        assert!(!cards_a.contains(&"card-anime-1".to_string()));
+    }
 }
+

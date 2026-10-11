@@ -270,9 +270,26 @@
 
         <!-- Matching Vocabulary Words -->
         <div class="space-y-2">
-          <h4 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-            {{ 'reader.words_found' | transloco }} ({{ dictionaryResults().length }})
-          </h4>
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              {{ 'reader.words_found' | transloco }} ({{ dictionaryResults().length }})
+            </h4>
+
+            <!-- Deck Selector Dropdown -->
+            <div class="flex items-center space-x-1.5">
+              <label for="manga-deck-select" class="text-[10px] text-zinc-500 font-medium">Baralho:</label>
+              <select
+                id="manga-deck-select"
+                [value]="selectedDeckId()"
+                (change)="onDeckChange($event)"
+                class="bg-zinc-900 border border-zinc-800 text-zinc-300 text-[11px] rounded px-1.5 py-0.5 focus:outline-hidden focus:border-indigo-500 cursor-pointer"
+              >
+                @for (deck of deckService.decks(); track deck.id) {
+                  <option [value]="deck.id">{{ deck.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
 
           @for (entry of dictionaryResults(); track entry.id) {
             <article class="bg-zinc-950 border border-zinc-800/80 rounded-xl p-3 flex items-start justify-between space-x-2">

@@ -83,7 +83,7 @@ describe('DictionaryService', () => {
 
     await service.addToSrs(42)
 
-    expect(tauriCore.invoke).toHaveBeenCalledWith('add_to_srs', { entryId: 42 })
+    expect(tauriCore.invoke).toHaveBeenCalledWith('add_to_srs', { entryId: 42, deckId: null })
     expect(service.addedCardIds()).toContain(42)
 
     // Should not call invoke again if already added

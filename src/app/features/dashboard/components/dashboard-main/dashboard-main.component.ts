@@ -1,20 +1,22 @@
 import { DecimalPipe } from '@angular/common'
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core'
-import { Router } from '@angular/router'
+import { Router, RouterLink } from '@angular/router'
 import { TranslocoPipe } from '@ngneat/transloco'
 import { DashboardService } from '../../services/dashboard.service'
+import { DeckService } from '../../../decks/services/deck.service'
 import { HeatmapDay } from '../../models/dashboard-stats.model'
 
 @Component({
   selector: 'app-dashboard-main',
   standalone: true,
-  imports: [TranslocoPipe, DecimalPipe],
+  imports: [TranslocoPipe, DecimalPipe, RouterLink],
   templateUrl: './dashboard-main.component.html',
   styleUrl: './dashboard-main.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardMainComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService)
+  readonly deckService = inject(DeckService)
   private readonly router = inject(Router)
 
   readonly stats = this.dashboardService.stats
@@ -54,6 +56,7 @@ export class DashboardMainComponent implements OnInit {
     this.dashboardService.getStats()
     this.dashboardService.getHeatmap()
     this.dashboardService.getStreaks()
+    void this.deckService.loadDecks()
   }
 
   startStudy(): void {
@@ -61,6 +64,12 @@ export class DashboardMainComponent implements OnInit {
     if (due_today > 0 || new_cards > 0) {
       this.router.navigate(['/study'])
     }
+  }
+
+  studyDeck(deckId: string): void {
+    void this.router.navigate(['/study'], {
+      queryParams: { deckId },
+    })
   }
 }
 

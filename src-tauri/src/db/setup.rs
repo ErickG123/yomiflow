@@ -41,15 +41,39 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
         CREATE INDEX IF NOT EXISTS idx_dictionary_kanji ON dictionary_entries(kanji);
         CREATE INDEX IF NOT EXISTS idx_dictionary_reading ON dictionary_entries(reading);
 
+        CREATE TABLE IF NOT EXISTS decks (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            description TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS tags (
+            id TEXT PRIMARY KEY,
+            name TEXT,
+            color TEXT,
+            category TEXT,
+            notes TEXT
+        );
+
         CREATE TABLE IF NOT EXISTS cards (
             id TEXT PRIMARY KEY,
             entry_id INTEGER NOT NULL,
+            deck_id TEXT,
             due_date INTEGER NOT NULL,
             stability REAL NOT NULL,
             difficulty REAL NOT NULL,
             reps INTEGER NOT NULL,
             state INTEGER NOT NULL,
-            FOREIGN KEY(entry_id) REFERENCES dictionary_entries(id)
+            FOREIGN KEY(entry_id) REFERENCES dictionary_entries(id) ON DELETE CASCADE,
+            FOREIGN KEY(deck_id) REFERENCES decks(id) ON DELETE SET NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS card_tags (
+            card_id TEXT NOT NULL,
+            tag_id TEXT NOT NULL,
+            PRIMARY KEY (card_id, tag_id),
+            FOREIGN KEY(card_id) REFERENCES cards(id) ON DELETE CASCADE,
+            FOREIGN KEY(tag_id) REFERENCES tags(id) ON DELETE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS review_logs (
@@ -57,18 +81,12 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             card_id TEXT NOT NULL,
             rating INTEGER NOT NULL,
             review_datetime INTEGER NOT NULL,
-            FOREIGN KEY(card_id) REFERENCES cards(id)
+            FOREIGN KEY(card_id) REFERENCES cards(id) ON DELETE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
             value TEXT
-        );
-
-        CREATE TABLE IF NOT EXISTS tags (
-            id TEXT PRIMARY KEY,
-            category TEXT,
-            notes TEXT
         );
 
         CREATE TABLE IF NOT EXISTS kanjis (
@@ -112,10 +130,21 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
         ",
     )?;
 
-    // Migration: ensure jlpt_level column exists if table was previously created without it
+    // Migrations for existing databases
     let _ = conn.execute("ALTER TABLE kanjis ADD COLUMN jlpt_level INTEGER", []);
-    // Migration: ensure pitch column exists if dictionary_entries was created without it
     let _ = conn.execute("ALTER TABLE dictionary_entries ADD COLUMN pitch TEXT", []);
+    let _ = conn.execute("ALTER TABLE cards ADD COLUMN deck_id TEXT", []);
+    let _ = conn.execute("ALTER TABLE tags ADD COLUMN name TEXT", []);
+    let _ = conn.execute("ALTER TABLE tags ADD COLUMN color TEXT", []);
+
+    // Seed default deck if none exists
+    let deck_count: i64 = conn.query_row("SELECT COUNT(*) FROM decks", [], |row| row.get(0)).unwrap_or(0);
+    if deck_count == 0 {
+        let _ = conn.execute(
+            "INSERT INTO decks (id, name, description) VALUES (?1, ?2, ?3)",
+            params!["default", "Padrão", "Baralho principal de vocabulário e estudos"],
+        );
+    }
 
     // Seed mock data if empty
     let count: i64 = conn.query_row("SELECT COUNT(*) FROM dictionary_entries", [], |row| {
@@ -193,4 +222,62 @@ mod tests {
             .unwrap();
         assert!(svg.contains("<svg>"));
     }
+
+    #[test]
+    fn test_foreign_keys_and_cascade_deletion() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute("PRAGMA foreign_keys = ON;", []).unwrap();
+        create_tables_and_seed(&conn).unwrap();
+
+        // Check default deck exists
+        let default_deck_exists: i64 = conn
+            .query_row("SELECT COUNT(*) FROM decks WHERE id = 'default'", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(default_deck_exists, 1);
+
+        // Create a custom deck
+        conn.execute(
+            "INSERT INTO decks (id, name, description) VALUES (?1, ?2, ?3)",
+            params!["deck-jlpt-n3", "JLPT N3", "Vocabulário intermediário"],
+        ).unwrap();
+
+        // Create a tag
+        conn.execute(
+            "INSERT INTO tags (id, name, color) VALUES (?1, ?2, ?3)",
+            params!["tag-verbs", "Verbos", "#3b82f6"],
+        ).unwrap();
+
+        // Insert a card in custom deck
+        conn.execute(
+            "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params!["card-custom-1", 1, "deck-jlpt-n3", 1700000000, 2.5, 0.3, 0, 0],
+        ).unwrap();
+
+        // Link card to tag
+        conn.execute(
+            "INSERT INTO card_tags (card_id, tag_id) VALUES (?1, ?2)",
+            params!["card-custom-1", "tag-verbs"],
+        ).unwrap();
+
+        // Assert card_tag exists
+        let ct_count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM card_tags WHERE card_id = 'card-custom-1'", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(ct_count, 1);
+
+        // Delete the card and verify CASCADE deletes from card_tags
+        conn.execute("DELETE FROM cards WHERE id = 'card-custom-1'", []).unwrap();
+        let ct_count_after: i64 = conn
+            .query_row("SELECT COUNT(*) FROM card_tags WHERE card_id = 'card-custom-1'", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(ct_count_after, 0);
+
+        // Deleting the tag cascades to any remaining references
+        conn.execute("DELETE FROM tags WHERE id = 'tag-verbs'", []).unwrap();
+        let tag_count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM tags WHERE id = 'tag-verbs'", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(tag_count, 0);
+    }
 }
+
