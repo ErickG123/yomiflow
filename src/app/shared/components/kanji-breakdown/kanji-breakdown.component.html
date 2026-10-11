@@ -1,0 +1,57 @@
+<div class="kanji-breakdown-container bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 space-y-4 text-left">
+  <!-- Radicals / Components Visual Section -->
+  <div>
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs uppercase tracking-wider font-semibold text-zinc-400">
+        Radicais / Componentes ({{ kanji() }})
+      </span>
+      @if (isLoading()) {
+        <span class="text-xs text-zinc-500 flex items-center gap-1">
+          <i class="pi pi-spin pi-spinner text-xs"></i>
+          A carregar...
+        </span>
+      }
+    </div>
+
+    @if (components().length > 0) {
+      <div class="flex flex-wrap gap-2">
+        @for (comp of components(); track comp.component) {
+          <div class="bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 flex flex-col items-center min-w-16 shadow-xs">
+            <span class="text-2xl font-serif text-indigo-400 select-none">{{ comp.component }}</span>
+            <span class="text-[11px] text-zinc-300 font-medium mt-1 truncate max-w-20 text-center" [title]="comp.meaning">
+              {{ comp.meaning }}
+            </span>
+          </div>
+        }
+      </div>
+    } @else if (!isLoading()) {
+      <div class="text-xs text-zinc-500 italic py-1">
+        Nenhum radical decomposto registado para este kanji.
+      </div>
+    }
+  </div>
+
+  <!-- User Mnemonic Section (WaniKani Style) -->
+  <div class="space-y-1.5 pt-2 border-t border-zinc-800/80">
+    <div class="flex items-center justify-between">
+      <label class="text-xs uppercase tracking-wider font-semibold text-amber-400/90 flex items-center gap-1.5">
+        <span>📖 A minha Mnemónica</span>
+        @if (isSaved()) {
+          <span class="text-[10px] text-emerald-400 font-normal lowercase tracking-normal flex items-center gap-1">
+            <i class="pi pi-check text-[10px]"></i> guardada
+          </span>
+        }
+      </label>
+      <span class="text-[10px] text-zinc-500">Auto-save ao sair do campo</span>
+    </div>
+
+    <textarea
+      rows="2"
+      [value]="mnemonicText()"
+      (input)="onTextInput($event)"
+      (blur)="onBlurSave()"
+      placeholder="Escreva uma história mnemónica para fixar este kanji na memória..."
+      class="w-full bg-zinc-950 border border-zinc-800 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 rounded-lg p-2.5 text-xs text-zinc-200 placeholder-zinc-600 outline-none resize-none transition-all shadow-inner"
+    ></textarea>
+  </div>
+</div>

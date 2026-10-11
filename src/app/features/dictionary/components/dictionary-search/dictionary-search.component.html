@@ -88,9 +88,30 @@
     <section class="space-y-4">
       @for (entry of searchResults(); track entry.id) {
         <article class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between hover:bg-zinc-800/80 transition-colors shadow-sm">
-          <div class="space-y-1">
-            <span class="text-sm font-medium text-zinc-400 block">{{ entry.reading }}</span>
-            <div class="text-4xl font-serif text-zinc-100">{{ entry.kanji ?? entry.reading }}</div>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2">
+              <app-pitch-accent [reading]="entry.reading" [pitch]="entry.pitch"></app-pitch-accent>
+
+              @if (entry.rank != null) {
+                @if (entry.rank <= 1500) {
+                  <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                    Core (Top 1.5K)
+                  </span>
+                } @else if (entry.rank <= 5000) {
+                  <span class="bg-sky-500/10 border border-sky-500/30 text-sky-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                    Comum (Top 5K)
+                  </span>
+                } @else {
+                  <span class="bg-zinc-800 border border-zinc-700 text-zinc-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                    Rara
+                  </span>
+                }
+              }
+            </div>
+
+            <div class="flex items-center space-x-3">
+              <div class="text-4xl font-serif text-zinc-100">{{ entry.kanji ?? entry.reading }}</div>
+            </div>
             <p class="text-zinc-300 text-base pt-1">{{ entry.meaning }}</p>
 
             @if (entry.tags && entry.tags.length > 0) {

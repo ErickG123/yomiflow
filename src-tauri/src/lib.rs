@@ -114,12 +114,27 @@ pub fn run() {
             commands::system::clear_database,
             commands::importer::import_dictionary,
             commands::importer::import_jlpt_kanjis,
+            commands::importer::import_kanjivg_folder,
+            commands::importer::import_frequency_list,
+            commands::importer::get_kanji_svg,
             commands::srs::get_study_heatmap,
             commands::srs::get_study_streaks,
             commands::reader::load_cbz_metadata,
             commands::reader::get_cbz_page_base64,
             commands::reader::process_ocr,
-            commands::reader::scan_manga_library
+            commands::reader::scan_manga_library,
+            commands::grading::evaluate_kanji_drawing,
+            commands::video::extract_subtitles,
+            commands::video::cut_audio_clip,
+            commands::video::check_ffmpeg_installed,
+            commands::ai_ocr::check_model_exists,
+            commands::ai_ocr::download_ai_model,
+            commands::ai_ocr::process_image_with_ai,
+            commands::system::check_onboarding_needed,
+            commands::kanji::get_kanji_details,
+            commands::kanji::save_kanji_mnemonic,
+            commands::drive_sync::authenticate_google_drive,
+            commands::drive_sync::backup_database_to_drive
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

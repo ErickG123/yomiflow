@@ -17,3 +17,8 @@ export interface StreakStats {
   max_streak: number
 }
 
+export interface HeatmapDay {
+  date: string
+  count: number
+}
+

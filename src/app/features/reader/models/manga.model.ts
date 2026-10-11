@@ -8,3 +8,10 @@ export interface MangaGroup {
   title: string
   volumes: MangaVolume[]
 }
+
+export interface SelectionRect {
+  startX: number
+  startY: number
+  currentX: number
+  currentY: number
+}

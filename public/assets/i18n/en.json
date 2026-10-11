@@ -3,7 +3,8 @@
     "dashboard": "Dashboard",
     "dictionary": "Dictionary",
     "study": "Study",
-    "reader": "Manga"
+    "reader": "Manga",
+    "video": "Video"
   },
   "dashboard": {
     "welcome": "Welcome back",

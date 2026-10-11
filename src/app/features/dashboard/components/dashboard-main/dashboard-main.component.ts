@@ -3,11 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@a
 import { Router } from '@angular/router'
 import { TranslocoPipe } from '@ngneat/transloco'
 import { DashboardService } from '../../services/dashboard.service'
-
-export interface HeatmapDay {
-  date: string
-  count: number
-}
+import { HeatmapDay } from '../../models/dashboard-stats.model'
 
 @Component({
   selector: 'app-dashboard-main',

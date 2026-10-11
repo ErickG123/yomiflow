@@ -14,10 +14,15 @@ pub fn search_dictionary(
 
     let mut stmt = conn
         .prepare(
-            "SELECT d.id, d.kanji, d.reading, d.meaning, CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END as in_srs
+            "SELECT d.id, d.kanji, d.reading, d.meaning, 
+                    CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END as in_srs,
+                    wf.rank,
+                    d.pitch
              FROM dictionary_entries d
              LEFT JOIN cards c ON d.id = c.entry_id
+             LEFT JOIN word_frequencies wf ON (wf.term = d.kanji OR wf.term = d.reading)
              WHERE d.kanji LIKE ?1 OR d.reading LIKE ?1 OR d.meaning LIKE ?1 
+             ORDER BY CASE WHEN wf.rank IS NOT NULL THEN 0 ELSE 1 END, wf.rank ASC, d.id ASC
              LIMIT 50",
         )
         .map_err(|e| e.to_string())?;
@@ -30,6 +35,8 @@ pub fn search_dictionary(
                 reading: row.get(2)?,
                 meaning: row.get(3)?,
                 in_srs: row.get::<_, i32>(4)? == 1,
+                rank: row.get(5)?,
+                pitch: row.get(6)?,
             })
         })
         .map_err(|e| e.to_string())?

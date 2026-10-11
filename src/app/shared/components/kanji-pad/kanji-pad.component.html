@@ -1,0 +1,84 @@
+<div
+  class="relative w-64 h-64 bg-zinc-900 border rounded-xl overflow-hidden shadow-inner select-none transition-colors duration-300"
+  [class.border-zinc-700]="evaluationStatus() === 'idle' || evaluationStatus() === 'evaluating'"
+  [class.border-emerald-500]="evaluationStatus() === 'success'"
+  [class.border-rose-500]="evaluationStatus() === 'fail'"
+  [class.ring-2]="evaluationStatus() === 'success' || evaluationStatus() === 'fail'"
+  [class.ring-emerald-500/30]="evaluationStatus() === 'success'"
+  [class.ring-rose-500/30]="evaluationStatus() === 'fail'"
+>
+  <!-- Subtle Crosshair Grid Guides -->
+  <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+    <div class="w-full border-b border-dashed border-zinc-800/80"></div>
+  </div>
+  <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+    <div class="h-full border-r border-dashed border-zinc-800/80"></div>
+  </div>
+
+  <!-- Background Placeholder: KanjiVG SVG (if available) or Fallback Font Text -->
+  @if (svgContent(); as svg) {
+    <div
+      class="kanjivg-container absolute inset-0 flex items-center justify-center p-3 select-none pointer-events-none"
+      [innerHTML]="svg | safeHtml"
+    ></div>
+  } @else {
+    <div class="absolute inset-0 flex items-center justify-center text-[12rem] font-serif text-zinc-800 select-none pointer-events-none leading-none">
+      {{ kanji }}
+    </div>
+  }
+
+  <!-- Evaluation Feedback Toast Overlay -->
+  @if (evaluationStatus() === 'success') {
+    <div class="absolute top-2 inset-x-2 z-30 py-1.5 px-3 rounded-lg bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-xs font-semibold flex items-center justify-between shadow-lg animate-fadeIn">
+      <span class="flex items-center space-x-1.5">
+        <i class="pi pi-check-circle"></i>
+        <span>Perfeito!</span>
+      </span>
+      <span class="font-mono text-[11px]">{{ ((evaluationScore() || 0) * 100).toFixed(0) }}%</span>
+    </div>
+  } @else if (evaluationStatus() === 'fail') {
+    <div class="absolute top-2 inset-x-2 z-30 py-1.5 px-3 rounded-lg bg-rose-950/90 border border-rose-500/50 text-rose-300 text-xs font-semibold flex items-center justify-between shadow-lg animate-fadeIn">
+      <span class="flex items-center space-x-1.5">
+        <i class="pi pi-times-circle"></i>
+        <span>Tente de novo!</span>
+      </span>
+      <span class="font-mono text-[11px]">{{ ((evaluationScore() || 0) * 100).toFixed(0) }}%</span>
+    </div>
+  }
+
+  <!-- Drawing Canvas -->
+  <canvas
+    #drawingCanvas
+    (mousedown)="onMouseDown($event)"
+    (mousemove)="onMouseMove($event)"
+    (mouseup)="onMouseUp()"
+    (mouseleave)="onMouseLeave()"
+    class="absolute inset-0 z-10 cursor-crosshair w-full h-full"
+  ></canvas>
+
+  <!-- Bottom Action Bar (Evaluate & Clear) -->
+  <div class="absolute bottom-2 inset-x-2 z-20 flex items-center justify-between pointer-events-auto">
+    <button
+      type="button"
+      (click)="evaluateDrawing()"
+      [disabled]="userStrokes().length === 0 || evaluationStatus() === 'evaluating'"
+      class="py-1 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs font-medium transition-colors cursor-pointer shadow-sm flex items-center space-x-1.5 active:scale-95"
+    >
+      @if (evaluationStatus() === 'evaluating') {
+        <i class="pi pi-spin pi-spinner text-[10px]"></i>
+      } @else {
+        <i class="pi pi-check text-[10px]"></i>
+      }
+      <span>Avaliar Escrita</span>
+    </button>
+
+    <button
+      type="button"
+      (click)="clear()"
+      title="Limpar traçado"
+      class="p-2 rounded-lg bg-zinc-800/90 hover:bg-zinc-750 border border-zinc-700/80 text-zinc-400 hover:text-zinc-100 transition-colors cursor-pointer shadow-sm active:scale-90"
+    >
+      <i class="pi pi-refresh text-xs"></i>
+    </button>
+  </div>
+</div>

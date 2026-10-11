@@ -72,3 +72,19 @@ pub async fn clear_database(window: Window, state: State<'_, AppState>) -> Resul
 
     Ok(())
 }
+
+#[tauri::command]
+pub fn check_onboarding_needed(state: State<'_, AppState>) -> Result<bool, String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+
+    let dictionary_count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM dictionary_entries", [], |row| row.get(0))
+        .unwrap_or(0);
+
+    let kanji_strokes_count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM kanji_strokes", [], |row| row.get(0))
+        .unwrap_or(0);
+
+    // If dictionary has only seed data (<= 3) and no kanji strokes imported yet
+    Ok(dictionary_count <= 3 || kanji_strokes_count == 0)
+}

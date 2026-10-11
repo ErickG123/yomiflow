@@ -1,0 +1,125 @@
+<div class="cloud-sync-container space-y-4 text-left">
+  <div class="flex items-center justify-between pb-2 border-b border-zinc-800">
+    <div class="flex items-center gap-2">
+      <i class="pi pi-cloud text-indigo-400 text-lg"></i>
+      <h4 class="text-sm font-semibold text-zinc-100">Google Drive Cloud Sync</h4>
+    </div>
+    @if (isAuthenticated()) {
+      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Conectado
+      </span>
+    } @else {
+      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-800 border border-zinc-700 text-zinc-400">
+        Não Conectado
+      </span>
+    }
+  </div>
+
+  <!-- Error or Success Alert Feedback -->
+  @if (errorMessage()) {
+    <div class="p-3 rounded-lg bg-red-950/40 border border-red-900/60 text-red-300 text-xs flex items-start gap-2">
+      <i class="pi pi-exclamation-circle text-red-400 shrink-0 mt-0.5"></i>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  @if (backupSuccessToast()) {
+    <div class="p-3 rounded-lg bg-emerald-950/40 border border-emerald-900/60 text-emerald-300 text-xs flex items-center gap-2">
+      <i class="pi pi-check-circle text-emerald-400 shrink-0"></i>
+      <span>{{ backupSuccessToast() }}</span>
+    </div>
+  }
+
+  <!-- View 1: Not Authenticated State -->
+  @if (!isAuthenticated()) {
+    <div class="space-y-3">
+      <p class="text-xs text-zinc-400 leading-relaxed">
+        Faça backup do seu banco de dados SQLite (<code class="bg-zinc-800 px-1 py-0.5 rounded text-zinc-300">yomiflow.db</code>) diretamente na sua conta do Google Drive com encriptação e segurança.
+      </p>
+
+      <div class="space-y-2">
+        <label class="text-[11px] font-medium uppercase tracking-wider text-zinc-400 block">
+          Client ID
+        </label>
+        <input
+          type="text"
+          [value]="clientId()"
+          (input)="onClientIdChange($event)"
+          placeholder="ex: 12345-abc.apps.googleusercontent.com"
+          class="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-zinc-200 outline-none transition-colors"
+        />
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-[11px] font-medium uppercase tracking-wider text-zinc-400 block">
+          Client Secret
+        </label>
+        <input
+          type="password"
+          [value]="clientSecret()"
+          (input)="onClientSecretChange($event)"
+          placeholder="ex: GOCSPX-xxxxxxxxxxxx"
+          class="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-zinc-200 outline-none transition-colors"
+        />
+      </div>
+
+      <button
+        type="button"
+        (click)="authenticate()"
+        [disabled]="isAuthenticating() || !clientId().trim() || !clientSecret().trim()"
+        class="w-full mt-2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-xs rounded-lg transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+      >
+        @if (isAuthenticating()) {
+          <i class="pi pi-spin pi-spinner text-xs"></i>
+          <span>Aguardando autorização no navegador...</span>
+        } @else {
+          <i class="pi pi-google text-xs"></i>
+          <span>Conectar com Google Drive</span>
+        }
+      </button>
+    </div>
+  }
+
+  <!-- View 2: Authenticated State -->
+  @if (isAuthenticated()) {
+    <div class="space-y-4">
+      <div class="p-3 bg-zinc-950/70 border border-zinc-800/80 rounded-xl space-y-1.5">
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-zinc-400">Último Backup Realizado:</span>
+          <span class="font-mono text-zinc-200">
+            {{ lastBackupTime() ? (lastBackupTime() | date:'dd/MM/yyyy HH:mm:ss') : 'Nenhum backup registrado' }}
+          </span>
+        </div>
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-zinc-400">Destino:</span>
+          <span class="font-mono text-zinc-300">Google Drive / yomiflow_backup.db</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <button
+          type="button"
+          (click)="backupNow()"
+          [disabled]="isBackingUp()"
+          class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold text-xs rounded-lg transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+        >
+          @if (isBackingUp()) {
+            <i class="pi pi-spin pi-spinner text-xs"></i>
+            <span>Enviando backup para o Google Drive...</span>
+          } @else {
+            <i class="pi pi-cloud-upload text-sm"></i>
+            <span>Fazer Backup Agora</span>
+          }
+        </button>
+
+        <button
+          type="button"
+          (click)="disconnect()"
+          class="w-full py-1.5 text-zinc-500 hover:text-zinc-300 text-[11px] transition-colors cursor-pointer"
+        >
+          Desconectar Conta do Google Drive
+        </button>
+      </div>
+    </div>
+  }
+</div>

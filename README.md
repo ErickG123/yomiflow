@@ -1,117 +1,122 @@
-# YomiFlow
+# YomiFlow - Japanese Language Immersion & Acquisition Studio
 
-> **YomiFlow** é uma aplicação desktop offline de alto desempenho projetada para estudantes do idioma japonês, combinando um dicionário de busca instantânea com um Sistema de Repetição Espaçada (SRS) integrado e focado em produtividade minimalista.
+[![Tauri v2](https://img.shields.io/badge/Tauri-v2.12-24C8D8?style=flat-square&logo=tauri&logoColor=white)](https://v2.tauri.app/)
+[![Rust](https://img.shields.io/badge/Rust-2024%20Edition-DEA584?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Angular](https://img.shields.io/badge/Angular-22%20Signals-DD0031?style=flat-square&logo=angular&logoColor=white)](https://angular.dev/)
+[![SQLite](https://img.shields.io/badge/SQLite-WAL%20Mode-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Offline First](https://img.shields.io/badge/Offline--First-100%25-10B981?style=flat-square&logo=speedtest&logoColor=white)](https://github.com/)
 
----
-
-## ✨ Features Atuais (MVP)
-
-- ⚡ **Busca Offline de Alta Velocidade:** Consulta rápida e reativa indexada em SQLite local com correspondência de Kanji, Kana (Reading) e significados.
-- 📂 **Importador de Dicionários Yomichan:** Suporte a importação em lote de diretórios contendo bancos de termos (`term_bank_*.json`) via transações atômicas no SQLite.
-- 🃏 **Integração com SRS:** Adicione termos diretamente da pesquisa de dicionário para a sua fila de repetição espaçada com um único clique.
-- 🧘 **Modo Zen de Revisão:** Interface minimalista, sem distrações, focada na memorização ativa com suporte completo a atalhos de teclado (`Espaço` para revelar e `1` a `4` para classificar).
-- 🌙 **Dark Mode Nativo:** Paleta de tons escuros (Zinc) pensada para reduzir a fadiga ocular durante longas sessões de estudo.
+> **YomiFlow** é uma aplicação desktop *offline-first* ultrarrápida desenhada para unificar todo o ecossistema de aquisição e imersão no idioma japonês: desde a leitura e mineração de vocabulário em mangás e vídeos até à retenção na memória por SRS e prática ativa de caligrafia vetorial.
 
 ---
 
-## 🛠️ Tech Stack
+## 📸 Visão Geral da Interface
 
-- **Frontend:** [Angular 22](https://angular.dev/) (Standalone Components, Signals, Router, SCSS)
-- **Estilização & Ícones:** [Tailwind CSS](https://tailwindcss.com/) + [PrimeIcons](https://primeng.org/icons)
-- **Internacionalização (i18n):** [@ngneat/transloco](https://ngneat.github.io/transloco/)
-- **Testes & Qualidade:** [Vitest](https://vitest.dev/), Testing Library, [ESLint](https://eslint.org/) & [Prettier](https://prettier.io/)
-- **Desktop Runtime:** [Tauri v2](https://v2.tauri.app/)
-- **Backend Core:** [Rust](https://www.rust-lang.org/)
-- **Banco de Dados Local:** [SQLite](https://sqlite.org/) via crate `rusqlite` (bundled)
+| Dashboard & Heatmap | Leitor de Mangás & OCR | Prática de Caligrafia (Kanji Pad) |
+| :---: | :---: | :---: |
+| ![Dashboard Screenshot](https://raw.githubusercontent.com/yomiflow/assets/main/screenshots/dashboard.png) | ![Manga Reader Screenshot](https://raw.githubusercontent.com/yomiflow/assets/main/screenshots/reader.png) | ![Kanji Pad Screenshot](https://raw.githubusercontent.com/yomiflow/assets/main/screenshots/kanjipad.png) |
 
 ---
 
-## 📋 Pré-requisitos
+## 🌟 Destaques e Funcionalidades
 
-Antes de iniciar, certifique-se de possuir instalado na sua máquina:
+### 1. Dicionário & SRS (O Núcleo de Aquisição)
+- **Pesquisa Instantânea Yomichan:** Busca indexada em SQLite local por Kanji, Leitura em Hiragana/Katakana e Significados, com suporte a decomposição detalhada de radicais.
+- **Importação Massiva de Dados:** Ingestão atômica de bancos de termos Yomichan (`term_bank_*.json`), bancos de Kanjis (`kanji_bank_*.json`) e bases JLPT (N5 a N1).
+- **Algoritmo SRS (Repetição Espaçada FSRS):** Agendamento inteligente de revisões baseado nos feedbacks *Again (1)*, *Hard (2)*, *Good (3)* e *Easy (4)*, persistido diretamente no SQLite.
 
+### 2. Gamificação & Métricas de Estudo
+- **Heatmap de Contribuições:** Visualização visual no estilo GitHub das revisões dos últimos 112 dias (16 semanas) com 5 níveis de intensidade cromática.
+- **Contador de Ofensivas (Streaks):** Cálculo de ofensiva atual (*Current Streak*) e recorde histórico (*Max Streak*), mantendo a motivação diária.
+
+### 3. Leitor de Mangás & OCR (Consumo Estático)
+- **Suporte Multiformato em Memória:** Leitura direta de ficheiros `.cbz`, `.zip`, `.cbr` e `.rar` sem necessidade de descompactar pastas inteiras no disco.
+- **Motor de Recorte Cirúrgico & OCR:** Seleção livre com retângulo interativo sobre balões de fala, com pré-processamento de padding branco e conversão Luma8 para OCR preciso sem alucinações de bordas.
+- **Upgrade de IA Local (MangaOCR com ONNX):** Pipeline opcional de visão-texto executado em ONNX Runtime (`ort`) 100% local e offline.
+
+### 4. Prática Ativa (Audição e Escrita)
+- **Áudio Nativo (TTS Offline):** Reprodução instantânea de pronúncia em japonês nativo (`ja-JP`) integrada ao dicionário e às sessões de estudo via atalhos de teclado.
+- **Kanji Pad Vetorial (KanjiVG):** Renderização vetorial dos traços oficiais do KanjiVG com canvas de caligrafia interativo e motor matemático de avaliação geométrica de escrita.
+
+### 5. Consumo Dinâmico de Vídeo (Fase 4)
+- **Player de Vídeo com Hover Dictionary:** Reprodução de arquivos `.mkv` e `.mp4` via streaming local do Tauri, com extração de legendas embutidas via FFmpeg e pausa instantânea ao passar o cursor sobre as palavras.
+- **Corte de Áudio Nativo para SRS:** Recorte automatizado do intervalo exato da legenda em arquivo `.mp3` via FFmpeg, criando flashcards multimídia completos.
+
+### 6. Ferramentas de Alta Imersão & Nuvem (Fase 5)
+- **Dicionário de Frequência:** Badges visuais de classificação de palavras (*Core Top 1.5K*, *Comum Top 5K*, *Rara*) via `LEFT JOIN` indexado no SQLite e ingestão massiva atômica de corpus (ex: Innocent Corpus).
+- **Pitch Accent Visual:** Curvatura de acento tonal com suporte a padrões binários (`[0, 1, 1, 0]`), strings HL e índices de queda (*drop*), integrado a botão de áudio nativo TTS.
+- **Decomposição de Kanjis & Mnemónicas (WaniKani Style):** Visualização de radicais e histórico de mnemónicas do utilizador com auto-save invisível (`(blur)`) no SQLite.
+- **Cloud Sync (Bring Your Own Storage - Google Drive):** Sincronização e backup direto do banco `yomiflow.db` no Google Drive via OAuth2 nativo (utilizando as crates `oauth2`, `tiny_http` e `reqwest`). O utilizador mantém **100% da propriedade e privacidade dos seus dados**, sem necessidade de servidores intermediários de terceiros.
+
+---
+
+## 🛠️ Stack Tecnológico & Filosofia de Arquitetura
+
+- **Frontend:** [Angular 22](https://angular.dev/) (Standalone Components, Signals reativos, OnPush Change Detection, Tailwind CSS Zinc Palette, i18n via `@ngneat/transloco`).
+- **Desktop Runtime:** [Tauri v2](https://v2.tauri.app/) (Pegada de memória mínima, isolamento seguro entre processos).
+- **Backend Core:** [Rust](https://www.rust-lang.org/) (2024 Edition, zero alocações desnecessárias, IPC tipado com `oauth2`, `tiny_http`, `reqwest`, `rusqlite`, `ort`).
+- **Banco de Dados Local:** [SQLite](https://sqlite.org/) via crate `rusqlite` com modos de alta performance (`PRAGMA journal_mode = WAL`, `PRAGMA synchronous = NORMAL`, `PRAGMA temp_store = MEMORY`).
+
+### Filosofia Arquitetural
+1. **Domain-Driven Design (DDD):** Separação estrita entre o Domínio puro (cálculos matemáticos de SRS, validação de coordenadas, modelos de dados), a Aplicação (comandos e eventos Tauri) e a Infraestrutura (SQLite, FFmpeg, IO de arquivos).
+2. **Princípio DRY (Don't Repeat Yourself):** Reutilização de utilitários puros de texto, higienização de inputs e tipos desacoplados.
+3. **Segurança Rigorosa:**
+   - Prevenção contra *SQL Injection* utilizando exclusivamente prepared statements parametrizados.
+   - Proteção contra *Path Traversal* com validação e sanitização estrita de nomes de arquivos e caminhos no backend Rust.
+   - Proteção contra *XSS* sanitizando conteúdo dinâmico através do `DomSanitizer` (`SecurityContext.HTML`).
+
+---
+
+## 🚀 Instalação e Desenvolvimento
+
+### Pré-requisitos
 1. **Node.js** (v20+ recomendado) e **npm**
-2. **Rust** e **Cargo** (via [rustup](https://rustup.rs/))
-3. **Pré-requisitos do SO para o Tauri v2:**
-   - **Windows:** Microsoft Visual Studio C++ Build Tools & WebView2 Runtime (geralmente pré-instalado no Windows 10/11).
-   - **Linux:** Pacotes de desenvolvimento WebKit2GTK, GTK3 e dependências do sistema:
-     ```bash
-     sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-     ```
-   - **macOS:** Xcode Command Line Tools (`xcode-select --install`).
+2. **Rust & Cargo** (v1.90+ via [rustup.rs](https://rustup.rs/))
+3. **FFmpeg** (opcional, para extração de legendas e cortes de áudio em vídeos `.mkv`)
 
----
+### Passo a Passo
 
-## 🚀 Como Executar Localmente
-
-1. **Clone o repositório:**
+1. **Clonar o Repositório:**
    ```bash
    git clone https://github.com/seu-usuario/yomiflow.git
    cd yomiflow
    ```
 
-2. **Instale as dependências do Frontend:**
+2. **Instalar Dependências:**
    ```bash
    npm install
    ```
 
-3. **Inicie o ambiente de desenvolvimento Tauri:**
+3. **Executar em Modo de Desenvolvimento:**
    ```bash
    npm run tauri dev
    ```
-   > Esse comando compilará o core em Rust, inicializará o servidor de desenvolvimento do Angular e abrirá a janela desktop nativa.
-
-4. **Comandos Úteis:**
-   - Testes unitários (Frontend): `npm run test`
-   - Linting de código: `npm run lint`
-   - Build do Frontend: `npm run build`
-   - Checagem do Backend: `cd src-tauri && cargo check`
-   - **Geração de Ícones Nativos:** Coloque uma imagem `app-icon.png` (1024x1024) na raiz e execute:
-     ```bash
-     npm run tauri:icon
-     ```
-   - **Build de Produção (Instalador Nativo Local):** Para gerar o instalador `.exe` (Windows) ou `.deb`/`.AppImage` (Linux):
-     ```bash
-     npm run tauri:build
-     ```
-     > Os instaladores finais e binários otimizados serão gerados na pasta `src-tauri/target/release/bundle/`.
 
 ---
 
-## 📁 Estrutura do Projeto
+## 🧪 Qualidade e Testes Automatizados
 
-O projeto segue uma arquitetura baseada em domínios (*Feature-Based Architecture*) no cliente e microsserviço IPC no backend:
+O projeto conta com pipelines de testes unitários e de integração em ambas as camadas:
 
-```text
-yomiflow/
-├── .github/workflows/       # Pipelines de CI/CD (GitHub Actions)
-├── agents/                  # Diretrizes e regras arquiteturais do projeto
-├── public/                  # Arquivos estáticos públicos e traduções i18n
-├── src/                     # Aplicação Frontend (Angular 22)
-│   ├── app/
-│   │   ├── core/            # Serviços singleton, loaders e interceptors globais
-│   │   ├── shared/          # Componentes reutilizáveis, pipes e diretivas
-│   │   └── features/        # Módulos de domínio de negócio
-│   │       ├── dictionary/  # Busca no dicionário e integração de importação
-│   │       └── srs/         # Sessão de revisão (Zen Mode) e agendamento
-│   ├── styles.scss          # Estilos globais e diretivas do Tailwind
-│   └── test-setup.ts        # Configuração do ambiente de testes Vitest
-├── src-tauri/               # Backend nativo Desktop (Rust + Tauri)
-│   ├── Cargo.toml           # Dependências Rust (rusqlite, uuid, tauri-plugins)
-│   ├── tauri.conf.json      # Configuração de janelas, build e permissões
-│   └── src/
-│       ├── main.rs          # Ponto de entrada do executável Tauri
-│       ├── lib.rs           # Registro de plugins e invoke handlers IPC
-│       ├── db.rs            # Migrações SQLite e inicialização do banco local
-│       ├── models.rs        # Estruturas de dados compartilhadas
-│       └── commands.rs      # Comandos IPC (search, add_to_srs, import, get_due_cards)
-├── tailwind.config.js       # Configuração do Tailwind CSS
-├── vitest.config.ts         # Configuração de execução de testes unitários
-└── package.json             # Dependências e scripts do ecossistema Node.js
+```bash
+# Executar a suíte de testes do Backend Rust
+cargo test --lib --manifest-path src-tauri/Cargo.toml
+
+# Executar a verificação estrita do linter Rust (sem avisos)
+cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+
+# Executar a suíte de testes do Frontend Angular (Vitest)
+npm run test:ci
+
+# Executar o linter TypeScript/Angular
+npm run lint
+
+# Compilar o bundle de produção
+npm run build
 ```
 
 ---
 
 ## 📄 Licença
 
-Distribuído sob a licença MIT. Consulte `LICENSE` para mais informações.
+Distribuído sob a licença MIT. Consulte `LICENSE` para mais detalhes.

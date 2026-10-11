@@ -2,11 +2,13 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco'
 import { DictionaryEntry, KanjiEntry } from '../../models/dictionary.model'
 import { DictionaryService } from '../../services/dictionary.service'
+import { AudioService } from '../../../../core/services/audio.service'
+import { PitchAccentComponent } from '../../../../shared/components/pitch-accent/pitch-accent.component'
 
 @Component({
   selector: 'app-dictionary-search',
   standalone: true,
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, PitchAccentComponent],
   templateUrl: './dictionary-search.component.html',
   styleUrl: './dictionary-search.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -14,6 +16,7 @@ import { DictionaryService } from '../../services/dictionary.service'
 export class DictionarySearchComponent {
   private readonly dictionaryService = inject(DictionaryService)
   private readonly translocoService = inject(TranslocoService, { optional: true })
+  readonly audioService = inject(AudioService)
 
   readonly searchResults = this.dictionaryService.searchResults
   readonly kanjiSearchResults = this.dictionaryService.kanjiSearchResults

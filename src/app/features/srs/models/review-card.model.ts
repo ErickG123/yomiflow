@@ -4,4 +4,5 @@ export interface ReviewCard {
   reading: string
   meaning: string
   state: number
+  pitch?: string | null
 }

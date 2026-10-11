@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router'
-import { DashboardMainComponent } from './features/dashboard/components/dashboard-main/dashboard-main.component'
-import { DictionarySearchComponent } from './features/dictionary/components/dictionary-search/dictionary-search.component'
-import { StudySessionComponent } from './features/srs/components/study-session/study-session.component'
+
+import { setupGuard } from './core/guards/setup.guard'
 
 export const routes: Routes = [
   {
@@ -10,16 +9,33 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'onboarding',
+    loadComponent: () =>
+      import('./features/onboarding/components/onboarding/onboarding.component').then(
+        (m) => m.OnboardingComponent
+      ),
+  },
+  {
     path: 'dashboard',
-    component: DashboardMainComponent,
+    canActivate: [setupGuard],
+    loadComponent: () =>
+      import('./features/dashboard/components/dashboard-main/dashboard-main.component').then(
+        (m) => m.DashboardMainComponent
+      ),
   },
   {
     path: 'dictionary',
-    component: DictionarySearchComponent,
+    loadComponent: () =>
+      import('./features/dictionary/components/dictionary-search/dictionary-search.component').then(
+        (m) => m.DictionarySearchComponent
+      ),
   },
   {
     path: 'study',
-    component: StudySessionComponent,
+    loadComponent: () =>
+      import('./features/srs/components/study-session/study-session.component').then(
+        (m) => m.StudySessionComponent
+      ),
   },
   {
     path: 'manga',
@@ -33,6 +49,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/reader/components/manga-reader/manga-reader.component').then(
         (m) => m.MangaReaderComponent
+      ),
+  },
+  {
+    path: 'video',
+    loadComponent: () =>
+      import('./features/video/components/video-player/video-player.component').then(
+        (m) => m.VideoPlayerComponent
       ),
   },
   {

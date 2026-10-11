@@ -166,4 +166,42 @@ export class DictionaryService {
       this.isImporting.set(false)
     }
   }
+
+  async openImportKanjiVgDialog(): Promise<void> {
+    try {
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: 'Selecionar Pasta de ficheiros SVG do KanjiVG',
+      })
+
+      if (!selected) {
+        return
+      }
+
+      const folderPath = typeof selected === 'string' ? selected : selected[0]
+      if (!folderPath) {
+        return
+      }
+
+      this.isImporting.set(true)
+      this.appState.isProcessing.set(true)
+      this.appState.progressMessage.set('A importar traçados SVG do KanjiVG...')
+      try {
+        const count = await invoke<number>('import_kanjivg_folder', { folderPath })
+        alert(`Importação do KanjiVG concluída com sucesso!\n\n• ${count} traçados de Kanjis foram importados.`)
+      } finally {
+        this.appState.isProcessing.set(false)
+      }
+    } catch (error) {
+      console.error('Failed to import KanjiVG folder:', error)
+      alert(`Erro ao importar pasta do KanjiVG: ${error}`)
+    } finally {
+      this.isImporting.set(false)
+    }
+  }
+
+  async getKanjiSvg(kanji: string): Promise<string | null> {
+    return invoke<string | null>('get_kanji_svg', { kanji })
+  }
 }

@@ -26,6 +26,7 @@ pub struct ReviewCard {
     pub reading: String,
     pub meaning: String,
     pub state: i32,
+    pub pitch: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

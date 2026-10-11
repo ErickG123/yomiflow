@@ -74,7 +74,7 @@ pub fn get_due_cards(state: State<'_, AppState>) -> Result<Vec<ReviewCard>, Stri
 
     let mut stmt = conn
         .prepare(
-            "SELECT c.id, d.kanji, d.reading, d.meaning, c.state
+            "SELECT c.id, d.kanji, d.reading, d.meaning, c.state, d.pitch
              FROM cards c
              JOIN dictionary_entries d ON c.entry_id = d.id
              WHERE c.due_date <= strftime('%s', 'now') OR c.state = 0
@@ -91,6 +91,7 @@ pub fn get_due_cards(state: State<'_, AppState>) -> Result<Vec<ReviewCard>, Stri
                 reading: row.get(2)?,
                 meaning: row.get(3)?,
                 state: row.get(4)?,
+                pitch: row.get(5)?,
             })
         })
         .map_err(|e| e.to_string())?
@@ -118,46 +119,8 @@ pub fn answer_card(card_id: String, rating: i32, state: State<'_, AppState>) -> 
         .map_err(|e| e.to_string())?
         .as_secs() as i64;
 
-    let (next_due_date, next_reps, next_state) = match rating {
-        1 => {
-            // Again: 10 minutes, reps reset to 0, state: Learning (1)
-            let interval = 10 * 60;
-            (now + interval, 0, 1)
-        }
-        2 => {
-            // Hard: if current_reps == 0 then 12 hours else reps * 1.2 days, state: Review (2)
-            let interval = if current_reps == 0 {
-                12 * 60 * 60
-            } else {
-                ((current_reps as f64) * 1.2 * 24.0 * 60.0 * 60.0) as i64
-            };
-            (
-                now + interval,
-                current_reps + 1,
-                if current_state == 0 { 1 } else { 2 },
-            )
-        }
-        3 => {
-            // Good: 1 day if reps == 0, otherwise reps * 2.5 days, state: Review (2)
-            let interval = if current_reps == 0 {
-                24 * 60 * 60
-            } else {
-                ((current_reps as f64) * 2.5 * 24.0 * 60.0 * 60.0) as i64
-            };
-            (now + interval, current_reps + 1, 2)
-        }
-        4 => {
-            // Easy: minimum 4 days if reps == 0, otherwise reps * 4 days, state: Review (2)
-            let interval = if current_reps == 0 {
-                4 * 24 * 60 * 60
-            } else {
-                let calculated = ((current_reps as f64) * 4.0 * 24.0 * 60.0 * 60.0) as i64;
-                calculated.max(4 * 24 * 60 * 60)
-            };
-            (now + interval, current_reps + 1, 2)
-        }
-        _ => return Err("Invalid rating: must be between 1 and 4".to_string()),
-    };
+    let (next_due_date, next_reps, next_state) =
+        calculate_srs_step(rating, current_reps, current_state, now)?;
 
     tx.execute(
         "UPDATE cards SET reps = ?1, due_date = ?2, state = ?3 WHERE id = ?4",
@@ -321,4 +284,110 @@ pub async fn get_study_streaks(state: State<'_, AppState>) -> Result<StreakStats
         current_streak,
         max_streak,
     })
+}
+
+/// Pure business logic for FSRS-inspired interval calculation based on rating:
+/// 1: Again (10 min, reset reps, state 1)
+/// 2: Hard (12h if new else reps*1.2 days)
+/// 3: Good (1d if new else reps*2.5 days)
+/// 4: Easy (4d if new else reps*4.0 days)
+pub fn calculate_srs_step(
+    rating: i32,
+    current_reps: i32,
+    current_state: i32,
+    now: i64,
+) -> Result<(i64, i32, i32), String> {
+    match rating {
+        1 => {
+            let interval = 10 * 60;
+            Ok((now + interval, 0, 1))
+        }
+        2 => {
+            let interval = if current_reps == 0 {
+                12 * 60 * 60
+            } else {
+                ((current_reps as f64) * 1.2 * 24.0 * 60.0 * 60.0) as i64
+            };
+            Ok((
+                now + interval,
+                current_reps + 1,
+                if current_state == 0 { 1 } else { 2 },
+            ))
+        }
+        3 => {
+            let interval = if current_reps == 0 {
+                24 * 60 * 60
+            } else {
+                ((current_reps as f64) * 2.5 * 24.0 * 60.0 * 60.0) as i64
+            };
+            Ok((now + interval, current_reps + 1, 2))
+        }
+        4 => {
+            let interval = if current_reps == 0 {
+                4 * 24 * 60 * 60
+            } else {
+                let calculated = ((current_reps as f64) * 4.0 * 24.0 * 60.0 * 60.0) as i64;
+                calculated.max(4 * 24 * 60 * 60)
+            };
+            Ok((now + interval, current_reps + 1, 2))
+        }
+        _ => Err("Invalid rating: must be between 1 and 4".to_string()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_calculate_srs_step_again() {
+        let now = 1000000;
+        let (due, reps, state) = calculate_srs_step(1, 5, 2, now).unwrap();
+        assert_eq!(due, now + 10 * 60);
+        assert_eq!(reps, 0);
+        assert_eq!(state, 1);
+    }
+
+    #[test]
+    fn test_calculate_srs_step_hard_new_card() {
+        let now = 1000000;
+        let (due, reps, state) = calculate_srs_step(2, 0, 0, now).unwrap();
+        assert_eq!(due, now + 12 * 3600);
+        assert_eq!(reps, 1);
+        assert_eq!(state, 1);
+    }
+
+    #[test]
+    fn test_calculate_srs_step_good_progress() {
+        let now = 1000000;
+        // First review
+        let (due1, reps1, state1) = calculate_srs_step(3, 0, 0, now).unwrap();
+        assert_eq!(due1, now + 24 * 3600);
+        assert_eq!(reps1, 1);
+        assert_eq!(state1, 2);
+
+        // Second review with reps=2
+        let (due2, reps2, state2) = calculate_srs_step(3, 2, 2, now).unwrap();
+        let expected_interval = (2.0 * 2.5 * 86400.0) as i64;
+        assert_eq!(due2, now + expected_interval);
+        assert_eq!(reps2, 3);
+        assert_eq!(state2, 2);
+    }
+
+    #[test]
+    fn test_calculate_srs_step_easy() {
+        let now = 1000000;
+        let (due, reps, state) = calculate_srs_step(4, 0, 0, now).unwrap();
+        assert_eq!(due, now + 4 * 86400);
+        assert_eq!(reps, 1);
+        assert_eq!(state, 2);
+    }
+
+    #[test]
+    fn test_calculate_srs_step_invalid_rating() {
+        let res = calculate_srs_step(0, 0, 0, 1000);
+        assert!(res.is_err());
+        let res5 = calculate_srs_step(5, 0, 0, 1000);
+        assert!(res5.is_err());
+    }
 }

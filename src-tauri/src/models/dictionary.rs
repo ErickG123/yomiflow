@@ -7,6 +7,8 @@ pub struct DictionaryEntry {
     pub reading: String,
     pub meaning: String,
     pub in_srs: bool,
+    pub rank: Option<i64>,
+    pub pitch: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

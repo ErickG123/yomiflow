@@ -1,0 +1,253 @@
+<div class="onboarding-container bg-zinc-950 text-zinc-100 flex flex-col justify-center items-center p-6 select-none">
+  <!-- Progress Header -->
+  <div class="w-full max-w-xl mb-8">
+    <div class="flex items-center justify-between text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+      <span [class.text-emerald-400]="step() === 'welcome' || step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'">1. Bem-vindo</span>
+      <span [class.text-emerald-400]="step() === 'ai-model' || step() === 'kanjivg' || step() === 'completed'">2. Modelo IA (OCR)</span>
+      <span [class.text-emerald-400]="step() === 'kanjivg' || step() === 'completed'">3. Kanjis (KanjiVG)</span>
+      <span [class.text-emerald-400]="step() === 'completed'">4. Pronto</span>
+    </div>
+    <div class="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+      <div
+        class="h-full bg-emerald-500 transition-all duration-500 ease-out"
+        [style.width.%]="progressPercentage()"
+      ></div>
+    </div>
+  </div>
+
+  <!-- Card Container -->
+  <div class="w-full max-w-xl bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+    
+    <!-- Step 1: Welcome -->
+    @if (step() === 'welcome') {
+      <div class="space-y-6">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-3xl text-emerald-400">
+            🎌
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight text-white">Bem-vindo ao YomiFlow</h1>
+            <p class="text-sm text-zinc-400">Sua central offline de imersão e aprendizado de japonês.</p>
+          </div>
+        </div>
+
+        <p class="text-zinc-300 text-sm leading-relaxed">
+          Para garantir a melhor experiência com avaliação interativa de escrita (Kanji Pad) e reconhecimento óptico de mangás de alta precisão (MangaOCR), vamos configurar seus motores essenciais em 2 passos rápidos.
+        </p>
+
+        <div class="grid grid-cols-2 gap-4 py-2">
+          <div class="p-4 rounded-xl bg-zinc-950/60 border border-zinc-800/80">
+            <span class="text-xl">🤖</span>
+            <h4 class="text-sm font-semibold text-zinc-200 mt-2">Visão Computacional</h4>
+            <p class="text-xs text-zinc-400 mt-1">Extração neural de balões de fala sem enviar nada para nuvens.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-zinc-950/60 border border-zinc-800/80">
+            <span class="text-xl">✍️</span>
+            <h4 class="text-sm font-semibold text-zinc-200 mt-2">KanjiVG Vetorial</h4>
+            <p class="text-xs text-zinc-400 mt-1">Avaliação geométrica e ordem precisa de traços dos kanjis.</p>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <button
+            type="button"
+            (click)="goToStep('ai-model')"
+            class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-xl transition-colors shadow-lg shadow-emerald-950/50 flex items-center gap-2 cursor-pointer"
+          >
+            Começar Configuração
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Step 2: AI Model Download -->
+    @if (step() === 'ai-model') {
+      <div class="space-y-6">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-3xl text-cyan-400">
+            🧠
+          </div>
+          <div>
+            <h2 class="text-xl font-bold tracking-tight text-white">Upgrade de IA (MangaOCR)</h2>
+            <p class="text-sm text-zinc-400">Modelo neural ONNX para leitura de furiganas e textos verticais.</p>
+          </div>
+        </div>
+
+        @if (isAiReady()) {
+          <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm flex items-center gap-3">
+            <svg class="w-6 h-6 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <div>
+              <p class="font-semibold">Modelo de IA já configurado!</p>
+              <p class="text-xs text-emerald-400/80">O ficheiro <code class="bg-emerald-950 px-1 py-0.5 rounded">manga-ocr.onnx</code> está pronto para inferência local.</p>
+            </div>
+          </div>
+        } @else {
+          <div class="space-y-4">
+            <p class="text-zinc-300 text-sm">
+              O modelo tem ~40MB e roda com aceleração local. Caso não queira baixar agora, o YomiFlow usará o motor Tesseract como fallback.
+            </p>
+
+            @if (aiService.isDownloading()) {
+              <div class="space-y-2 p-4 bg-zinc-950/70 border border-zinc-800 rounded-xl">
+                <div class="flex justify-between text-xs text-zinc-300">
+                  <span>Transferindo pesos neurais...</span>
+                  <span class="font-bold text-cyan-400">{{ aiService.downloadProgress() }}%</span>
+                </div>
+                <div class="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+                  <div class="h-full bg-cyan-500 transition-all duration-300 ease-out" [style.width.%]="aiService.downloadProgress()"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="flex items-center justify-between pt-4 border-t border-zinc-800/80">
+          <button
+            type="button"
+            (click)="skipAiModel()"
+            class="text-xs text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+            [disabled]="aiService.isDownloading()"
+          >
+            Pular por agora (Usar Tesseract)
+          </button>
+
+          <div class="flex gap-3">
+            @if (!isAiReady()) {
+              <button
+                type="button"
+                (click)="downloadAiModel()"
+                [disabled]="aiService.isDownloading()"
+                class="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-medium text-sm rounded-xl transition-colors cursor-pointer flex items-center gap-2"
+              >
+                @if (aiService.isDownloading()) {
+                  <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                  <span>Baixando...</span>
+                } @else {
+                  <span>Descarregar Modelo (~40MB)</span>
+                }
+              </button>
+            } @else {
+              <button
+                type="button"
+                (click)="goToStep('kanjivg')"
+                class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-xl transition-colors cursor-pointer flex items-center gap-2"
+              >
+                <span>Avançar</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Step 3: KanjiVG Import -->
+    @if (step() === 'kanjivg') {
+      <div class="space-y-6">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-3xl text-amber-400">
+            🖌️
+          </div>
+          <div>
+            <h2 class="text-xl font-bold tracking-tight text-white">Importação KanjiVG (Opcional)</h2>
+            <p class="text-sm text-zinc-400">Vetores SVG para desenhar e avaliar kanjis com precisão geométrica.</p>
+          </div>
+        </div>
+
+        @if (importedKanjiCount() > 0) {
+          <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm flex items-center gap-3">
+            <svg class="w-6 h-6 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <div>
+              <p class="font-semibold">{{ importedKanjiCount() }} traços importados com sucesso!</p>
+              <p class="text-xs text-emerald-400/80">O motor do Kanji Pad agora pode validar ordens e vetores.</p>
+            </div>
+          </div>
+        } @else {
+          <div class="space-y-3">
+            <p class="text-zinc-300 text-sm">
+              Se você tiver uma pasta descompactada do projeto <strong>KanjiVG</strong> (ficheiros <code class="bg-zinc-800 px-1 py-0.5 rounded text-xs text-amber-300">*.svg</code>), selecione-a abaixo para importar os traços para o SQLite.
+            </p>
+
+            <div class="p-3 bg-zinc-950/60 border border-zinc-800/80 rounded-xl text-xs text-zinc-400">
+              💡 Você também poderá fazer isso a qualquer momento nas configurações ou dicionário.
+            </div>
+
+            @if (isImporting()) {
+              <div class="flex items-center gap-3 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs text-zinc-300">
+                <svg class="animate-spin w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Importando traços vetoriais... Aguarde.</span>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="flex items-center justify-between pt-4 border-t border-zinc-800/80">
+          <button
+            type="button"
+            (click)="goToStep('completed')"
+            class="text-xs text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+            [disabled]="isImporting()"
+          >
+            Pular esta etapa
+          </button>
+
+          <div class="flex gap-3">
+            <button
+              type="button"
+              (click)="selectAndImportKanjiVgFolder()"
+              [disabled]="isImporting()"
+              class="px-5 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-medium text-sm rounded-xl transition-colors cursor-pointer flex items-center gap-2"
+            >
+              <span>Selecionar Pasta KanjiVG</span>
+            </button>
+
+            @if (importedKanjiCount() > 0) {
+              <button
+                type="button"
+                (click)="goToStep('completed')"
+                class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-xl transition-colors cursor-pointer flex items-center gap-2"
+              >
+                <span>Concluir</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Step 4: Completed -->
+    @if (step() === 'completed') {
+      <div class="space-y-6 text-center py-4">
+        <div class="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-4xl text-emerald-400">
+          🎉
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">Tudo Pronto!</h2>
+          <p class="text-sm text-zinc-400 mt-1">O YomiFlow está pronto para turbinar o seu aprendizado.</p>
+        </div>
+
+        <p class="text-zinc-300 text-sm max-w-md mx-auto">
+          Explore o leitor de mangás com OCR inteligente, assista a episódios de anime com corte e extração automática de áudio, e pratique escrita no Kanji Pad.
+        </p>
+
+        <div class="pt-4">
+          <button
+            type="button"
+            (click)="finishOnboarding()"
+            class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-xl transition-colors shadow-lg shadow-emerald-950/60 cursor-pointer"
+          >
+            Ir para o Painel Principal
+          </button>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

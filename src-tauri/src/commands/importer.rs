@@ -198,3 +198,210 @@ pub async fn import_jlpt_kanjis(
 
     Ok(total_imported)
 }
+
+#[tauri::command]
+pub async fn import_kanjivg_folder(
+    folder_path: String,
+    window: Window,
+    state: State<'_, AppState>,
+) -> Result<usize, String> {
+    let path = Path::new(&folder_path);
+    if !path.exists() || !path.is_dir() {
+        return Err("O caminho fornecido não é uma pasta válida.".to_string());
+    }
+
+    let entries = fs::read_dir(path).map_err(|e| e.to_string())?;
+    let mut total_inserted = 0usize;
+
+    let mut conn = state.db.lock().map_err(|e| e.to_string())?;
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+
+    {
+        let mut stmt = tx
+            .prepare(
+                "INSERT OR REPLACE INTO kanji_strokes (kanji, svg_data) VALUES (?1, ?2)",
+            )
+            .map_err(|e| e.to_string())?;
+
+        for entry in entries {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let file_path = entry.path();
+
+            if file_path.is_file()
+                && file_path
+                    .extension()
+                    .map(|ext| ext == "svg")
+                    .unwrap_or(false)
+            {
+                let file_name = file_path
+                    .file_stem()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("");
+
+                // Some KanjiVG files have variant suffixes like '05bdd-Kaisho', take the hex part
+                let hex_part = file_name.split('-').next().unwrap_or(file_name);
+
+                if let Ok(code_point) = u32::from_str_radix(hex_part, 16)
+                    && let Some(ch) = std::char::from_u32(code_point)
+                    && let Ok(svg_content) = fs::read_to_string(&file_path)
+                {
+                    stmt.execute(params![ch.to_string(), svg_content])
+                        .map_err(|e| e.to_string())?;
+                    total_inserted += 1;
+                }
+            }
+        }
+    }
+
+    tx.commit().map_err(|e| e.to_string())?;
+
+    let _ = window.emit(
+        "backend-progress",
+        format!(
+            "Importação KanjiVG concluída com sucesso: {} ficheiros SVG importados.",
+            total_inserted
+        ),
+    );
+
+    Ok(total_inserted)
+}
+
+#[tauri::command]
+pub async fn get_kanji_svg(
+    kanji: String,
+    state: State<'_, AppState>,
+) -> Result<Option<String>, String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+
+    let mut stmt = conn
+        .prepare("SELECT svg_data FROM kanji_strokes WHERE kanji = ?1 LIMIT 1")
+        .map_err(|e| e.to_string())?;
+
+    let mut rows = stmt.query(params![kanji]).map_err(|e| e.to_string())?;
+
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        let svg: String = row.get(0).map_err(|e| e.to_string())?;
+        Ok(Some(svg))
+    } else {
+        Ok(None)
+    }
+}
+
+#[tauri::command]
+pub async fn import_frequency_list(
+    file_path: String,
+    window: Window,
+    state: State<'_, AppState>,
+) -> Result<usize, String> {
+    let path = Path::new(&file_path);
+    if !path.exists() || !path.is_file() {
+        return Err("O caminho fornecido não é um ficheiro válido.".to_string());
+    }
+
+    let _ = window.emit("backend-progress", "Lendo ficheiro de frequência...");
+    let content = fs::read_to_string(path).map_err(|e| format!("Erro ao ler ficheiro: {}", e))?;
+
+    let mut items: Vec<(String, i64)> = Vec::new();
+
+    let ext = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_lowercase();
+
+    if ext == "json" {
+        // Support:
+        // 1. Array of pairs: [["word", 1], ["word2", 2]]
+        // 2. Array of objects: [{"term": "word", "rank": 1}]
+        // 3. Object map: {"word": 1, "word2": 2}
+        let parsed: Value = serde_json::from_str(&content)
+            .map_err(|e| format!("Formato JSON inválido: {}", e))?;
+
+        match parsed {
+            Value::Array(arr) => {
+                for item in arr {
+                    if let Value::Array(pair) = item {
+                        if pair.len() >= 2 {
+                            if let (Some(term), Some(rank)) =
+                                (pair[0].as_str(), pair[1].as_i64().or_else(|| pair[1].as_str().and_then(|s| s.parse().ok())))
+                            {
+                                items.push((term.trim().to_string(), rank));
+                            }
+                        }
+                    } else if let Value::Object(obj) = item {
+                        let term_val = obj
+                            .get("term")
+                            .or_else(|| obj.get("word"))
+                            .and_then(|v| v.as_str());
+                        let rank_val = obj
+                            .get("rank")
+                            .or_else(|| obj.get("ranking"))
+                            .and_then(|v| v.as_i64().or_else(|| v.as_str().and_then(|s| s.parse().ok())));
+
+                        if let (Some(term), Some(rank)) = (term_val, rank_val) {
+                            items.push((term.trim().to_string(), rank));
+                        }
+                    }
+                }
+            }
+            Value::Object(map) => {
+                for (term, rank_val) in map {
+                    if let Some(rank) = rank_val.as_i64().or_else(|| rank_val.as_str().and_then(|s| s.parse().ok())) {
+                        items.push((term.trim().to_string(), rank));
+                    }
+                }
+            }
+            _ => return Err("Estrutura JSON não suportada para frequências.".to_string()),
+        }
+    } else {
+        // CSV / TSV fallback (ex: word,rank or word\trank)
+        for line in content.lines() {
+            let line = line.trim();
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+            let separator = if line.contains('\t') { '\t' } else { ',' };
+            let parts: Vec<&str> = line.split(separator).collect();
+            if parts.len() >= 2 {
+                let term = parts[0].trim().trim_matches('"');
+                if let Ok(rank) = parts[1].trim().trim_matches('"').parse::<i64>() {
+                    items.push((term.to_string(), rank));
+                }
+            }
+        }
+    }
+
+    if items.is_empty() {
+        return Err("Nenhum dado de frequência válido encontrado no ficheiro.".to_string());
+    }
+
+    let _ = window.emit(
+        "backend-progress",
+        format!("Gravando {} frequências no SQLite...", items.len()),
+    );
+
+    let mut conn = state.db.lock().map_err(|e| e.to_string())?;
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+
+    {
+        let mut stmt = tx
+            .prepare("INSERT OR REPLACE INTO word_frequencies (term, rank) VALUES (?1, ?2)")
+            .map_err(|e| e.to_string())?;
+
+        for (term, rank) in &items {
+            stmt.execute(params![term, rank])
+                .map_err(|e| e.to_string())?;
+        }
+    }
+
+    tx.commit().map_err(|e| e.to_string())?;
+
+    let total = items.len();
+    let _ = window.emit(
+        "backend-progress",
+        format!("Importação concluída: {} palavras indexadas com ranking.", total),
+    );
+
+    Ok(total)
+}
+

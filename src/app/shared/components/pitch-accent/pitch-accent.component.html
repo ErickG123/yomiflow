@@ -1,0 +1,33 @@
+<div class="pitch-container inline-flex items-center gap-2">
+  <div class="inline-flex items-center text-zinc-100 font-sans select-none tracking-normal">
+    @for (mora of moras(); track $index) {
+      <span
+        class="inline-flex items-center justify-center px-1 py-0.5 relative transition-all"
+        [class.border-t-2]="mora.isHigh"
+        [class.border-orange-400]="mora.isHigh"
+        [class.border-t-transparent]="!mora.isHigh"
+        [class.border-b-2]="!mora.isHigh && !mora.isDrop"
+        [class.border-zinc-700]="!mora.isHigh && !mora.isDrop"
+        [class.text-orange-300]="mora.isHigh"
+        [class.text-zinc-300]="!mora.isHigh"
+      >
+        <span class="text-base font-medium">{{ mora.kana }}</span>
+        @if (mora.isDrop) {
+          <!-- Downstep drop visual indicator on the right edge -->
+          <span class="absolute right-0 top-0 bottom-1 w-[2px] bg-orange-400"></span>
+        }
+      </span>
+    }
+  </div>
+
+  @if (showAudioButton()) {
+    <button
+      type="button"
+      (click)="speak()"
+      [title]="'Ouvir Áudio / Pronúncia'"
+      class="p-1 rounded text-zinc-400 hover:text-orange-400 hover:bg-zinc-800 transition-colors cursor-pointer inline-flex items-center justify-center text-xs"
+    >
+      <i class="pi pi-volume-up text-sm"></i>
+    </button>
+  }
+</div>

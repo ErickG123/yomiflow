@@ -8,7 +8,6 @@ use unrar::Archive;
 use walkdir::WalkDir;
 use zip::ZipArchive;
 
-
 fn is_supported_image(name: &str) -> bool {
     let lower = name.to_lowercase();
     (lower.ends_with(".jpg")
@@ -41,10 +40,9 @@ fn is_rar_or_cbr(path: &str) -> bool {
 
 // --- ZIP / CBZ IMPLEMENTATIONS ---
 
-fn load_zip_metadata(path: &str) -> Result<Vec<String>, String> {
-    let file = File::open(Path::new(path)).map_err(|e| format!("Failed to open file: {}", e))?;
+pub fn parse_zip_metadata_reader<R: Read + std::io::Seek>(reader: R) -> Result<Vec<String>, String> {
     let mut archive =
-        ZipArchive::new(file).map_err(|e| format!("Failed to read ZIP archive: {}", e))?;
+        ZipArchive::new(reader).map_err(|e| format!("Failed to read ZIP archive: {}", e))?;
 
     let mut pages = Vec::new();
 
@@ -68,6 +66,11 @@ fn load_zip_metadata(path: &str) -> Result<Vec<String>, String> {
 
     pages.sort();
     Ok(pages)
+}
+
+fn load_zip_metadata(path: &str) -> Result<Vec<String>, String> {
+    let file = File::open(Path::new(path)).map_err(|e| format!("Failed to open file: {}", e))?;
+    parse_zip_metadata_reader(file)
 }
 
 fn get_zip_page_bytes(path: &str, page_name: &str) -> Result<Vec<u8>, String> {
@@ -147,6 +150,11 @@ fn get_rar_page_bytes(path: &str, page_name: &str) -> Result<Vec<u8>, String> {
 
 #[tauri::command]
 pub async fn load_cbz_metadata(path: String) -> Result<Vec<String>, String> {
+    let p = Path::new(&path);
+    if !p.exists() || !p.is_file() {
+        return Err(format!("Ficheiro inválido ou não encontrado: {}", path));
+    }
+
     if is_rar_or_cbr(&path) {
         load_rar_metadata(&path)
     } else {
@@ -156,6 +164,16 @@ pub async fn load_cbz_metadata(path: String) -> Result<Vec<String>, String> {
 
 #[tauri::command]
 pub async fn get_cbz_page_base64(path: String, page_name: String) -> Result<String, String> {
+    let p = Path::new(&path);
+    if !p.exists() || !p.is_file() {
+        return Err(format!("Ficheiro inválido ou não encontrado: {}", path));
+    }
+
+    // Guard against directory traversal in page_name
+    if page_name.contains("..") || page_name.starts_with('/') || page_name.starts_with('\\') {
+        return Err("Nome de página inválido".to_string());
+    }
+
     let bytes = if is_rar_or_cbr(&path) {
         get_rar_page_bytes(&path, &page_name)?
     } else {
@@ -333,4 +351,57 @@ pub async fn scan_manga_library(root_path: String) -> Result<Vec<MangaVolume>, S
     });
 
     Ok(volumes)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::{Cursor, Write};
+    use zip::write::{SimpleFileOptions, ZipWriter};
+
+    #[test]
+    fn test_parse_zip_metadata_reader_in_memory() {
+        let mut buffer = Cursor::new(Vec::new());
+        {
+            let mut writer = ZipWriter::new(&mut buffer);
+            let options = SimpleFileOptions::default();
+
+            // Add valid image files
+            writer.start_file("02_page.png", options).unwrap();
+            writer.write_all(b"fake image data").unwrap();
+
+            writer.start_file("01_cover.jpg", options).unwrap();
+            writer.write_all(b"fake image data").unwrap();
+
+            // Add non-image files / hidden files
+            writer.start_file(".DS_Store", options).unwrap();
+            writer.write_all(b"ignored").unwrap();
+
+            writer.start_file("metadata.txt", options).unwrap();
+            writer.write_all(b"ignored").unwrap();
+
+            writer.start_file("__MACOSX/page.jpg", options).unwrap();
+            writer.write_all(b"ignored").unwrap();
+
+            writer.finish().unwrap();
+        }
+
+        buffer.set_position(0);
+        let pages = parse_zip_metadata_reader(buffer).unwrap();
+
+        assert_eq!(pages.len(), 2);
+        assert_eq!(pages[0], "01_cover.jpg");
+        assert_eq!(pages[1], "02_page.png");
+    }
+
+    #[test]
+    fn test_is_supported_image() {
+        assert!(is_supported_image("test.jpg"));
+        assert!(is_supported_image("test.jpeg"));
+        assert!(is_supported_image("test.png"));
+        assert!(is_supported_image("test.webp"));
+        assert!(!is_supported_image(".hidden.jpg"));
+        assert!(!is_supported_image("readme.txt"));
+        assert!(!is_supported_image("__MACOSX/image.png"));
+    }
 }

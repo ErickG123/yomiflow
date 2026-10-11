@@ -18,8 +18,19 @@ pub fn initialize_database(
     println!("Caminho do Banco de Dados: {:?}", db_path);
     let conn = Connection::open(&db_path)?;
 
+    create_tables_and_seed(&conn)?;
+
+    Ok(conn)
+}
+
+pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
     conn.execute_batch(
         "
+        PRAGMA journal_mode = WAL;
+        PRAGMA synchronous = NORMAL;
+        PRAGMA temp_store = MEMORY;
+        PRAGMA mmap_size = 3000000000;
+
         CREATE TABLE IF NOT EXISTS dictionary_entries (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             kanji TEXT,
@@ -67,11 +78,36 @@ pub fn initialize_database(
             meaning TEXT,
             jlpt_level INTEGER
         );
+
+        CREATE TABLE IF NOT EXISTS kanji_strokes (
+            kanji TEXT PRIMARY KEY,
+            svg_data TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS word_frequencies (
+            term TEXT PRIMARY KEY,
+            rank INTEGER
+        );
+
+        CREATE TABLE IF NOT EXISTS kanji_components (
+            kanji TEXT NOT NULL,
+            component TEXT NOT NULL,
+            meaning TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_kanji_components_kanji ON kanji_components(kanji);
+
+        CREATE TABLE IF NOT EXISTS user_mnemonics (
+            kanji TEXT PRIMARY KEY,
+            mnemonic TEXT NOT NULL
+        );
         ",
     )?;
 
     // Migration: ensure jlpt_level column exists if table was previously created without it
     let _ = conn.execute("ALTER TABLE kanjis ADD COLUMN jlpt_level INTEGER", []);
+    // Migration: ensure pitch column exists if dictionary_entries was created without it
+    let _ = conn.execute("ALTER TABLE dictionary_entries ADD COLUMN pitch TEXT", []);
 
     // Seed mock data if empty
     let count: i64 = conn.query_row("SELECT COUNT(*) FROM dictionary_entries", [], |row| {
@@ -93,5 +129,60 @@ pub fn initialize_database(
         )?;
     }
 
-    Ok(conn)
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sqlite_in_memory_initialization_and_queries() {
+        let conn = Connection::open_in_memory().unwrap();
+        create_tables_and_seed(&conn).unwrap();
+
+        // Check seed count
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM dictionary_entries", [], |row| {
+                row.get(0)
+            })
+            .unwrap();
+        assert_eq!(count, 3);
+
+        // Check dictionary lookup query
+        let reading: String = conn
+            .query_row(
+                "SELECT reading FROM dictionary_entries WHERE kanji = ?1",
+                params!["食べる"],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(reading, "たべる");
+
+        // Insert and query cards table
+        conn.execute(
+            "INSERT INTO cards (id, entry_id, due_date, stability, difficulty, reps, state) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params!["test-card-1", 1, 1700000000, 2.5, 0.3, 1, 2],
+        ).unwrap();
+
+        let card_reps: i32 = conn
+            .query_row("SELECT reps FROM cards WHERE id = ?1", params!["test-card-1"], |row| row.get(0))
+            .unwrap();
+        assert_eq!(card_reps, 1);
+
+        // Insert and query kanji_strokes table
+        conn.execute(
+            "INSERT INTO kanji_strokes (kanji, svg_data) VALUES (?1, ?2)",
+            params!["日", "<svg><path d=\"M...\"/></svg>"],
+        ).unwrap();
+
+        let svg: String = conn
+            .query_row(
+                "SELECT svg_data FROM kanji_strokes WHERE kanji = ?1",
+                params!["日"],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert!(svg.contains("<svg>"));
+    }
 }

@@ -1,8 +1,7 @@
 import { Injectable, signal } from '@angular/core'
 import { invoke } from '@tauri-apps/api/core'
 import { exit } from '@tauri-apps/plugin-process'
-
-export type NotificationState = 'on' | 'off' | 'paused'
+import { NotificationState } from '../models/settings.model'
 
 @Injectable({
   providedIn: 'root',

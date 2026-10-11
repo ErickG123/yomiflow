@@ -45,6 +45,16 @@
           <i class="pi pi-book text-xs"></i>
           <span>{{ 'nav.reader' | transloco }}</span>
         </a>
+
+        <a
+          routerLink="/video"
+          routerLinkActive="bg-zinc-800 text-zinc-100"
+          [routerLinkActiveOptions]="{ exact: false }"
+          class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
+        >
+          <i class="pi pi-video text-xs"></i>
+          <span>{{ 'nav.video' | transloco }}</span>
+        </a>
       </nav>
 
       <button
@@ -82,6 +92,34 @@
         </button>
       </div>
 
+      <!-- Settings Tabs Navigation -->
+      <div class="flex rounded-lg bg-zinc-950 p-1 border border-zinc-800">
+        <button
+          type="button"
+          (click)="settingsActiveTab.set('general')"
+          class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center justify-center gap-2"
+          [class.bg-zinc-800]="settingsActiveTab() === 'general'"
+          [class.text-white]="settingsActiveTab() === 'general'"
+          [class.text-zinc-400]="settingsActiveTab() !== 'general'"
+        >
+          <i class="pi pi-sliders-h text-xs"></i>
+          <span>Geral</span>
+        </button>
+        <button
+          type="button"
+          (click)="settingsActiveTab.set('cloud')"
+          class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center justify-center gap-2"
+          [class.bg-zinc-800]="settingsActiveTab() === 'cloud'"
+          [class.text-white]="settingsActiveTab() === 'cloud'"
+          [class.text-zinc-400]="settingsActiveTab() !== 'cloud'"
+        >
+          <i class="pi pi-cloud text-xs"></i>
+          <span>Backup em Nuvem</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: General Settings -->
+      @if (settingsActiveTab() === 'general') {
       <!-- Language Section -->
       <div class="space-y-2">
         <label class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
@@ -190,6 +228,14 @@
             <span class="text-sm font-medium">Importar Kanjis JLPT (.json)</span>
             <i class="pi pi-upload text-zinc-400"></i>
           </button>
+          <button
+            type="button"
+            (click)="dictionaryService.openImportKanjiVgDialog()"
+            class="w-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 py-2.5 px-4 rounded-lg flex justify-between items-center transition-colors cursor-pointer shadow-sm active:scale-[0.99]"
+          >
+            <span class="text-sm font-medium">Importar KanjiVG (Pasta .svg)</span>
+            <i class="pi pi-folder-open text-zinc-400"></i>
+          </button>
         </div>
 
         <!-- Danger Zone -->
@@ -216,6 +262,12 @@
           <span>{{ 'settings.exit' | transloco }}</span>
         </button>
       </div>
+      }
+
+      <!-- TAB 2: Cloud Sync Settings -->
+      @if (settingsActiveTab() === 'cloud') {
+        <app-cloud-sync></app-cloud-sync>
+      }
     </div>
   </div>
 }

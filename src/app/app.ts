@@ -3,15 +3,17 @@ import { FormsModule } from '@angular/forms'
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco'
 import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification'
-import { NotificationState, SettingsService } from './core/services/settings.service'
+import { SettingsService } from './core/services/settings.service'
+import { NotificationState } from './core/models/settings.model'
 import { SchedulerService } from './core/services/scheduler.service'
 import { AppStateService } from './core/services/app-state.service'
 import { DictionaryService } from './features/dictionary/services/dictionary.service'
+import { CloudSyncComponent } from './features/settings/components/cloud-sync/cloud-sync.component'
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslocoPipe, FormsModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslocoPipe, FormsModule, CloudSyncComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -23,6 +25,7 @@ export class App implements OnInit {
   readonly dictionaryService = inject(DictionaryService)
 
   readonly isSettingsOpen = signal<boolean>(false)
+  readonly settingsActiveTab = signal<'general' | 'cloud'>('general')
 
   readonly availableLangs = [
     { id: 'pt', label: 'PT' },

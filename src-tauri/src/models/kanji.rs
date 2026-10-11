@@ -10,6 +10,20 @@ pub struct KanjiEntry {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct KanjiComponent {
+    pub kanji: String,
+    pub component: String,
+    pub meaning: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct KanjiDetails {
+    pub kanji: String,
+    pub components: Vec<KanjiComponent>,
+    pub mnemonic: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JlptKanjiEntry {
     pub id: Option<i64>,
     pub kanji: Option<String>,

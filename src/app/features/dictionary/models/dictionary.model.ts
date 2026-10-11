@@ -4,6 +4,8 @@ export interface DictionaryEntry {
   reading: string
   meaning: string
   in_srs: boolean
+  rank?: number | null
+  pitch?: string | null
   tags?: string[]
 }
 

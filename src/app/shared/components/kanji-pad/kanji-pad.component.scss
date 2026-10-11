@@ -1,0 +1,28 @@
+:host {
+  display: block;
+}
+
+.kanjivg-container {
+  /* Ensure the embedded SVG fills the container nicely */
+  ::ng-deep svg {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+
+    /* Stroke styling for KanjiVG paths */
+    path {
+      stroke: #3f3f46 !important; /* zinc-700 guide color */
+      stroke-width: 3.5 !important;
+      fill: none !important;
+      opacity: 0.65;
+    }
+
+    /* Stroke numbers / order annotations in KanjiVG (text tags) */
+    text {
+      fill: #71717a !important; /* zinc-500 */
+      font-size: 8px !important;
+      font-family: sans-serif !important;
+      opacity: 0.55;
+    }
+  }
+}
