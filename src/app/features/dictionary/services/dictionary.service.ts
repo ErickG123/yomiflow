@@ -70,6 +70,27 @@ export class DictionaryService {
     }
   }
 
+  async addCustomWordToSrs(
+    kanji: string | null,
+    reading: string,
+    meaning: string,
+    deckId?: string | null
+  ): Promise<number> {
+    try {
+      const entryId = await invoke<number>('add_custom_word_to_srs', {
+        kanji: kanji || null,
+        reading,
+        meaning,
+        deckId: deckId || null,
+      })
+      this.addedCardIds.update((current) => [...current, entryId])
+      return entryId
+    } catch (error) {
+      console.error('Failed to add custom word to SRS:', error)
+      throw error
+    }
+  }
+
   async removeFromSrs(entryId: number): Promise<void> {
     try {
       await invoke('remove_from_srs', { entryId })

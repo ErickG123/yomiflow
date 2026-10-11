@@ -1,0 +1,10 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.japanese-article-content ruby rt {
+  user-select: none;
+  font-size: 0.65em;
+  color: #a1a1aa;
+}

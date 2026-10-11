@@ -432,5 +432,28 @@
   },
   "pitch": {
     "listen_audio": "Listen Audio / Pronunciation"
+  },
+  "web_reader": {
+    "title": "NHK Easy Reader",
+    "subtitle": "Daily simplified Japanese news",
+    "refresh": "Refresh news",
+    "loading_articles": "Loading news articles...",
+    "load_error": "Failed to load news",
+    "retry": "Try again",
+    "no_articles": "No articles found at the moment.",
+    "source_nhk": "NHK News Web Easy",
+    "view_original": "View original on NHK",
+    "target_deck": "Target Deck",
+    "deck_default": "Default",
+    "save_article_notebook": "Save Article to Notebook",
+    "click_to_lookup": "Click to look up in dictionary",
+    "select_article_hint": "Select an article from the sidebar to start reading.",
+    "dictionary": "Dictionary",
+    "searching_definition": "Searching definition...",
+    "no_definition_found": "No definition found for this term.",
+    "send_word_notebook": "Send Word to Notebook",
+    "in_srs": "In SRS",
+    "add_srs": "Add to SRS",
+    "send_to_notebook": "Send to Notebook"
   }
 }

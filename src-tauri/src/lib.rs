@@ -152,7 +152,9 @@ pub fn run() {
             commands::stats::get_study_history,
             commands::kana::record_kana_attempt,
             commands::kana::get_kana_mastery_list,
-            commands::kana::get_kana_proficiency_stats
+            commands::kana::get_kana_proficiency_stats,
+            commands::news::fetch_nhk_easy_news,
+            commands::dictionary::add_custom_word_to_srs
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

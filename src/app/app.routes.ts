@@ -64,6 +64,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'web',
+    canActivate: [onboardingGuard],
+    loadComponent: () =>
+      import('./features/reader/components/web-reader/web-reader.component').then(
+        (m) => m.WebReaderComponent
+      ),
+  },
+  {
     path: 'video',
     canActivate: [onboardingGuard],
     loadComponent: () =>
