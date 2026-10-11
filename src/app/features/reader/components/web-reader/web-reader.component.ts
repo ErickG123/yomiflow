@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
-import { TranslocoDirective, TranslocoPipe } from '@ngneat/transloco'
+import { TranslocoDirective } from '@ngneat/transloco'
 import { NewsService } from '../../services/news.service'
 import { NhkNewsItem } from '../../models/news.model'
 import { DictionaryService } from '../../../dictionary/services/dictionary.service'

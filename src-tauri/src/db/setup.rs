@@ -147,6 +147,9 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             accuracy_percentage REAL DEFAULT 0.0,
             last_practiced INTEGER DEFAULT 0
         );
+
+        CREATE VIEW IF NOT EXISTS flashcards AS 
+        SELECT id, entry_id, deck_id, due_date, stability, difficulty, reps, state FROM cards;
         ",
     )?;
 
@@ -154,6 +157,15 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
     let _ = conn.execute("ALTER TABLE kanjis ADD COLUMN jlpt_level INTEGER", []);
     let _ = conn.execute("ALTER TABLE dictionary_entries ADD COLUMN pitch TEXT", []);
     let _ = conn.execute("ALTER TABLE cards ADD COLUMN deck_id TEXT", []);
+    let _ = conn.execute(
+        "ALTER TABLE cards ADD COLUMN stability REAL DEFAULT 0.0",
+        [],
+    );
+    let _ = conn.execute(
+        "ALTER TABLE cards ADD COLUMN difficulty REAL DEFAULT 0.0",
+        [],
+    );
+    let _ = conn.execute("ALTER TABLE cards ADD COLUMN reps INTEGER DEFAULT 0", []);
     let _ = conn.execute("ALTER TABLE tags ADD COLUMN name TEXT", []);
     let _ = conn.execute("ALTER TABLE tags ADD COLUMN color TEXT", []);
     let _ = conn.execute("ALTER TABLE notebook_entries ADD COLUMN deck_id TEXT", []);
@@ -163,6 +175,10 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
     );
     let _ = conn.execute(
         "ALTER TABLE notebook_entries ADD COLUMN srs_stage INTEGER DEFAULT 0",
+        [],
+    );
+    let _ = conn.execute(
+        "CREATE VIEW IF NOT EXISTS flashcards AS SELECT id, entry_id, deck_id, due_date, stability, difficulty, reps, state FROM cards",
         [],
     );
 

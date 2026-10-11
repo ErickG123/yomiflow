@@ -31,8 +31,8 @@ describe('WebReaderComponent', () => {
   }
 
   let mockDictionaryService: {
-    searchResults: ReturnType<typeof signal<any[]>>
-    kanjiSearchResults: ReturnType<typeof signal<any[]>>
+    searchResults: ReturnType<typeof signal<DictionaryEntry[]>>
+    kanjiSearchResults: ReturnType<typeof signal<unknown[]>>
     isLoading: ReturnType<typeof signal<boolean>>
     addedCardIds: ReturnType<typeof signal<number[]>>
     searchDictionary: ReturnType<typeof vi.fn>
@@ -45,7 +45,7 @@ describe('WebReaderComponent', () => {
   }
 
   let mockDeckService: {
-    decks: ReturnType<typeof signal<any[]>>
+    decks: ReturnType<typeof signal<{ id: string; name: string; description: string }[]>>
     loadDecks: ReturnType<typeof vi.fn>
   }
 
@@ -96,7 +96,7 @@ describe('WebReaderComponent', () => {
     ]
 
     const parentInjector = {
-      get: (token: any) => {
+      get: (token: unknown) => {
         const found = providers.find((p) => p.provide === token)
         if (found) return found.useValue
         return null

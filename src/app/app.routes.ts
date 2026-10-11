@@ -72,11 +72,27 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'epub',
+    canActivate: [onboardingGuard],
+    loadComponent: () =>
+      import('./features/reader/components/epub-reader/epub-reader.component').then(
+        (m) => m.EpubReaderComponent
+      ),
+  },
+  {
     path: 'video',
     canActivate: [onboardingGuard],
     loadComponent: () =>
       import('./features/video/components/video-player/video-player.component').then(
         (m) => m.VideoPlayerComponent
+      ),
+  },
+  {
+    path: 'shadowing',
+    canActivate: [onboardingGuard],
+    loadComponent: () =>
+      import('./features/shadowing/components/shadowing-trainer/shadowing-trainer.component').then(
+        (m) => m.ShadowingTrainerComponent
       ),
   },
   {

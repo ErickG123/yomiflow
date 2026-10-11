@@ -355,6 +355,22 @@ pub async fn scan_manga_library(root_path: String) -> Result<Vec<MangaVolume>, S
     Ok(volumes)
 }
 
+#[tauri::command]
+pub fn read_epub_file(path: String) -> Result<String, String> {
+    let p = Path::new(&path);
+    if !p.exists() || !p.is_file() {
+        return Err(format!("Ficheiro EPUB não encontrado: {}", path));
+    }
+
+    let mut file = File::open(p).map_err(|e| format!("Erro ao abrir ficheiro EPUB: {}", e))?;
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer)
+        .map_err(|e| format!("Erro ao ler ficheiro EPUB: {}", e))?;
+
+    let encoded = BASE64.encode(&buffer);
+    Ok(format!("data:application/epub+zip;base64,{}", encoded))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

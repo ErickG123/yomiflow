@@ -17,8 +17,10 @@
     "reader": "Manga",
     "video": "Video",
     "web": "Web",
+    "epub": "Light Novel",
     "notebook": "Notebook",
     "decks": "Decks",
+    "shadowing": "Shadowing",
     "calendar": "Calendar",
     "categories": {
       "consumption": "Consumption",
@@ -455,5 +457,40 @@
     "in_srs": "In SRS",
     "add_srs": "Add to SRS",
     "send_to_notebook": "Send to Notebook"
+  },
+  "epub_reader": {
+    "title": "Light Novel Reader",
+    "subtitle": "Immersive EPUB reading with intelligent Furigana",
+    "open_epub": "Open EPUB",
+    "choose_epub": "Choose EPUB File",
+    "furigana_on": "Furigana: On",
+    "furigana_off": "Furigana: Off",
+    "furigana_desc": "Dynamically injects Furigana only on words not yet in your SRS deck",
+    "prev_page": "Previous Page (A / Left Arrow)",
+    "next_page": "Next Page (D / Right Arrow)",
+    "loading_epub": "Loading EPUB book...",
+    "empty_title": "No Book Open",
+    "empty_desc": "Open a Japanese .epub book to start reading with adaptive Furigana and integrated dictionary."
+  },
+  "shadowing": {
+    "title": "Shadowing & Pronunciation",
+    "subtitle": "Train speaking by repeating natives and receive instant pronunciation accuracy feedback",
+    "target_sentence": "Target Sentence",
+    "listen_tts": "Listen TTS",
+    "input_placeholder": "Type or paste the Japanese sentence to practice...",
+    "native_audio": "Native Audio (Optional)",
+    "import_audio": "Import Audio",
+    "no_audio_selected": "No audio file selected",
+    "record_voice": "Voice Practice",
+    "record_hint": "Press the microphone and repeat the Japanese sentence clearly.",
+    "start_rec": "Start Recording",
+    "stop_eval": "Stop & Evaluate",
+    "recording_now": "Recording voice...",
+    "click_to_speak": "Click microphone to speak",
+    "results_title": "Pronunciation Accuracy",
+    "accuracy_score": "Accuracy",
+    "original_text": "Original Text",
+    "transcribed_voice": "Recognized Voice",
+    "no_transcription": "No intelligible speech captured."
   }
 }

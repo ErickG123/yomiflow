@@ -92,6 +92,64 @@ pub fn segment_and_tag_japanese(text: &str) -> Result<Vec<MorphologicalToken>, S
     })
 }
 
+pub fn katakana_to_hiragana(katakana: &str) -> String {
+    let mut hiragana = String::new();
+    for c in katakana.chars() {
+        let code = c as u32;
+        // Katakana range 0x30A1..=0x30F6 maps to Hiragana 0x3041..=0x3096 (diff 0x60)
+        if (0x30A1..=0x30F6).contains(&code)
+            && let Some(h_char) = char::from_u32(code - 0x60)
+        {
+            hiragana.push(h_char);
+            continue;
+        }
+        hiragana.push(c);
+    }
+    hiragana
+}
+
+fn contains_kanji(text: &str) -> bool {
+    text.chars()
+        .any(|c| (0x4E00..=0x9FAF).contains(&(c as u32)))
+}
+
+/// Injects <ruby>SURFACE<rt>HIRAGANA</rt></ruby> dynamically into HTML/text,
+/// skipping words that exist in the user's SRS vocabulary set.
+pub fn inject_furigana_for_unlearned_words(
+    text: &str,
+    known_srs_words: &std::collections::HashSet<String>,
+) -> Result<String, String> {
+    if text.trim().is_empty() {
+        return Ok(text.to_string());
+    }
+
+    let tokens = segment_and_tag_japanese(text)?;
+    let mut output = String::new();
+
+    for token in tokens {
+        let surface = &token.surface;
+
+        // Only inject furigana if the token contains Kanji AND is not yet in the user's SRS deck
+        if contains_kanji(surface)
+            && !known_srs_words.contains(surface)
+            && let Some(ref raw_reading) = token.reading
+        {
+            let reading_hiragana = katakana_to_hiragana(raw_reading);
+            if !reading_hiragana.is_empty() && reading_hiragana != *surface {
+                output.push_str(&format!(
+                    "<ruby>{}<rt>{}</rt></ruby>",
+                    surface, reading_hiragana
+                ));
+                continue;
+            }
+        }
+
+        output.push_str(surface);
+    }
+
+    Ok(output)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -136,5 +194,25 @@ mod tests {
         let complex = "「鬼滅の刃」：１２３！？@#$^&*()_+{}[]\\|;:'\",.<>/?\n\r\t";
         let res = segment_and_tag_japanese(complex);
         assert!(res.is_ok());
+    }
+
+    #[test]
+    fn test_katakana_to_hiragana() {
+        assert_eq!(katakana_to_hiragana("サクラ"), "さくら");
+        assert_eq!(katakana_to_hiragana("ニホン"), "にほん");
+        assert_eq!(katakana_to_hiragana("漢字"), "漢字");
+    }
+
+    #[test]
+    fn test_inject_furigana_skips_known_srs_words() {
+        let mut known = std::collections::HashSet::new();
+        known.insert("学生".to_string());
+
+        let res = inject_furigana_for_unlearned_words("私は学生です", &known).unwrap();
+        // 私 is unknown kanji -> has ruby
+        assert!(res.contains("<ruby>私<rt>わたし</rt></ruby>"));
+        // 学生 is in known SRS words -> no ruby!
+        assert!(res.contains("学生"));
+        assert!(!res.contains("<ruby>学生"));
     }
 }

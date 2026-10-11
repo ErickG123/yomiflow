@@ -1,0 +1,181 @@
+<div *transloco="let t" class="h-full w-full bg-zinc-950 text-zinc-100 p-8 overflow-y-auto">
+  <div class="max-w-4xl mx-auto space-y-8 animate-fadeIn">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-zinc-800/80 pb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+          <i class="pi pi-volume-up text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-white tracking-tight">{{ t('shadowing.title') }}</h1>
+          <p class="text-xs text-zinc-400 mt-0.5">{{ t('shadowing.subtitle') }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Alert if any -->
+    @if (shadowingService.speechError(); as err) {
+      <div class="p-4 rounded-xl bg-amber-950/20 border border-amber-900/40 text-amber-300 text-xs flex items-center gap-2">
+        <i class="pi pi-exclamation-triangle text-amber-400 text-sm shrink-0"></i>
+        <span>{{ err }}</span>
+      </div>
+    }
+
+    <!-- 1. Text & Audio Setup Card -->
+    <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6 space-y-6">
+      <!-- Target Sentence Input -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            {{ t('shadowing.target_sentence') }}
+          </label>
+          <button
+            type="button"
+            (click)="speakTts()"
+            class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer transition"
+          >
+            <i class="pi pi-volume-up text-xs"></i>
+            <span>{{ t('shadowing.listen_tts') }}</span>
+          </button>
+        </div>
+        <textarea
+          [(ngModel)]="targetText"
+          rows="3"
+          class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-100 outline-none focus:border-indigo-500 transition-colors leading-relaxed"
+          [placeholder]="t('shadowing.input_placeholder')"
+        ></textarea>
+      </div>
+
+      <!-- Native Audio Import Section -->
+      <div class="space-y-3">
+        <label class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          {{ t('shadowing.native_audio') }}
+        </label>
+
+        <div class="flex items-center gap-4">
+          <label class="px-4 py-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white transition cursor-pointer flex items-center gap-2">
+            <i class="pi pi-upload text-xs"></i>
+            <span>{{ t('shadowing.import_audio') }}</span>
+            <input
+              type="file"
+              accept="audio/*"
+              (change)="onAudioFileSelected($event)"
+              class="hidden"
+            />
+          </label>
+
+          @if (audioFileName(); as name) {
+            <span class="text-xs text-indigo-400 truncate max-w-xs flex items-center gap-1.5">
+              <i class="pi pi-file text-xs"></i>
+              <span>{{ name }}</span>
+            </span>
+          } @else {
+            <span class="text-xs text-zinc-500">{{ t('shadowing.no_audio_selected') }}</span>
+          }
+        </div>
+
+        @if (audioSrc(); as src) {
+          <div class="pt-2">
+            <audio
+              #audioPlayer
+              [src]="src"
+              controls
+              class="w-full h-10 outline-none rounded-xl"
+            ></audio>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- 2. Voice Recording Action Card -->
+    <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-4">
+      <div class="space-y-1">
+        <h3 class="text-base font-bold text-white">{{ t('shadowing.record_voice') }}</h3>
+        <p class="text-xs text-zinc-400 max-w-md">{{ t('shadowing.record_hint') }}</p>
+      </div>
+
+      <button
+        type="button"
+        (click)="toggleRecording()"
+        class="w-16 h-16 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xl relative"
+        [class.bg-rose-600]="shadowingService.isRecording()"
+        [class.hover:bg-rose-500]="shadowingService.isRecording()"
+        [class.animate-pulse]="shadowingService.isRecording()"
+        [class.bg-indigo-600]="!shadowingService.isRecording()"
+        [class.hover:bg-indigo-500]="!shadowingService.isRecording()"
+        [title]="shadowingService.isRecording() ? t('shadowing.stop_eval') : t('shadowing.start_rec')"
+      >
+        <i
+          class="pi text-2xl text-white"
+          [class.pi-stop]="shadowingService.isRecording()"
+          [class.pi-microphone]="!shadowingService.isRecording()"
+        ></i>
+      </button>
+
+      <span class="text-xs font-semibold" [class.text-rose-400]="shadowingService.isRecording()" [class.text-zinc-400]="!shadowingService.isRecording()">
+        {{ shadowingService.isRecording() ? t('shadowing.recording_now') : t('shadowing.click_to_speak') }}
+      </span>
+    </div>
+
+    <!-- 3. Comparison & Pronunciation Feedback Card -->
+    @if (shadowingService.comparisonResult(); as res) {
+      <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-2xl p-6 space-y-6 animate-fadeIn">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="pi pi-chart-bar text-indigo-400 text-sm"></i>
+            <span>{{ t('shadowing.results_title') }}</span>
+          </h3>
+
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-zinc-400">{{ t('shadowing.accuracy_score') }}:</span>
+            <span
+              class="text-lg font-bold px-3 py-1 rounded-xl"
+              [class.bg-emerald-950]="res.accuracy >= 80"
+              [class.text-emerald-400]="res.accuracy >= 80"
+              [class.border-emerald-800]="res.accuracy >= 80"
+              [class.bg-amber-950]="res.accuracy >= 50 && res.accuracy < 80"
+              [class.text-amber-400]="res.accuracy >= 50 && res.accuracy < 80"
+              [class.border-amber-800]="res.accuracy >= 50 && res.accuracy < 80"
+              [class.bg-rose-950]="res.accuracy < 50"
+              [class.text-rose-400]="res.accuracy < 50"
+              [class.border-rose-800]="res.accuracy < 50"
+              class="border"
+            >
+              {{ res.accuracy }}%
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Target Sentence Breakdown -->
+          <div class="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-2">
+            <span class="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+              {{ t('shadowing.original_text') }}
+            </span>
+            <p class="text-sm font-medium leading-loose text-zinc-200">
+              @for (char of res.matchedWords; track $index) {
+                <span
+                  class="rounded px-0.5"
+                  [class.text-emerald-400]="char.isCorrect"
+                  [class.bg-emerald-950/40]="char.isCorrect"
+                  [class.text-rose-400]="!char.isCorrect"
+                  [class.bg-rose-950/40]="!char.isCorrect"
+                >{{ char.word }}</span>
+              }
+            </p>
+          </div>
+
+          <!-- User Transcribed Voice -->
+          <div class="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-2">
+            <span class="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+              {{ t('shadowing.transcribed_voice') }}
+            </span>
+            <p class="text-sm font-medium leading-loose text-zinc-300">
+              {{ res.transcribedText || t('shadowing.no_transcription') }}
+            </p>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

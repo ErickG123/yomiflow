@@ -17,8 +17,10 @@
     "reader": "Manga",
     "video": "Vídeo",
     "web": "Web",
+    "epub": "Light Novel",
     "notebook": "Cuaderno",
     "decks": "Mazos",
+    "shadowing": "Shadowing",
     "calendar": "Calendario",
     "categories": {
       "consumption": "Consumo",
@@ -455,5 +457,40 @@
     "in_srs": "En SRS",
     "add_srs": "Añadir a SRS",
     "send_to_notebook": "Enviar al Cuaderno"
+  },
+  "epub_reader": {
+    "title": "Lector de Light Novels",
+    "subtitle": "Lectura inmersiva de archivos EPUB con Furigana inteligente",
+    "open_epub": "Abrir EPUB",
+    "choose_epub": "Elegir Archivo EPUB",
+    "furigana_on": "Furigana: Activado",
+    "furigana_off": "Furigana: Desactivado",
+    "furigana_desc": "Inyecta Furigana dinámicamente solo en palabras que aún no están en tu mazo SRS",
+    "prev_page": "Página Anterior (A / Flecha Izquierda)",
+    "next_page": "Página Siguiente (D / Flecha Derecha)",
+    "loading_epub": "Cargando libro EPUB...",
+    "empty_title": "Ningún Libro Abierto",
+    "empty_desc": "Abre un libro .epub en japonés para comenzar a leer con Furigana adaptativo y diccionario integrado."
+  },
+  "shadowing": {
+    "title": "Shadowing & Pronunciación",
+    "subtitle": "Entrena el habla repitiendo a nativos y recibe retroalimentación inmediata de pronunciación",
+    "target_sentence": "Frase de Referencia",
+    "listen_tts": "Escuchar TTS",
+    "input_placeholder": "Escribe o pega la frase en japonés para practicar...",
+    "native_audio": "Audio Nativo (Opcional)",
+    "import_audio": "Importar Audio",
+    "no_audio_selected": "Ningún archivo de audio seleccionado",
+    "record_voice": "Práctica de Voz",
+    "record_hint": "Presiona el micrófono y repite la frase en japonés con claridad.",
+    "start_rec": "Iniciar Grabación",
+    "stop_eval": "Parar y Evaluar",
+    "recording_now": "Grabando voz...",
+    "click_to_speak": "Haz clic en el micrófono para hablar",
+    "results_title": "Precisión de la Pronunciación",
+    "accuracy_score": "Precisión",
+    "original_text": "Texto Original",
+    "transcribed_voice": "Voz Reconocida",
+    "no_transcription": "No se capturó ningún audio inteligible."
   }
 }

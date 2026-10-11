@@ -17,8 +17,10 @@
     "reader": "Mangá",
     "video": "Vídeo",
     "web": "Web",
+    "epub": "Light Novel",
     "notebook": "Caderno",
     "decks": "Baralhos",
+    "shadowing": "Shadowing",
     "calendar": "Calendário",
     "categories": {
       "consumption": "Consumo",
@@ -455,5 +457,40 @@
     "in_srs": "No SRS",
     "add_srs": "Adicionar ao SRS",
     "send_to_notebook": "Enviar para o Caderno"
+  },
+  "epub_reader": {
+    "title": "Leitor de Light Novels",
+    "subtitle": "Leitura imersiva de ficheiros EPUB com Furigana inteligente",
+    "open_epub": "Abrir EPUB",
+    "choose_epub": "Escolher Ficheiro EPUB",
+    "furigana_on": "Furigana: Ativo",
+    "furigana_off": "Furigana: Oculto",
+    "furigana_desc": "Injeta Furigana dinamicamente apenas nas palavras que ainda não estão no seu baralho SRS",
+    "prev_page": "Página Anterior (A / Seta Esquerda)",
+    "next_page": "Próxima Página (D / Seta Direita)",
+    "loading_epub": "A carregar livro EPUB...",
+    "empty_title": "Nenhum Livro Aberto",
+    "empty_desc": "Abra um arquivo .epub em japonês para começar a ler com Furigana adaptativo e dicionário integrado."
+  },
+  "shadowing": {
+    "title": "Shadowing & Pronúncia",
+    "subtitle": "Treine a fala repetindo nativos e receba avaliação em tempo real",
+    "target_sentence": "Frase de Referência",
+    "listen_tts": "Ouvir TTS",
+    "input_placeholder": "Digite ou cole a frase em japonês para praticar...",
+    "native_audio": "Áudio Nativo (Opcional)",
+    "import_audio": "Importar Áudio",
+    "no_audio_selected": "Nenhum arquivo de áudio selecionado",
+    "record_voice": "Prática de Voz",
+    "record_hint": "Pressione o microfone e repita a frase em japonês com clareza.",
+    "start_rec": "Iniciar Gravação",
+    "stop_eval": "Parar e Avaliar",
+    "recording_now": "A gravar voz...",
+    "click_to_speak": "Clique no microfone para falar",
+    "results_title": "Precisão da Pronúncia",
+    "accuracy_score": "Precisão",
+    "original_text": "Texto Original",
+    "transcribed_voice": "Voz Reconhecida",
+    "no_transcription": "Nenhum áudio inteligível capturado."
   }
 }

@@ -280,25 +280,47 @@ pub fn answer_card(card_id: String, rating: i32, state: State<'_, AppState>) -> 
     let mut conn = state.db.lock().map_err(|e| e.to_string())?;
     let tx = conn.transaction().map_err(|e| e.to_string())?;
 
-    let (current_reps, current_state): (i32, i32) = tx
+    let (current_stability, current_difficulty, current_reps, current_state): (f64, f64, i32, i32) = tx
         .query_row(
-            "SELECT reps, state FROM cards WHERE id = ?1",
+            "SELECT COALESCE(stability, 0.0), COALESCE(difficulty, 0.0), reps, state FROM cards WHERE id = ?1",
             params![&card_id],
-            |row| Ok((row.get(0)?, row.get(1)?)),
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
         )
         .map_err(|e| e.to_string())?;
+
+    let last_review: i64 = tx
+        .query_row(
+            "SELECT COALESCE(MAX(review_datetime), 0) FROM review_logs WHERE card_id = ?1",
+            params![&card_id],
+            |row| row.get(0),
+        )
+        .unwrap_or(0);
 
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_err(|e| e.to_string())?
         .as_secs() as i64;
 
-    let (next_due_date, next_reps, next_state) =
-        calculate_srs_step(rating, current_reps, current_state, now)?;
+    let fsrs_state = crate::domain::fsrs::calculate_fsrs_step(
+        rating,
+        current_stability,
+        current_difficulty,
+        current_reps,
+        current_state,
+        last_review,
+        now,
+    )?;
 
     tx.execute(
-        "UPDATE cards SET reps = ?1, due_date = ?2, state = ?3 WHERE id = ?4",
-        params![next_reps, next_due_date, next_state, &card_id],
+        "UPDATE cards SET stability = ?1, difficulty = ?2, reps = ?3, due_date = ?4, state = ?5 WHERE id = ?6",
+        params![
+            fsrs_state.stability,
+            fsrs_state.difficulty,
+            fsrs_state.reps,
+            fsrs_state.due_date,
+            fsrs_state.state,
+            &card_id
+        ],
     )
     .map_err(|e| e.to_string())?;
 

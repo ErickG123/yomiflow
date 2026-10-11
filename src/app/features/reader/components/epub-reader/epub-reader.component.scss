@@ -1,0 +1,12 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.epub-container {
+  height: calc(100% - 3.5rem);
+}
+
+.epub-container iframe {
+  border: none !important;
+}

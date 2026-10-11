@@ -9,6 +9,31 @@ pub fn analyze_japanese_text(text: String) -> Result<Vec<MorphologicalToken>, St
 }
 
 #[tauri::command]
+pub fn inject_furigana_epub(
+    html_text: String,
+    state: State<'_, AppState>,
+) -> Result<String, String> {
+    let known_words = {
+        let conn = state.db.lock().map_err(|e| e.to_string())?;
+        let mut stmt = conn
+            .prepare(
+                "SELECT DISTINCT d.kanji 
+                 FROM cards c 
+                 JOIN dictionary_entries d ON c.entry_id = d.id 
+                 WHERE d.kanji IS NOT NULL",
+            )
+            .map_err(|e| e.to_string())?;
+
+        stmt.query_map([], |row| row.get::<_, String>(0))
+            .map_err(|e| e.to_string())?
+            .filter_map(|r| r.ok())
+            .collect::<std::collections::HashSet<String>>()
+    };
+
+    crate::domain::nlp::inject_furigana_for_unlearned_words(&html_text, &known_words)
+}
+
+#[tauri::command]
 pub fn save_notebook_entry(
     id: String,
     title: String,
