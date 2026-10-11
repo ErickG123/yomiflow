@@ -187,6 +187,13 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             FOREIGN KEY(badge_id) REFERENCES badges(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS study_sessions (
+            id TEXT PRIMARY KEY,
+            category TEXT NOT NULL,
+            duration_minutes INTEGER NOT NULL CHECK (duration_minutes > 0),
+            date TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+        );
+
         CREATE VIEW IF NOT EXISTS flashcards AS 
         SELECT id, entry_id, deck_id, due_date, stability, difficulty, reps, state FROM cards;
         ",

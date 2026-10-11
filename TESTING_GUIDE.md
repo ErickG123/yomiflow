@@ -279,6 +279,24 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 
 ---
 
+### Cenário F: Immersion Tracker
+**Objetivo:** Confirmar que as notificações nativas são emitidas ao terminar foco/intervalo e que um bloco de foco concluído é persistido uma única vez no SQLite.
+
+1. Inicie o aplicativo desktop com `npm run tauri dev` e conceda permissão de notificações ao YomiFlow quando solicitado.
+2. Na Sidebar, escolha duração de foco e intervalo (25/5 ou 50/10 minutos) e uma categoria, por exemplo **Leitura Ativa**. Inicie o cronômetro e minimize a janela.
+3. Aguarde o término do bloco de foco. Para uma validação acelerada em desenvolvimento, altere temporariamente a duração para 1 minuto. Não pause nem reinicie o ciclo.
+4. **Critério de notificação:** Deve surgir uma notificação nativa com a mensagem de foco concluído mesmo com a janela minimizada. O cronômetro deve mudar para a fase de intervalo.
+5. Consulte o banco `yomiflow.db` no diretório de dados local da aplicação:
+   ```sql
+   SELECT category, duration_minutes, date
+   FROM study_sessions
+   ORDER BY date DESC
+   LIMIT 1;
+   ```
+   **Critério de persistência:** A linha mais recente deve conter a categoria selecionada e a duração do bloco concluído, com data/hora local válida.
+6. Deixe o intervalo terminar. Deve surgir uma segunda notificação nativa e o widget deve preparar o próximo bloco de foco. Confirme que o intervalo não criou outra linha em `study_sessions`.
+7. Repita iniciando e pausando ou reiniciando um foco antes do término. Sessões interrompidas não devem criar linhas.
+
 ## 4. Pipeline de Integração Contínua (CI/CD Quality Gates)
 
 Antes de qualquer `git commit` e `git push`, a suíte de validação obrigatória abaixo deve ser executada sem erros:

@@ -1,4 +1,5 @@
-{
+﻿{
+  "pomodoro": {"title":"Pomodoro Global","focus":"Enfoque (min)","break":"Descanso (min)","category":"Categoría","start":"Iniciar","pause":"Pausar","resume":"Reanudar","reset":"Reiniciar","phases":{"focus":"Enfoque","break":"Descanso"},"categories":{"active_reading":"Lectura Activa","passive_listening":"Escucha Pasiva","srs_review":"Repaso SRS"},"notifications":{"focus":"Bloque de enfoque completado. Es hora de descansar.","break":"Descanso completado. ¿Listo para enfocarte de nuevo?"}},
   "common": {
     "close": "Cerrar",
     "cancel": "Cancelar",

@@ -8,6 +8,7 @@ pub mod kana;
 pub mod kanji;
 pub mod news;
 pub mod nlp;
+pub mod pomodoro;
 pub mod reader;
 pub mod settings;
 pub mod srs;

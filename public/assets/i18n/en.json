@@ -1,4 +1,5 @@
-{
+﻿{
+  "pomodoro": {"title":"Global Pomodoro","focus":"Focus (min)","break":"Break (min)","category":"Category","start":"Start","pause":"Pause","resume":"Resume","reset":"Reset","phases":{"focus":"Focus","break":"Break"},"categories":{"active_reading":"Active Reading","passive_listening":"Passive Listening","srs_review":"SRS Review"},"notifications":{"focus":"Focus block complete. Time for a break.","break":"Break complete. Ready to focus again?"}},
   "common": {
     "close": "Close",
     "cancel": "Cancel",

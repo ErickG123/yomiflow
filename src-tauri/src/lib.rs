@@ -165,7 +165,8 @@ pub fn run() {
             commands::reader::save_epub_position,
             commands::reader::get_epub_position,
             commands::stats::get_badges,
-            commands::discord::set_discord_zen_presence
+            commands::discord::set_discord_zen_presence,
+            commands::pomodoro::save_study_session
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

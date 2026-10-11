@@ -259,6 +259,8 @@
           </div>
         </nav>
 
+        <app-pomodoro-widget [class.hidden]="effectiveSidebarCollapsed()" />
+
         <!-- Sidebar Footer: Zen Mode & Settings -->
         <div class="p-3 border-t border-zinc-800/80 shrink-0 space-y-1">
           <!-- Zen Mode Toggle Button -->
@@ -801,4 +803,3 @@
     </div>
   </div>
 }
-

@@ -13,11 +13,12 @@ import { DictionaryService } from './features/dictionary/services/dictionary.ser
 import { AiModelService } from './features/reader/services/ai-model.service'
 import { CloudSyncComponent } from './features/settings/components/cloud-sync/cloud-sync.component'
 import { ZenModeService } from './core/services/zen-mode.service'
+import { PomodoroWidget } from './features/pomodoro/components/pomodoro-widget/pomodoro-widget.component'
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective, TranslocoPipe, FormsModule, CloudSyncComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective, TranslocoPipe, FormsModule, CloudSyncComponent, PomodoroWidget],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
