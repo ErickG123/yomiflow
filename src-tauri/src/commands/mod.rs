@@ -4,6 +4,7 @@ pub mod drive_sync;
 pub mod grading;
 pub mod importer;
 pub mod kanji;
+pub mod nlp;
 pub mod reader;
 pub mod settings;
 pub mod srs;

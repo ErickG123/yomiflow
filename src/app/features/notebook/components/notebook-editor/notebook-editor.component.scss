@@ -1,0 +1,27 @@
+.notebook-editor-container {
+  min-height: calc(100vh - 4rem);
+}
+
+.tiptap-editor-surface {
+  min-height: 280px;
+  outline: none;
+
+  p {
+    margin-bottom: 0.75rem;
+    line-height: 1.7;
+  }
+
+  h1, h2, h3 {
+    font-weight: 700;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: #f4f4f5;
+  }
+
+  blockquote {
+    border-left: 3px solid #3f3f46;
+    padding-left: 1rem;
+    color: #a1a1aa;
+    font-style: italic;
+  }
+}

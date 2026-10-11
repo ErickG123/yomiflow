@@ -134,7 +134,10 @@ pub fn run() {
             commands::kanji::get_kanji_details,
             commands::kanji::save_kanji_mnemonic,
             commands::drive_sync::authenticate_google_drive,
-            commands::drive_sync::backup_database_to_drive
+            commands::drive_sync::backup_database_to_drive,
+            commands::nlp::analyze_japanese_text,
+            commands::nlp::save_notebook_entry,
+            commands::nlp::get_notebook_entries
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

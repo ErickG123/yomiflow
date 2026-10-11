@@ -101,6 +101,14 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             kanji TEXT PRIMARY KEY,
             mnemonic TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS notebook_entries (
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            content_md TEXT,
+            created_at DATETIME,
+            updated_at DATETIME
+        );
         ",
     )?;
 

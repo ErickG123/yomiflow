@@ -59,6 +59,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'notebook',
+    loadComponent: () =>
+      import('./features/notebook/components/notebook-editor/notebook-editor.component').then(
+        (m) => m.NotebookEditorComponent
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'dashboard',
   },

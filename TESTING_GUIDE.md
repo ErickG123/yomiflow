@@ -249,4 +249,21 @@ Checklists rigorosos para validar o comportamento das novas ferramentas de alta 
   - Um Toast verde deve confirmar a conclusão exibindo o ID do ficheiro gerado.
   - Acessar o Google Drive no navegador e verificar se o ficheiro `yomiflow_backup.db` está presente na conta, contendo o backup do banco SQLite original.
 
+### 🧪 Cenário H: Caderno Híbrido (NLP & TipTap Editor)
+- [ ] **Digitação e Análise Morfológica em Tempo Real:**
+  - Navegue para `/notebook` na barra de navegação superior.
+  - Digite a frase de teste no editor Markdown: `私は学生です`
+  - *Critério de Sucesso do Backend (Lindera):* A análise em Rust não deve panicar e deve retornar os morfemas tokenizados:
+    - `私` (Watashi): Substantivo (`noun`) -> Renderizado com classe `.text-green-400`
+    - `は` (Wa): Partícula (`particle`) -> Renderizado com classe `.text-blue-400`
+    - `学生` (Gakusei): Substantivo (`noun`) -> Renderizado com classe `.text-green-400`
+    - `です` (Desu): Cópula/Auxiliar (`auxiliary`) -> Renderizado com classe `.text-purple-400`
+- [ ] **Teste de Resiliência com Caracteres Vazios e Pontuação:**
+  - Testar envio de strings vazias, espaços repetidos e quebras de linha (`\n\n`).
+  - O analisador morfológico deve retornar array vazio sem gerar panics ou travar a UI.
+- [ ] **Persistência e Auto-Save no SQLite:**
+  - Digite um título e um conteúdo em Markdown e clique no botão de salvar (ou aguarde auto-save).
+  - Verifique na tabela SQLite `notebook_entries` que a nota foi persistida com os campos `id`, `title`, `content_md`, `created_at` e `updated_at`.
+  - Recarregue a página ou selecione a nota na listagem lateral para verificar a restauração fidedigna do conteúdo Markdown.
+
 
