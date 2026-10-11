@@ -1,4 +1,4 @@
-use crate::models::MorphologicalToken;
+use crate::models::{BunsetsuChunk, MorphologicalToken};
 use lindera::dictionary::load_dictionary;
 use lindera::mode::Mode;
 use lindera::segmenter::Segmenter;
@@ -150,6 +150,167 @@ pub fn inject_furigana_for_unlearned_words(
     Ok(output)
 }
 
+/// Groups tokens into Bunsetsu chunks and establishes a left-branching dependency tree
+pub fn generate_syntax_tree(text: &str) -> Result<Vec<BunsetsuChunk>, String> {
+    let tokens = segment_and_tag_japanese(text)?;
+    if tokens.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    // 1. Group tokens into Bunsetsu (chunks)
+    // A Bunsetsu starts with an independent word (Content word: noun, verb, adjective, etc.)
+    // and absorbs following dependent words (particles, auxiliaries).
+    let mut bunsetsu_raw: Vec<Vec<MorphologicalToken>> = Vec::new();
+    let mut current_chunk: Vec<MorphologicalToken> = Vec::new();
+
+    for token in tokens {
+        let is_content_word = matches!(token.pos.as_str(), "noun" | "verb" | "adjective");
+        let is_auxiliary = token.pos == "auxiliary";
+
+        if !current_chunk.is_empty() {
+            let has_content = current_chunk
+                .iter()
+                .any(|t| matches!(t.pos.as_str(), "noun" | "verb" | "adjective"));
+            let has_particle = current_chunk.iter().any(|t| t.pos == "particle");
+
+            if is_content_word && (has_content || has_particle) {
+                bunsetsu_raw.push(current_chunk);
+                current_chunk = Vec::new();
+            } else if is_auxiliary && has_content {
+                // E.g. 学生 (noun) followed by です (auxiliary): separate as distinct chunk
+                // unless it is attaching directly to a verb/adjective stem
+                let last_is_noun = current_chunk
+                    .last()
+                    .map(|t| t.pos == "noun")
+                    .unwrap_or(false);
+                if last_is_noun {
+                    bunsetsu_raw.push(current_chunk);
+                    current_chunk = Vec::new();
+                }
+            }
+        }
+
+        current_chunk.push(token);
+    }
+
+    if !current_chunk.is_empty() {
+        bunsetsu_raw.push(current_chunk);
+    }
+
+    if bunsetsu_raw.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    // 2. Build preliminary chunks with combined POS tags
+    struct TempChunk {
+        id: usize,
+        text: String,
+        pos: String,
+        last_particle: Option<String>,
+        primary_pos: String,
+    }
+
+    let mut temp_chunks: Vec<TempChunk> = Vec::new();
+
+    for (idx, chunk_tokens) in bunsetsu_raw.into_iter().enumerate() {
+        let id = idx + 1;
+        let mut text = String::new();
+        let mut pos_parts = Vec::new();
+        let mut last_particle = None;
+        let mut primary_pos = "other".to_string();
+
+        for t in &chunk_tokens {
+            text.push_str(&t.surface);
+            if !pos_parts.contains(&t.pos) {
+                pos_parts.push(t.pos.clone());
+            }
+            if t.pos == "particle" {
+                last_particle = Some(t.surface.clone());
+            }
+            if matches!(t.pos.as_str(), "verb" | "noun" | "adjective") && primary_pos == "other" {
+                primary_pos = t.pos.clone();
+            }
+        }
+
+        if primary_pos == "other" && !chunk_tokens.is_empty() {
+            primary_pos = chunk_tokens[0].pos.clone();
+        }
+
+        let combined_pos = if pos_parts.len() > 1 {
+            pos_parts.join("+")
+        } else {
+            pos_parts
+                .first()
+                .cloned()
+                .unwrap_or_else(|| "other".to_string())
+        };
+
+        temp_chunks.push(TempChunk {
+            id,
+            text,
+            pos: combined_pos,
+            last_particle,
+            primary_pos,
+        });
+    }
+
+    let chunk_count = temp_chunks.len();
+    let mut final_chunks = Vec::new();
+
+    // 3. Dependency heuristic (Left-Branching / Japanese SOV syntax):
+    // - The last chunk (root, typically predicate/verb/copula) has target_id: None.
+    // - A chunk ending with particle 'の' points to the immediate next noun chunk (or next chunk).
+    // - Chunks with topic/case markers 'は', 'が', 'を', 'に', 'で', 'へ', 'と', 'から', 'まで' point to the main predicate (last chunk, or next verb).
+    // - General default for non-terminal chunks: points to the final predicate or the closest downstream verb/chunk.
+    for i in 0..chunk_count {
+        let current = &temp_chunks[i];
+        if i == chunk_count - 1 {
+            final_chunks.push(BunsetsuChunk {
+                id: current.id,
+                text: current.text.clone(),
+                pos: current.pos.clone(),
+                target_id: None,
+            });
+            continue;
+        }
+
+        let mut target_id = Some(temp_chunks[chunk_count - 1].id);
+
+        if let Some(ref p) = current.last_particle {
+            if p == "の" {
+                if i + 1 < chunk_count {
+                    target_id = Some(temp_chunks[i + 1].id);
+                }
+            } else if matches!(
+                p.as_str(),
+                "は" | "が" | "を" | "に" | "で" | "へ" | "と" | "から" | "まで"
+            ) {
+                let next_verb = temp_chunks[i + 1..]
+                    .iter()
+                    .find(|c| c.primary_pos == "verb" || c.pos.contains("verb"));
+                if let Some(verb_chunk) = next_verb {
+                    target_id = Some(verb_chunk.id);
+                } else {
+                    target_id = Some(temp_chunks[chunk_count - 1].id);
+                }
+            }
+        } else if (current.primary_pos == "noun" || current.primary_pos == "adjective")
+            && i + 1 < chunk_count
+        {
+            target_id = Some(temp_chunks[i + 1].id);
+        }
+
+        final_chunks.push(BunsetsuChunk {
+            id: current.id,
+            text: current.text.clone(),
+            pos: current.pos.clone(),
+            target_id,
+        });
+    }
+
+    Ok(final_chunks)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -214,5 +375,34 @@ mod tests {
         // 学生 is in known SRS words -> no ruby!
         assert!(res.contains("学生"));
         assert!(!res.contains("<ruby>学生"));
+    }
+
+    #[test]
+    fn test_generate_syntax_tree_watashi_wa_gakusei_desu() {
+        let tree = generate_syntax_tree("私は学生です").unwrap();
+        assert_eq!(tree.len(), 3);
+
+        // 1: 私は (noun+particle) -> points to です (id 3)
+        assert_eq!(tree[0].id, 1);
+        assert_eq!(tree[0].text, "私は");
+        assert_eq!(tree[0].pos, "noun+particle");
+        assert_eq!(tree[0].target_id, Some(3));
+
+        // 2: 学生 (noun) -> points to です (id 3)
+        assert_eq!(tree[1].id, 2);
+        assert_eq!(tree[1].text, "学生");
+        assert_eq!(tree[1].pos, "noun");
+        assert_eq!(tree[1].target_id, Some(3));
+
+        // 3: です (auxiliary) -> root (None)
+        assert_eq!(tree[2].id, 3);
+        assert_eq!(tree[2].text, "です");
+        assert_eq!(tree[2].target_id, None);
+    }
+
+    #[test]
+    fn test_generate_syntax_tree_empty() {
+        let tree = generate_syntax_tree("").unwrap();
+        assert!(tree.is_empty());
     }
 }

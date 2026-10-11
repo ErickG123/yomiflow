@@ -13,6 +13,7 @@ describe('NotebookEditorComponent', () => {
     currentEntry: ReturnType<typeof signal<NotebookEntry | null>>
     isAnalyzing: ReturnType<typeof signal<boolean>>
     analyzeText: ReturnType<typeof vi.fn>
+    generateSyntaxTree: ReturnType<typeof vi.fn>
     loadEntries: ReturnType<typeof vi.fn>
     saveEntry: ReturnType<typeof vi.fn>
     formatTokensToHtml: ReturnType<typeof vi.fn>
@@ -37,6 +38,11 @@ describe('NotebookEditorComponent', () => {
       currentEntry: signal(null),
       isAnalyzing: signal(false),
       analyzeText: vi.fn().mockResolvedValue(mockTokens),
+      generateSyntaxTree: vi.fn().mockResolvedValue([
+        { id: 1, text: '私は', pos: 'noun+particle', target_id: 3 },
+        { id: 2, text: '学生', pos: 'noun', target_id: 3 },
+        { id: 3, text: 'です', pos: 'auxiliary', target_id: null },
+      ]),
       loadEntries: vi.fn().mockResolvedValue([]),
       saveEntry: vi.fn().mockResolvedValue(undefined),
       formatTokensToHtml: vi.fn().mockReturnValue(
@@ -49,12 +55,23 @@ describe('NotebookEditorComponent', () => {
       loadDecks: vi.fn().mockResolvedValue([]),
     }
 
+    const applicationRefMock = {
+      attachView: vi.fn(),
+      detachView: vi.fn(),
+    }
+
     const providers = [
       { provide: NotebookService, useValue: notebookServiceMock },
       { provide: DeckService, useValue: deckServiceMock },
+      { provide: 'ApplicationRef', useValue: applicationRefMock },
     ]
     const parentInjector = {
-      get: (token: unknown) => providers.find((p) => p.provide === token)?.useValue ?? null,
+      get: (token: unknown) => {
+        if (typeof token === 'function' && token.name === 'ApplicationRef') {
+          return applicationRefMock
+        }
+        return providers.find((p) => p.provide === token)?.useValue ?? null
+      },
     } as unknown as EnvironmentInjector
     const injector = createEnvironmentInjector([], parentInjector)
 
@@ -117,5 +134,15 @@ describe('NotebookEditorComponent', () => {
     await component.analyzeManually()
 
     expect(notebookServiceMock.analyzeText).toHaveBeenCalledWith('日本語')
+    expect(notebookServiceMock.generateSyntaxTree).toHaveBeenCalledWith('日本語')
+  })
+
+  it('should toggle syntax tree visibility and update syntaxTreeData', () => {
+    expect(component.showSyntaxTree()).toBe(false)
+    component.toggleSyntaxTree()
+    expect(component.showSyntaxTree()).toBe(true)
+    component.toggleSyntaxTree()
+    expect(component.showSyntaxTree()).toBe(false)
   })
 })
+

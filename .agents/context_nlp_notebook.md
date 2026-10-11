@@ -44,7 +44,51 @@ O backend (`lindera`) categoriza cada morfema de acordo com o dicionário IPADIC
 | `auxiliary` | 助動詞 | `text-purple-400` | Cópula e verbos auxiliares (ex: です, ます, だ) |
 | `other` | Outros | `text-slate-300` | Pontuação, símbolos, conjunções |
 
-## 4. Frontend: TipTap & Feature Isolation
+## 4. Árvore de Dependência Sintática (Bunsetsu & Syntax Tree)
+O comando Tauri `generate_syntax_tree` agrupa os morfemas em unidades sintáticas (*Bunsetsu*) e infere a relação de dependência sintática (*Left-Branching*):
+
+### Estrutura do JSON Retornado (`BunsetsuChunk[]`)
+```json
+[
+  {
+    "id": 1,
+    "text": "私は",
+    "pos": "noun+particle",
+    "target_id": 3
+  },
+  {
+    "id": 2,
+    "text": "学生",
+    "pos": "noun",
+    "target_id": 3
+  },
+  {
+    "id": 3,
+    "text": "です",
+    "pos": "auxiliary",
+    "target_id": null
+  }
+]
+```
+
+- `id` (`usize` / `number`): Identificador único posicional (base 1) do bloco Bunsetsu.
+- `text` (`string`): Texto concatenado da unidade sintática.
+- `pos` (`string`): Junção das categorias morfológicas que compõem o bloco (ex: `noun+particle`, `verb`, `auxiliary`).
+- `target_id` (`Option<usize>` / `number | null`): Identificador do bloco destino para onde aponta o arco de dependência sintática. O núcleo da oração (raiz) possui `null`.
+
+### Renderização SVG e Painel Inferior Sincronizado
+- **Arquitetura de Estado Reativo (Signals):**
+  - `tokens = signal<MorphologicalToken[]>([])`: Alimenta o painel de "Análise Morfológica em Tempo Real".
+  - `showSyntaxTree = signal<boolean>(false)`: Controla a exibição opcional do painel inferior da árvore sintática através do botão toggle na barra de ferramentas.
+  - `syntaxTreeData = signal<SyntaxChunk[]>([])`: Armazena os blocos Bunsetsu calculados de forma concorrente via `Promise.all([analyzeText(text), generateSyntaxTree(text)])` nos disparos do modo Auto (com debounce de 750ms) ou no clique do modo Manual.
+- **Renderização Visual com SVG:**
+  - O painel inferior isolado `@if (showSyntaxTree() && syntaxTreeData().length > 0)` rendered via `<app-syntax-node [data]="syntaxTreeData()">`.
+  - Contentor `relative min-h-48` com badges de texto Bunsetsu alinhadas na parte inferior via flexbox (`items-end justify-center`).
+  - O `<svg>` com posicionamento absoluto sobrepõe 100% da área traçando caminhos quadráticos `<path d="M x1 y1 Q cx cy x2 y2">` do topo central de cada bloco para o destino (`target_id`).
+  - O cálculo geométrico de coordenadas executa em `afterNextRender` do Angular e é re-sincronizado automaticamente por `ResizeObserver` e listener de `window:resize`.
+- **Detecção de Mudanças:** Opera sob `ChangeDetectionStrategy.OnPush` com Angular Signals, garantindo alta performance e zero recálculos desnecessários fora de eventos de layout.
+
+## 5. Frontend: TipTap & Feature Isolation
 - Localização: `src/app/features/notebook/`
 - Arquitetura estrita feature-based:
   - `models/notebook.model.ts`: Todas as tipagens (`MorphologicalToken`, `NotebookEntry`, `AnalysisMode`).

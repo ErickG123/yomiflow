@@ -271,11 +271,49 @@
             </svg>
             <span>{{ t('notebook.analyze_grammar') }}</span>
           </button>
+
+          <!-- Toggle Syntax Tree Button -->
+          <button
+            type="button"
+            (click)="toggleSyntaxTree()"
+            class="px-3 py-1.5 border rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+            [class.bg-indigo-600]="showSyntaxTree()"
+            [class.border-indigo-500]="showSyntaxTree()"
+            [class.text-white]="showSyntaxTree()"
+            [class.bg-zinc-950]="!showSyntaxTree()"
+            [class.border-zinc-800]="!showSyntaxTree()"
+            [class.text-zinc-400]="!showSyntaxTree()"
+            [class.hover:text-zinc-200]="!showSyntaxTree()"
+            [title]="t('notebook.toggle_syntax_tree_title')"
+          >
+            <i class="pi pi-sitemap text-xs"></i>
+            <span>{{ t('notebook.toggle_syntax_tree') }}</span>
+          </button>
         </div>
       </div>
 
+
       <!-- Borderless Infinite-Page Editor Surface (Obsidian feel) -->
       <div class="p-6 md:p-8 flex-1 overflow-y-auto relative">
+        <!-- Floating Bubble Menu upon Text Selection -->
+        @if (showBubbleMenu()) {
+          <div
+            class="absolute z-50 flex items-center gap-1 bg-zinc-900 border border-zinc-700/90 rounded-xl shadow-2xl p-1 backdrop-blur-md animate-fade-in"
+            [style.top.px]="bubbleMenuPosition().top"
+            [style.left.px]="bubbleMenuPosition().left"
+          >
+            <button
+              type="button"
+              (click)="insertSyntaxTree(selectedText())"
+              class="px-2.5 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 hover:text-white transition-all text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+              title="Gerar Árvore de Dependência Sintática para o trecho selecionado"
+            >
+              <i class="pi pi-sitemap text-xs"></i>
+              <span>Árvore Sintática</span>
+            </button>
+          </div>
+        }
+
         <div #editorElement class="tiptap-editor-surface prose prose-invert max-w-none text-base text-zinc-100"></div>
 
         <!-- Floating Slash Command (/) Menu (Notion Style) -->
@@ -356,6 +394,24 @@
         }
       </div>
     </div>
+
+    <!-- Isolated Syntax Tree Dependency Panel -->
+    @if (showSyntaxTree() && syntaxTreeData().length > 0) {
+      <div class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-5 shadow-lg space-y-3 animate-fade-in">
+        <div class="flex items-center justify-between pb-2 border-b border-zinc-800">
+          <h4 class="text-xs uppercase tracking-wider font-semibold text-zinc-300 flex items-center gap-2">
+            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>ÁRVORE DE DEPENDÊNCIA SINTÁTICA</span>
+          </h4>
+          <span class="text-[11px] text-zinc-500 font-mono">{{ syntaxTreeData().length }} blocos Bunsetsu</span>
+        </div>
+
+        <app-syntax-node [data]="syntaxTreeData()"></app-syntax-node>
+      </div>
+    }
   </main>
 </div>
+
 

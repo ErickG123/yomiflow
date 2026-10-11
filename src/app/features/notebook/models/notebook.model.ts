@@ -25,3 +25,13 @@ export interface SlashMenuItem {
   action: () => void
 }
 
+export interface BunsetsuChunk {
+  id: number
+  text: string
+  pos: string
+  target_id: number | null
+}
+
+export type SyntaxChunk = BunsetsuChunk
+
+

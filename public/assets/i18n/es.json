@@ -240,6 +240,8 @@
     "save_error": "Error al guardar la nota. Inténtalo de nuevo.",
     "default_new_note": "Nueva Nota",
     "untitled_note": "Nota sin título",
+    "toggle_syntax_tree": "Ver Árbol Sintáctico",
+    "toggle_syntax_tree_title": "Alternar visualización del árbol de dependencia sintáctica Bunsetsu",
     "toolbar": {
       "h1": "Título 1",
       "h2": "Título 2",
@@ -265,7 +267,9 @@
       "quote_title": "Cita",
       "quote_desc": "Capturar una cita o bloque destacado",
       "table_title": "Tabla",
-      "table_desc": "Insertar una cuadrícula de tabla 3x3"
+      "table_desc": "Insertar una cuadrícula de tabla 3x3",
+      "syntax_tree_title": "Árbol Sintáctico",
+      "syntax_tree_desc": "Visualizar dependencias Bunsetsu del texto"
     }
   },
   "calendar": {

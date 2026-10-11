@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core'
 import { invoke } from '@tauri-apps/api/core'
-import { MorphologicalToken, NotebookEntry } from '../models/notebook.model'
+import { BunsetsuChunk, MorphologicalToken, NotebookEntry } from '../models/notebook.model'
 
 @Injectable({
   providedIn: 'root',
@@ -22,6 +22,18 @@ export class NotebookService {
       return []
     } finally {
       this.isAnalyzing.set(false)
+    }
+  }
+
+  async generateSyntaxTree(text: string): Promise<BunsetsuChunk[]> {
+    if (!text || !text.trim()) {
+      return []
+    }
+    try {
+      return await invoke<BunsetsuChunk[]>('generate_syntax_tree', { text })
+    } catch (err) {
+      console.error('Erro ao gerar árvore sintática:', err)
+      return []
     }
   }
 

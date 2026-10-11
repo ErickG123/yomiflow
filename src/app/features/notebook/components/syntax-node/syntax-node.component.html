@@ -1,0 +1,84 @@
+<div class="syntax-tree-card my-4 p-5 rounded-2xl bg-zinc-950/90 border border-zinc-800 shadow-xl overflow-hidden relative">
+  <!-- Header / Badge -->
+  <div class="flex items-center justify-between pb-3 border-b border-zinc-850 mb-3 text-xs">
+    <div class="flex items-center gap-2 font-semibold text-zinc-300">
+      <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+      <span>Árvore de Dependência Sintática (Bunsetsu)</span>
+    </div>
+    <span class="text-[10px] text-zinc-500 font-mono">{{ chunks().length }} blocos</span>
+  </div>
+
+  <!-- Visualization Canvas Container -->
+  <div #container class="relative pt-24 pb-4 overflow-x-auto min-h-48">
+    <!-- Overlay SVG for Dependency Arcs -->
+    <svg
+      class="absolute inset-0 w-full h-full pointer-events-none"
+      [attr.width]="svgWidth()"
+      [attr.height]="svgHeight()"
+    >
+      <defs>
+        <marker
+          id="syntax-arrow-default"
+          viewBox="0 0 10 10"
+          refX="6"
+          refY="5"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#818cf8" />
+        </marker>
+        <marker
+          id="syntax-arrow-verb"
+          viewBox="0 0 10 10"
+          refX="6"
+          refY="5"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#f87171" />
+        </marker>
+      </defs>
+
+      @for (arc of arcs(); track $index) {
+        <path
+          [attr.d]="arc.d"
+          fill="none"
+          [attr.stroke]="arc.stroke"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          [attr.marker-end]="arc.isVerb ? 'url(#syntax-arrow-verb)' : 'url(#syntax-arrow-default)'"
+          stroke-dasharray="2 0"
+          class="transition-all duration-300 opacity-90"
+        />
+      }
+    </svg>
+
+    <!-- Bunsetsu Badges Aligned at Bottom via Flexbox -->
+    <div class="flex items-end justify-center gap-6 sm:gap-10 relative z-10 px-4">
+      @for (chunk of chunks(); track chunk.id) {
+        <div
+          #chunkElement
+          [attr.data-chunk-id]="chunk.id"
+          class="flex flex-col items-center gap-1.5 transition-transform hover:scale-105 duration-200"
+        >
+          <!-- Surface Text Badge with Grammatical Color -->
+          <div
+            class="px-4 py-2 rounded-xl border text-sm md:text-base font-bold tracking-wider shadow-md backdrop-blur-xs flex items-center gap-1.5 cursor-default"
+            [ngClass]="getChunkStyle(chunk)"
+          >
+            <span>{{ chunk.text }}</span>
+          </div>
+
+          <!-- Secondary Metadata / Tag -->
+          <span class="text-[10px] text-zinc-400 font-mono tracking-tight bg-zinc-900/80 px-2 py-0.5 rounded-md border border-zinc-800">
+            {{ formatPosLabel(chunk.pos) }}
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+</div>

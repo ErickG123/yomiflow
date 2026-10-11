@@ -1,11 +1,16 @@
 use crate::AppState;
-use crate::models::{MorphologicalToken, NotebookEntry};
+use crate::models::{BunsetsuChunk, MorphologicalToken, NotebookEntry};
 use rusqlite::params;
 use tauri::State;
 
 #[tauri::command]
 pub fn analyze_japanese_text(text: String) -> Result<Vec<MorphologicalToken>, String> {
     crate::domain::nlp::segment_and_tag_japanese(&text)
+}
+
+#[tauri::command]
+pub fn generate_syntax_tree(text: String) -> Result<Vec<BunsetsuChunk>, String> {
+    crate::domain::nlp::generate_syntax_tree(&text)
 }
 
 #[tauri::command]

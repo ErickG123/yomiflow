@@ -240,6 +240,8 @@
     "save_error": "Failed to save note. Please try again.",
     "default_new_note": "New Note",
     "untitled_note": "Untitled Note",
+    "toggle_syntax_tree": "Toggle Syntax Tree",
+    "toggle_syntax_tree_title": "Toggle Bunsetsu dependency syntax tree panel",
     "toolbar": {
       "h1": "Heading 1",
       "h2": "Heading 2",
@@ -265,7 +267,9 @@
       "quote_title": "Quote",
       "quote_desc": "Capture a block quote",
       "table_title": "Table",
-      "table_desc": "Insert a 3x3 table grid"
+      "table_desc": "Insert a 3x3 table grid",
+      "syntax_tree_title": "Syntax Tree",
+      "syntax_tree_desc": "Visualize Bunsetsu dependency tree"
     }
   },
   "calendar": {

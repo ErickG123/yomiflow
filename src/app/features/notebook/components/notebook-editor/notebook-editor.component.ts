@@ -1,8 +1,10 @@
 import {
   AfterViewInit,
+  ApplicationRef,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  EnvironmentInjector,
   HostListener,
   OnDestroy,
   OnInit,
@@ -22,14 +24,16 @@ import { Subject, Subscription } from 'rxjs'
 import { debounceTime } from 'rxjs/operators'
 import { NotebookService } from '../../services/notebook.service'
 import { DeckService } from '../../../decks/services/deck.service'
-import { AnalysisMode, MorphologicalToken, NotebookEntry, SlashMenuItem } from '../../models/notebook.model'
+import { AnalysisMode, MorphologicalToken, NotebookEntry, SlashMenuItem, SyntaxChunk } from '../../models/notebook.model'
 import { SafeHtmlPipe } from '../../../../shared/pipes/safe-html.pipe'
 import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
+import { SyntaxTreeExtension } from '../../extensions/syntax-tree.extension'
+import { SyntaxNodeComponent } from '../syntax-node/syntax-node.component'
 
 @Component({
   selector: 'app-notebook-editor',
   standalone: true,
-  imports: [SafeHtmlPipe, TranslocoDirective],
+  imports: [SafeHtmlPipe, TranslocoDirective, SyntaxNodeComponent],
   templateUrl: './notebook-editor.component.html',
   styleUrl: './notebook-editor.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +42,8 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   readonly notebookService = inject(NotebookService)
   readonly deckService = inject(DeckService)
   private readonly translocoService = inject(TranslocoService, { optional: true })
+  private readonly injector = inject(EnvironmentInjector)
+  private readonly appRef = inject(ApplicationRef)
 
   @ViewChild('editorElement') editorElementRef?: ElementRef<HTMLDivElement>
   editor: Editor | null = null
@@ -48,8 +54,14 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   readonly title = signal<string>('Minha Anotação')
   readonly markdownContent = signal<string>('私は学生です。\n毎日日本語を勉強します。')
   readonly tokens = signal<MorphologicalToken[]>([])
+  readonly showSyntaxTree = signal<boolean>(false)
+  readonly syntaxTreeData = signal<SyntaxChunk[]>([])
   readonly toastMessage = signal<string | null>(null)
   private toastTimeout: ReturnType<typeof setTimeout> | null = null
+
+  toggleSyntaxTree(): void {
+    this.showSyntaxTree.update((v) => !v)
+  }
 
   // Slash Commands state
   readonly showSlashMenu = signal<boolean>(false)
@@ -106,6 +118,13 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
       icon: 'pi pi-table',
       action: () => this.executeSlashAction(() => this.insertTable()),
     },
+    {
+      id: 'syntax-tree',
+      titleKey: 'notebook.slash_menu.syntax_tree_title',
+      descKey: 'notebook.slash_menu.syntax_tree_desc',
+      icon: 'pi pi-sitemap',
+      action: () => this.executeSlashAction(() => void this.insertSyntaxTree()),
+    },
   ]
 
   readonly formattedHtml = computed<string>(() => {
@@ -118,6 +137,11 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
 
   // Guard flag to prevent infinite loops when setContent updates TipTap
   private isApplyingGrammarHighlight = false
+
+  // Selection Bubble Menu state
+  readonly showBubbleMenu = signal<boolean>(false)
+  readonly bubbleMenuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 })
+  readonly selectedText = signal<string>('')
 
   async ngOnInit(): Promise<void> {
     await Promise.all([
@@ -156,14 +180,22 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
         Placeholder.configure({
           placeholder: 'Digite \'/\' para blocos e comandos, ou anote em japonês...',
         }),
+        SyntaxTreeExtension.configure({
+          injector: this.injector,
+          appRef: this.appRef,
+        }),
       ],
       content: `<p>${this.markdownContent().replace(/\n/g, '</p><p>')}</p>`,
+      onSelectionUpdate: ({ editor }) => {
+        this.updateBubbleMenu(editor)
+      },
       onUpdate: ({ editor }) => {
         if (this.isApplyingGrammarHighlight) {
           return
         }
 
         this.checkSlashCommand(editor)
+        this.updateBubbleMenu(editor)
 
         const text = editor.getText()
         this.markdownContent.set(text)
@@ -174,6 +206,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
       },
     })
   }
+
 
   ngOnDestroy(): void {
     if (this.toastTimeout) {
@@ -226,22 +259,31 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   async triggerAnalysis(rawText: string): Promise<void> {
-    const tokens = await this.notebookService.analyzeText(rawText)
+    const [tokens, syntaxChunks] = await Promise.all([
+      this.notebookService.analyzeText(rawText),
+      this.notebookService.generateSyntaxTree(rawText),
+    ])
     this.tokens.set(tokens)
+    this.syntaxTreeData.set(syntaxChunks)
   }
 
   /**
-   * Performs morphological analysis via Rust backend and updates TipTap with Tailwind color spans
-   * preserving exact cursor/selection coordinates via editor.state.selection and emitUpdate: false.
+   * Performs morphological analysis and syntax tree generation via Rust backend,
+   * updating TipTap with Tailwind color spans while preserving exact cursor coordinates.
    */
   async performMorphologicalAnalysis(text: string): Promise<void> {
     if (!text || !text.trim()) {
       this.tokens.set([])
+      this.syntaxTreeData.set([])
       return
     }
 
-    const tokens = await this.notebookService.analyzeText(text)
+    const [tokens, syntaxChunks] = await Promise.all([
+      this.notebookService.analyzeText(text),
+      this.notebookService.generateSyntaxTree(text),
+    ])
     this.tokens.set(tokens)
+    this.syntaxTreeData.set(syntaxChunks)
 
     if (!this.editor) return
 
@@ -287,6 +329,66 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     }
   }
 
+  updateBubbleMenu(editor: Editor): void {
+    const { from, to } = editor.state.selection
+    if (from !== to) {
+      const selected = editor.state.doc.textBetween(from, to, '\n', '\0').trim()
+      if (selected.length > 0) {
+        this.selectedText.set(selected)
+        const coords = editor.view.coordsAtPos(from)
+        const containerRect = this.editorElementRef?.nativeElement.getBoundingClientRect()
+        if (containerRect) {
+          this.bubbleMenuPosition.set({
+            top: Math.max(0, coords.top - containerRect.top - 46),
+            left: Math.max(0, coords.left - containerRect.left),
+          })
+          this.showBubbleMenu.set(true)
+          return
+        }
+      }
+    }
+    this.showBubbleMenu.set(false)
+  }
+
+  async insertSyntaxTree(customText?: string): Promise<void> {
+    if (!this.editor) return
+
+    let targetText = customText
+    if (!targetText) {
+      const { from, to } = this.editor.state.selection
+      if (from !== to) {
+        targetText = this.editor.state.doc.textBetween(from, to, '\n', '\0').trim()
+      } else {
+        // Fallback to active paragraph or sentence
+        const text = this.editor.getText().trim()
+        targetText = text.split('\n')[0] || '私は学生です'
+      }
+    }
+
+    if (!targetText) {
+      targetText = '私は学生です'
+    }
+
+    try {
+      const chunks = await this.notebookService.generateSyntaxTree(targetText)
+      if (chunks && chunks.length > 0) {
+        this.editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: 'syntaxTree',
+            attrs: {
+              chunks: JSON.stringify(chunks),
+            },
+          })
+          .run()
+        this.showBubbleMenu.set(false)
+      }
+    } catch (err) {
+      console.error('Falha ao inserir nó de árvore sintática:', err)
+    }
+  }
+
   executeSlashAction(action: () => void): void {
     if (!this.editor) return
     const { from } = this.editor.state.selection
@@ -298,6 +400,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     this.showSlashMenu.set(false)
     action()
   }
+
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent): void {
