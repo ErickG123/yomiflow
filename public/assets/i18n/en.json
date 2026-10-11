@@ -22,6 +22,7 @@
     "decks": "Decks",
     "shadowing": "Shadowing",
     "calendar": "Calendar",
+    "analytics": "JLPT Analytics",
     "categories": {
       "consumption": "Consumption",
       "active_study": "Active Study",
@@ -492,5 +493,30 @@
     "original_text": "Original Text",
     "transcribed_voice": "Recognized Voice",
     "no_transcription": "No intelligible speech captured."
+  },
+  "zen": {
+    "toggle_focus": "Focus Mode (Zen)",
+    "mode_focus": "Focus",
+    "mode_break": "Break",
+    "start": "Start",
+    "pause": "Pause",
+    "reset": "Reset",
+    "switch_to_break": "Switch to Break",
+    "switch_to_focus": "Switch to Focus",
+    "exit_zen": "Exit Focus Mode"
+  },
+  "jlpt": {
+    "title": "JLPT Analytics",
+    "subtitle": "Track learned Kanji and Vocabulary against official N5 to N1 test benchmarks",
+    "refresh": "Refresh Metrics",
+    "total_kanji_learned": "Total Kanji Learned",
+    "total_vocab_learned": "Total Vocabulary Learned",
+    "tracked_levels": "Tracked Levels",
+    "radar_title": "Radar Level Coverage",
+    "radar_desc": "Retention percentage across official proficiency levels",
+    "level_mastery": "{{level}} Progress",
+    "kanji_coverage": "Kanji",
+    "vocab_coverage": "Vocabulary"
   }
 }
+

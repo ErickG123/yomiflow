@@ -152,6 +152,7 @@ pub fn run() {
             commands::srs::create_tag,
             commands::stats::get_review_forecast,
             commands::stats::get_study_history,
+            commands::stats::get_jlpt_coverage_stats,
             commands::kana::record_kana_attempt,
             commands::kana::get_kana_mastery_list,
             commands::kana::get_kana_proficiency_stats,

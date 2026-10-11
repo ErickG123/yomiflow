@@ -128,6 +128,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'analytics',
+    canActivate: [onboardingGuard],
+    loadComponent: () =>
+      import('./features/stats/components/jlpt-analytics/jlpt-analytics.component').then(
+        (m) => m.JlptAnalyticsComponent
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'dashboard',
   },

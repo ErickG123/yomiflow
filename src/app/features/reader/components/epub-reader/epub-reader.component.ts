@@ -11,7 +11,7 @@ import {
   signal,
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
-import { TranslocoDirective, TranslocoPipe } from '@ngneat/transloco'
+import { TranslocoDirective } from '@ngneat/transloco'
 import { EpubReaderService } from '../../services/epub-reader.service'
 import { DictionaryService } from '../../../dictionary/services/dictionary.service'
 import { DictionaryEntry } from '../../../dictionary/models/dictionary.model'

@@ -12,6 +12,7 @@ import { AppStateService } from './core/services/app-state.service'
 import { DictionaryService } from './features/dictionary/services/dictionary.service'
 import { AiModelService } from './features/reader/services/ai-model.service'
 import { CloudSyncComponent } from './features/settings/components/cloud-sync/cloud-sync.component'
+import { ZenModeService } from './core/services/zen-mode.service'
 
 @Component({
   selector: 'app-root',
@@ -28,6 +29,7 @@ export class App implements OnInit {
   readonly appState = inject(AppStateService)
   readonly dictionaryService = inject(DictionaryService)
   readonly aiModelService = inject(AiModelService)
+  readonly zenModeService = inject(ZenModeService)
 
   readonly isSettingsOpen = signal<boolean>(false)
   readonly settingsActiveTab = signal<SettingsTab>('general')
@@ -36,9 +38,17 @@ export class App implements OnInit {
   readonly isOnboardingRoute = signal<boolean>(false)
   readonly isSidebarCollapsed = signal<boolean>(false)
 
+  // When zen mode is active, collapse sidebar
+  readonly effectiveSidebarCollapsed = () => this.zenModeService.isZenMode() || this.isSidebarCollapsed()
+
   toggleSidebar(): void {
     this.isSidebarCollapsed.update((v) => !v)
   }
+
+  toggleZenMode(): void {
+    this.zenModeService.toggleZenMode()
+  }
+
 
   readonly availableLangs = [
     { id: 'pt', label: 'PT' },

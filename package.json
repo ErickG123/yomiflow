@@ -39,6 +39,7 @@
     "@tiptap/extension-table-row": "^3.31.4",
     "@tiptap/starter-kit": "^3.31.4",
     "@tiptap/suggestion": "^3.31.4",
+    "chart.js": "^4.5.1",
     "epubjs": "^0.3.93",
     "jszip": "^3.10.2",
     "rxjs": "~7.8.0",

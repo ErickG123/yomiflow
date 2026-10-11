@@ -3,17 +3,17 @@
     <!-- Collapsible Left Sidebar -->
     <aside
       class="bg-zinc-950 border-r border-zinc-800/80 flex flex-col justify-between shrink-0 transition-all duration-300 z-30 select-none"
-      [class.w-64]="!isSidebarCollapsed()"
-      [class.w-20]="isSidebarCollapsed()"
+      [class.w-64]="!effectiveSidebarCollapsed()"
+      [class.w-20]="effectiveSidebarCollapsed()"
     >
       <div class="flex flex-col h-full overflow-hidden">
         <!-- Brand & Collapse Toggle Header -->
         <div class="h-14 border-b border-zinc-800/80 px-4 flex items-center justify-between shrink-0">
-          <div class="flex items-center gap-3 overflow-hidden" [class.justify-center]="isSidebarCollapsed()">
+          <div class="flex items-center gap-3 overflow-hidden" [class.justify-center]="effectiveSidebarCollapsed()">
             <div class="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold shrink-0">
               <i class="pi pi-bolt text-sm"></i>
             </div>
-            @if (!isSidebarCollapsed()) {
+            @if (!effectiveSidebarCollapsed()) {
               <span class="text-base font-bold tracking-tight text-white truncate">YomiFlow</span>
             }
           </div>
@@ -22,9 +22,9 @@
             type="button"
             (click)="toggleSidebar()"
             class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer shrink-0"
-            [title]="isSidebarCollapsed() ? ('nav.expand_sidebar' | transloco) : ('nav.collapse_sidebar' | transloco)"
+            [title]="effectiveSidebarCollapsed() ? ('nav.expand_sidebar' | transloco) : ('nav.collapse_sidebar' | transloco)"
           >
-            <i class="pi" [class.pi-chevron-left]="!isSidebarCollapsed()" [class.pi-chevron-right]="isSidebarCollapsed()"></i>
+            <i class="pi" [class.pi-chevron-left]="!effectiveSidebarCollapsed()" [class.pi-chevron-right]="effectiveSidebarCollapsed()"></i>
           </button>
         </div>
 
@@ -37,11 +37,11 @@
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-center]="effectiveSidebarCollapsed()"
               [title]="'nav.dashboard' | transloco"
             >
               <i class="pi pi-home text-sm shrink-0"></i>
-              @if (!isSidebarCollapsed()) {
+              @if (!effectiveSidebarCollapsed()) {
                 <span class="truncate">{{ 'nav.dashboard' | transloco }}</span>
               }
             </a>
@@ -49,7 +49,7 @@
 
           <!-- Category 1: Consumo (Manga, Video) -->
           <div class="space-y-1">
-            @if (!isSidebarCollapsed()) {
+            @if (!effectiveSidebarCollapsed()) {
               <div class="px-3 text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-1.5">
                 {{ 'nav.categories.consumption' | transloco }}
               </div>
@@ -62,11 +62,11 @@
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-center]="effectiveSidebarCollapsed()"
               [title]="'nav.reader' | transloco"
             >
               <i class="pi pi-book text-sm shrink-0"></i>
-              @if (!isSidebarCollapsed()) {
+              @if (!effectiveSidebarCollapsed()) {
                 <span class="truncate">{{ 'nav.reader' | transloco }}</span>
               }
             </a>
@@ -76,11 +76,11 @@
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-center]="effectiveSidebarCollapsed()"
               [title]="'nav.video' | transloco"
             >
               <i class="pi pi-video text-sm shrink-0"></i>
-              @if (!isSidebarCollapsed()) {
+              @if (!effectiveSidebarCollapsed()) {
                 <span class="truncate">{{ 'nav.video' | transloco }}</span>
               }
             </a>
@@ -90,11 +90,11 @@
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-center]="effectiveSidebarCollapsed()"
               [title]="'nav.web' | transloco"
             >
               <i class="pi pi-globe text-sm shrink-0"></i>
-              @if (!isSidebarCollapsed()) {
+              @if (!effectiveSidebarCollapsed()) {
                 <span class="truncate">{{ 'nav.web' | transloco }}</span>
               }
             </a>
@@ -104,19 +104,19 @@
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-center]="effectiveSidebarCollapsed()"
               [title]="'nav.epub' | transloco"
             >
               <i class="pi pi-bookmark text-sm shrink-0"></i>
-              @if (!isSidebarCollapsed()) {
+              @if (!effectiveSidebarCollapsed()) {
                 <span class="truncate">{{ 'nav.epub' | transloco }}</span>
               }
             </a>
           </div>
 
-          <!-- Category 2: Estudo Ativo (SRS, Kana Dojo, Caderno) -->
+          <!-- Category 2: Estudo Ativo (SRS, Kana Dojo, Caderno, Shadowing, Analytics) -->
           <div class="space-y-1">
-            @if (!isSidebarCollapsed()) {
+            @if (!effectiveSidebarCollapsed()) {
               <div class="px-3 text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-1.5">
                 {{ 'nav.categories.active_study' | transloco }}
               </div>
@@ -129,11 +129,11 @@
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-center]="effectiveSidebarCollapsed()"
               [title]="'nav.study' | transloco"
             >
               <i class="pi pi-bolt text-sm shrink-0"></i>
-              @if (!isSidebarCollapsed()) {
+              @if (!effectiveSidebarCollapsed()) {
                 <span class="truncate">{{ 'nav.study' | transloco }}</span>
               }
             </a>
@@ -143,11 +143,11 @@
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-center]="effectiveSidebarCollapsed()"
               [title]="'nav.kana' | transloco"
             >
               <i class="pi pi-flag text-sm shrink-0"></i>
-              @if (!isSidebarCollapsed()) {
+              @if (!effectiveSidebarCollapsed()) {
                 <span class="truncate">{{ 'nav.kana' | transloco }}</span>
               }
             </a>
@@ -157,11 +157,11 @@
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-center]="effectiveSidebarCollapsed()"
               [title]="'nav.notebook' | transloco"
             >
               <i class="pi pi-file-edit text-sm shrink-0"></i>
-              @if (!isSidebarCollapsed()) {
+              @if (!effectiveSidebarCollapsed()) {
                 <span class="truncate">{{ 'nav.notebook' | transloco }}</span>
               }
             </a>
@@ -171,11 +171,11 @@
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-center]="effectiveSidebarCollapsed()"
               [title]="'nav.decks' | transloco"
             >
               <i class="pi pi-clone text-sm shrink-0"></i>
-              @if (!isSidebarCollapsed()) {
+              @if (!effectiveSidebarCollapsed()) {
                 <span class="truncate">{{ 'nav.decks' | transloco }}</span>
               }
             </a>
@@ -185,19 +185,33 @@
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-center]="effectiveSidebarCollapsed()"
               [title]="'nav.shadowing' | transloco"
             >
               <i class="pi pi-microphone text-sm shrink-0"></i>
-              @if (!isSidebarCollapsed()) {
+              @if (!effectiveSidebarCollapsed()) {
                 <span class="truncate">{{ 'nav.shadowing' | transloco }}</span>
+              }
+            </a>
+
+            <a
+              routerLink="/analytics"
+              routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
+              [class.justify-center]="effectiveSidebarCollapsed()"
+              [title]="'nav.analytics' | transloco"
+            >
+              <i class="pi pi-chart-pie text-sm shrink-0"></i>
+              @if (!effectiveSidebarCollapsed()) {
+                <span class="truncate">{{ 'nav.analytics' | transloco }}</span>
               }
             </a>
           </div>
 
           <!-- Category 3: Ferramentas (Dicionario, Calendario) -->
           <div class="space-y-1">
-            @if (!isSidebarCollapsed()) {
+            @if (!effectiveSidebarCollapsed()) {
               <div class="px-3 text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-1.5">
                 {{ 'nav.categories.tools' | transloco }}
               </div>
@@ -210,11 +224,11 @@
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-center]="effectiveSidebarCollapsed()"
               [title]="'nav.dictionary' | transloco"
             >
               <i class="pi pi-search text-sm shrink-0"></i>
-              @if (!isSidebarCollapsed()) {
+              @if (!effectiveSidebarCollapsed()) {
                 <span class="truncate">{{ 'nav.dictionary' | transloco }}</span>
               }
             </a>
@@ -224,28 +238,48 @@
               routerLinkActive="bg-indigo-600 text-white font-semibold shadow-sm"
               [routerLinkActiveOptions]="{ exact: false }"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-all cursor-pointer"
-              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-center]="effectiveSidebarCollapsed()"
               [title]="'nav.calendar' | transloco"
             >
               <i class="pi pi-calendar text-sm shrink-0"></i>
-              @if (!isSidebarCollapsed()) {
+              @if (!effectiveSidebarCollapsed()) {
                 <span class="truncate">{{ 'nav.calendar' | transloco }}</span>
               }
             </a>
           </div>
         </nav>
 
-        <!-- Sidebar Footer: Settings -->
-        <div class="p-3 border-t border-zinc-800/80 shrink-0">
+        <!-- Sidebar Footer: Zen Mode & Settings -->
+        <div class="p-3 border-t border-zinc-800/80 shrink-0 space-y-1">
+          <!-- Zen Mode Toggle Button -->
+          <button
+            type="button"
+            (click)="toggleZenMode()"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors cursor-pointer"
+            [class.bg-amber-500\/10]="zenModeService.isZenMode()"
+            [class.text-amber-400]="zenModeService.isZenMode()"
+            [class.text-zinc-400]="!zenModeService.isZenMode()"
+            [class.hover:text-zinc-100]="!zenModeService.isZenMode()"
+            [class.hover:bg-zinc-900]="!zenModeService.isZenMode()"
+            [class.justify-center]="effectiveSidebarCollapsed()"
+            [title]="'zen.toggle_focus' | transloco"
+          >
+            <i class="pi pi-hourglass text-base shrink-0" [class.animate-pulse]="zenModeService.isZenMode()"></i>
+            @if (!effectiveSidebarCollapsed()) {
+              <span class="truncate">{{ 'zen.toggle_focus' | transloco }}</span>
+            }
+          </button>
+
+          <!-- Settings Button -->
           <button
             type="button"
             (click)="toggleSettings()"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors cursor-pointer"
-            [class.justify-center]="isSidebarCollapsed()"
+            [class.justify-center]="effectiveSidebarCollapsed()"
             [title]="'settings.title' | transloco"
           >
             <i class="pi pi-cog text-base shrink-0"></i>
-            @if (!isSidebarCollapsed()) {
+            @if (!effectiveSidebarCollapsed()) {
               <span class="truncate">{{ 'settings.title' | transloco }}</span>
             }
           </button>
@@ -255,8 +289,90 @@
   }
 
   <!-- Main View Area -->
-  <main class="flex-1 overflow-y-auto bg-zinc-950">
-    <router-outlet />
+  <main class="flex-1 overflow-y-auto bg-zinc-950 flex flex-col relative">
+    <!-- Top Floating Zen Mode / Pomodoro Bar -->
+    @if (zenModeService.isZenMode()) {
+      <div
+        *transloco="let t"
+        class="sticky top-0 z-40 bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800 px-4 py-2.5 flex items-center justify-between animate-fadeIn shadow-lg"
+      >
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+            [class.bg-indigo-500\/20]="zenModeService.currentMode() === 'work'"
+            [class.text-indigo-400]="zenModeService.currentMode() === 'work'"
+            [class.bg-emerald-500\/20]="zenModeService.currentMode() === 'break'"
+            [class.text-emerald-400]="zenModeService.currentMode() === 'break'"
+          >
+            <span class="w-2 h-2 rounded-full animate-ping"
+              [class.bg-indigo-400]="zenModeService.currentMode() === 'work'"
+              [class.bg-emerald-400]="zenModeService.currentMode() === 'break'"
+            ></span>
+            <span>
+              {{ zenModeService.currentMode() === 'work' ? t('zen.mode_focus') : t('zen.mode_break') }}
+            </span>
+          </div>
+
+          <span class="text-lg font-mono font-bold text-white tracking-widest">
+            {{ zenModeService.formattedTime() }}
+          </span>
+
+          <!-- Timer Actions -->
+          <div class="flex items-center gap-1">
+            @if (!zenModeService.isTimerRunning()) {
+              <button
+                type="button"
+                (click)="zenModeService.startTimer()"
+                class="p-1.5 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+                [title]="t('zen.start')"
+              >
+                <i class="pi pi-play text-xs"></i>
+              </button>
+            } @else {
+              <button
+                type="button"
+                (click)="zenModeService.pauseTimer()"
+                class="p-1.5 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+                [title]="t('zen.pause')"
+              >
+                <i class="pi pi-pause text-xs"></i>
+              </button>
+            }
+
+            <button
+              type="button"
+              (click)="zenModeService.resetTimer()"
+              class="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+              [title]="t('zen.reset')"
+            >
+              <i class="pi pi-refresh text-xs"></i>
+            </button>
+
+            <!-- Mode Switch -->
+            <button
+              type="button"
+              (click)="zenModeService.switchMode(zenModeService.currentMode() === 'work' ? 'break' : 'work')"
+              class="ml-1 text-[11px] px-2 py-1 text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors cursor-pointer"
+            >
+              {{ zenModeService.currentMode() === 'work' ? t('zen.switch_to_break') : t('zen.switch_to_focus') }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Exit Zen Mode Button -->
+        <button
+          type="button"
+          (click)="zenModeService.exitZenMode()"
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-zinc-400 hover:text-white bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700/60 rounded-xl transition-all cursor-pointer shadow-sm"
+        >
+          <i class="pi pi-window-minimize text-xs"></i>
+          <span>{{ t('zen.exit_zen') }}</span>
+        </button>
+      </div>
+    }
+
+    <div class="flex-1 overflow-y-auto">
+      <router-outlet />
+    </div>
   </main>
 </div>
 

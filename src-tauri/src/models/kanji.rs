@@ -41,3 +41,23 @@ pub struct JlptKanjiEntry {
     pub readings: Option<serde_json::Value>,
     pub strokes: Option<serde_json::Value>,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct JlptLevelCoverage {
+    pub level: i32,
+    pub level_name: String,
+    pub total_kanji: i32,
+    pub learned_kanji: i32,
+    pub kanji_percentage: f64,
+    pub total_vocab: i32,
+    pub learned_vocab: i32,
+    pub vocab_percentage: f64,
+    pub overall_percentage: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct JlptAnalyticsStats {
+    pub levels: Vec<JlptLevelCoverage>,
+    pub total_kanji_learned: i32,
+    pub total_vocab_learned: i32,
+}

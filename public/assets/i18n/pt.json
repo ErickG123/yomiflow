@@ -22,6 +22,7 @@
     "decks": "Baralhos",
     "shadowing": "Shadowing",
     "calendar": "Calendário",
+    "analytics": "JLPT Analytics",
     "categories": {
       "consumption": "Consumo",
       "active_study": "Estudo Ativo",
@@ -492,5 +493,30 @@
     "original_text": "Texto Original",
     "transcribed_voice": "Voz Reconhecida",
     "no_transcription": "Nenhum áudio inteligível capturado."
+  },
+  "zen": {
+    "toggle_focus": "Modo Foco (Zen)",
+    "mode_focus": "Foco",
+    "mode_break": "Pausa",
+    "start": "Iniciar",
+    "pause": "Pausar",
+    "reset": "Reiniciar",
+    "switch_to_break": "Alternar para Pausa",
+    "switch_to_focus": "Alternar para Foco",
+    "exit_zen": "Sair do Modo Foco"
+  },
+  "jlpt": {
+    "title": "JLPT Analytics",
+    "subtitle": "Acompanhamento do progresso de Kanjis e Vocabulário frente às matrizes oficiais N5 a N1",
+    "refresh": "Atualizar Métricas",
+    "total_kanji_learned": "Total de Kanjis Aprendidos",
+    "total_vocab_learned": "Total de Vocabulário Aprendido",
+    "tracked_levels": "Níveis Monitorados",
+    "radar_title": "Cobertura Radial por Nível",
+    "radar_desc": "Comparativo percentual de retenção nos níveis oficiais do exame",
+    "level_mastery": "Progresso {{level}}",
+    "kanji_coverage": "Kanjis",
+    "vocab_coverage": "Vocabulário"
   }
 }
+

@@ -9,7 +9,7 @@ import {
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
-import { TranslocoDirective, TranslocoPipe } from '@ngneat/transloco'
+import { TranslocoDirective } from '@ngneat/transloco'
 import { ShadowingService } from '../../services/shadowing.service'
 import { AudioService } from '../../../../core/services/audio.service'
 
