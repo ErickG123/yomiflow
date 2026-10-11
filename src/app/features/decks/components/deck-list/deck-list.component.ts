@@ -78,6 +78,7 @@ export class DeckListComponent implements OnInit {
   }
 
   studyDeck(deckId: string): void {
+    this.deckService.activeDeckId.set(deckId)
     void this.router.navigate(['/study'], {
       queryParams: { deckId },
     })

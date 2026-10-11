@@ -230,13 +230,7 @@ pub fn delete_deck(id: String, state: State<'_, AppState>) -> Result<(), String>
         return Err("O baralho padrão não pode ser excluído.".to_string());
     }
 
-    // Set cards with this deck to 'default' deck before deletion to protect user cards
-    conn.execute(
-        "UPDATE cards SET deck_id = 'default' WHERE deck_id = ?1",
-        params![id],
-    )
-    .map_err(|e| e.to_string())?;
-
+    // SQLite ON DELETE CASCADE handles deleting all associated cards automatically
     conn.execute("DELETE FROM decks WHERE id = ?1", params![id])
         .map_err(|e| e.to_string())?;
 

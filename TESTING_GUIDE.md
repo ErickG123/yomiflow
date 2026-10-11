@@ -250,14 +250,19 @@ Checklists rigorosos para validar o comportamento das novas ferramentas de alta 
   - Acessar o Google Drive no navegador e verificar se o ficheiro `yomiflow_backup.db` está presente na conta, contendo o backup do banco SQLite original.
 
 ### 🧪 Cenário H: Caderno Híbrido (NLP & TipTap Editor)
-- [ ] **Digitação e Análise Morfológica em Tempo Real:**
+- [ ] **Digitação e Análise Morfológica (Modos Auto vs Manual):**
   - Navegue para `/notebook` na barra de navegação superior.
-  - Digite a frase de teste no editor Markdown: `私は学生です`
-  - *Critério de Sucesso do Backend (Lindera):* A análise em Rust não deve panicar e deve retornar os morfemas tokenizados:
-    - `私` (Watashi): Substantivo (`noun`) -> Renderizado com classe `.text-green-400`
-    - `は` (Wa): Partícula (`particle`) -> Renderizado com classe `.text-blue-400`
-    - `学生` (Gakusei): Substantivo (`noun`) -> Renderizado com classe `.text-green-400`
-    - `です` (Desu): Cópula/Auxiliar (`auxiliary`) -> Renderizado com classe `.text-purple-400`
+  - **Validação de Debounce no Modo Auto:**
+    - Alterne o segmented control para **"Modo Auto"**.
+    - Digite uma frase rapidamente (ex: `毎日日本語を勉強します`).
+    - *Critério de Sucesso:* Confirme que a chamada IPC só ocorre uma vez, após parar de digitar por 750ms (`debounceTime(750)`), evitando requisições redundantes a cada caractere digitado.
+  - **Validação do Modo Manual:**
+    - Alterne para o **"Modo Manual"**.
+    - Digite uma nova frase (ex: `本を読みます`).
+    - *Critério de Sucesso:* Verifique que as cores continuam cinzentas e nenhuma chamada morfológica é disparada enquanto digita, até clicar explicitamente no botão com ícone de faíscas **"Analisar Gramática"**.
+  - **Preservação de Posição do Cursor:**
+    - Digite no meio de um parágrafo e acione a análise (ou aguarde no modo auto).
+    - O texto é atualizado com as cores do Tailwind (`.text-red-400`, `.text-blue-400`, `.text-green-400`) sem que o cursor pule inesperadamente para o fim do documento.
 - [ ] **Teste de Resiliência com Caracteres Vazios e Pontuação:**
   - Testar envio de strings vazias, espaços repetidos e quebras de linha (`\n\n`).
   - O analisador morfológico deve retornar array vazio sem gerar panics ou travar a UI.
@@ -283,8 +288,8 @@ Checklists rigorosos para validar o comportamento das novas ferramentas de alta 
   - Clique em **"Estudar Baralho"** no baralho *"Vocabulário de Animes"* (`/study?deckId=...`).
   - *Critério de Sucesso:* A sessão de estudo deve informar que não há cartões pendentes para este baralho, comprovando que as revisões do *"JLPT N3"* não vazam para outros baralhos.
   - Ao iniciar os estudos no baralho *"JLPT N3"*, o cartão inserido deve surgir imediatamente para revisão.
-- [ ] **Eliminação Segura de Baralhos:**
-  - Ao excluir um baralho customizado, os cartões existentes devem ser migrados automaticamente para o baralho *"Padrão"* (`default`), prevenindo a perda irreversível do histórico do estudante.
+- [ ] **Eliminação em Cascata de Baralhos:**
+  - Ao excluir um baralho customizado, todas as cartas vinculadas ao baralho excluído devem ser removidas atomicamente pelo mecanismo relacional `ON DELETE CASCADE` do SQLite, sem deixar registros órfãos ou inconsistências na base.
 
 ### 🧪 Cenário J: Previsão Temporal e Gamificação de Estudos
 - [ ] **Acesso à Vista de Calendário:**

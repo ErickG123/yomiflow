@@ -82,17 +82,62 @@
 
     <!-- TipTap Markdown Editor Box -->
     <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-xl space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-zinc-800 text-xs text-zinc-400">
-        <div class="flex items-center gap-2">
-          <i class="pi pi-pencil text-indigo-400"></i>
-          <span>Editor de Idiomas (TipTap)</span>
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-800 text-xs text-zinc-400">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-pencil text-indigo-400"></i>
+            <span class="font-medium">Editor de Idiomas</span>
+          </div>
+
+          <!-- Segmented Control for Auto / Manual Analysis Mode -->
+          <div class="flex items-center bg-zinc-950 p-0.5 rounded-lg border border-zinc-800">
+            <button
+              type="button"
+              (click)="setAnalysisMode('auto')"
+              class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer"
+              [class.bg-indigo-600]="analysisMode() === 'auto'"
+              [class.text-white]="analysisMode() === 'auto'"
+              [class.shadow-xs]="analysisMode() === 'auto'"
+              [class.text-zinc-400]="analysisMode() !== 'auto'"
+              [class.hover:text-zinc-200]="analysisMode() !== 'auto'"
+            >
+              Modo Auto
+            </button>
+            <button
+              type="button"
+              (click)="setAnalysisMode('manual')"
+              class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer"
+              [class.bg-indigo-600]="analysisMode() === 'manual'"
+              [class.text-white]="analysisMode() === 'manual'"
+              [class.shadow-xs]="analysisMode() === 'manual'"
+              [class.text-zinc-400]="analysisMode() !== 'manual'"
+              [class.hover:text-zinc-200]="analysisMode() !== 'manual'"
+            >
+              Modo Manual
+            </button>
+          </div>
         </div>
-        @if (notebookService.isAnalyzing()) {
-          <span class="text-indigo-400 flex items-center gap-1.5">
-            <i class="pi pi-spin pi-spinner text-xs"></i>
-            Analisando gramática...
-          </span>
-        }
+
+        <div class="flex items-center gap-2.5">
+          <!-- Analisar Gramática Action Button with Magic Wand Icon -->
+          <button
+            type="button"
+            (click)="analyzeManually()"
+            [disabled]="notebookService.isAnalyzing()"
+            class="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Executar análise gramatical no texto agora"
+          >
+            <i class="pi pi-sparkles text-indigo-400 text-xs"></i>
+            <span>Analisar Gramática</span>
+          </button>
+
+          @if (notebookService.isAnalyzing()) {
+            <span class="text-indigo-400 flex items-center gap-1.5 text-[11px]">
+              <i class="pi pi-spin pi-spinner text-xs"></i>
+              Analisando...
+            </span>
+          }
+        </div>
       </div>
 
       <!-- Native Container where TipTap mounts its contenteditable DOM element -->

@@ -30,6 +30,7 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
         PRAGMA synchronous = NORMAL;
         PRAGMA temp_store = MEMORY;
         PRAGMA mmap_size = 3000000000;
+        PRAGMA foreign_keys = ON;
 
         CREATE TABLE IF NOT EXISTS dictionary_entries (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,7 +66,7 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             reps INTEGER NOT NULL,
             state INTEGER NOT NULL,
             FOREIGN KEY(entry_id) REFERENCES dictionary_entries(id) ON DELETE CASCADE,
-            FOREIGN KEY(deck_id) REFERENCES decks(id) ON DELETE SET NULL
+            FOREIGN KEY(deck_id) REFERENCES decks(id) ON DELETE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS card_tags (
@@ -278,6 +279,22 @@ mod tests {
             .query_row("SELECT COUNT(*) FROM tags WHERE id = 'tag-verbs'", [], |row| row.get(0))
             .unwrap();
         assert_eq!(tag_count, 0);
+
+        // Verify Deleting a Deck cascades and deletes all its cards automatically
+        conn.execute(
+            "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params!["card-custom-2", 1, "deck-jlpt-n3", 1700000000, 2.5, 0.3, 0, 0],
+        ).unwrap();
+        let card_before: i64 = conn
+            .query_row("SELECT COUNT(*) FROM cards WHERE deck_id = 'deck-jlpt-n3'", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(card_before, 1);
+
+        conn.execute("DELETE FROM decks WHERE id = 'deck-jlpt-n3'", []).unwrap();
+        let card_after: i64 = conn
+            .query_row("SELECT COUNT(*) FROM cards WHERE deck_id = 'deck-jlpt-n3'", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(card_after, 0);
     }
 }
 

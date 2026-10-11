@@ -5,7 +5,7 @@ O modelo relacional do YomiFlow (`src-tauri/src/db/setup.rs`) foi expandido para
 
 ```mermaid
 erDiagram
-    decks ||--o{ cards : "contains (ON DELETE SET NULL)"
+    decks ||--o{ cards : "contains (ON DELETE CASCADE)"
     dictionary_entries ||--o{ cards : "referenced by (ON DELETE CASCADE)"
     cards ||--o{ card_tags : "tagged (ON DELETE CASCADE)"
     tags ||--o{ card_tags : "applied to (ON DELETE CASCADE)"
@@ -45,8 +45,8 @@ erDiagram
 ## 2. Políticas de Integridade e Eliminação em Cascata
 1. **`cards.entry_id -> dictionary_entries(id)` (`ON DELETE CASCADE`):**
    - Caso um verbete seja limpo ou expurgado do dicionário, todos os cards e revisões derivados são removidos atomicamente.
-2. **`cards.deck_id -> decks(id)` (`ON DELETE SET NULL`):**
-   - Se um baralho customizado for excluído, o backend do YomiFlow (`delete_deck`) primeiro reatribui os cartões ao baralho `'default'` por segurança antes de remover o deck, prevenindo perda acidental de histórico de revisões.
+2. **`cards.deck_id -> decks(id)` (`ON DELETE CASCADE`):**
+   - Com `PRAGMA foreign_keys = ON;` ativo em todas as sessões, se um baralho customizado for excluído, todas as suas cartas e logs de revisão associados são eliminados automaticamente pelo SQLite sem necessidade de queries manuais.
 3. **`card_tags` (`ON DELETE CASCADE`):**
    - Relação *many-to-many*. A remoção de um card ou de uma tag limpa imediatamente a associação correspondente na tabela de junção `card_tags`.
 4. **`review_logs -> cards(id)` (`ON DELETE CASCADE`):**

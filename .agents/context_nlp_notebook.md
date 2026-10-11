@@ -47,11 +47,25 @@ O backend (`lindera`) categoriza cada morfema de acordo com o dicionário IPADIC
 ## 4. Frontend: TipTap & Feature Isolation
 - Localização: `src/app/features/notebook/`
 - Arquitetura estrita feature-based:
-  - `models/notebook.model.ts`: Todas as tipagens (`MorphologicalToken`, `NotebookEntry`, `NotebookState`).
+  - `models/notebook.model.ts`: Todas as tipagens (`MorphologicalToken`, `NotebookEntry`, `AnalysisMode`).
   - `services/notebook.service.ts`: Comunicação IPC via `@tauri-apps/api/core` (`analyze_japanese_text`, `save_notebook_entry`, `get_notebook_entries`) e parser HTML enriquecido.
   - `components/notebook-editor/`: Editor TipTap montado em container nativo, suporte a Markdown puro e painel morfológico split-screen reativo com Angular Signals.
 
-## 5. Comandos de Validação e Testes
+## 5. Modos de Análise Gramatical & Estratégia de Debounce
+- **Modo Automático (`auto`):**
+  - O evento `onUpdate` do TipTap alimenta um fluxo RxJS `Subject<string>` com operador `debounceTime(750)`.
+  - Evita sobrecarga de chamadas IPC ao Rust e garante que a análise morfológica só dispara 750ms após o utilizador cessar a digitação.
+- **Modo Manual (`manual` - Padrão):**
+  - O evento `onUpdate` apenas sincroniza a string Markdown sem invocar o analisador Lindera.
+  - O utilizador clica no botão com ícone de varinha/faíscas **"Analisar Gramática"**, que analisa o texto atual sob demanda.
+- **Preservação de Posição do Cursor no TipTap:**
+  - Desafio: Injetar HTML colorido via `setContent()` costuma resetar o cursor para o final do documento.
+  - Solução:
+    1. Salva-se a seleção do ProseMirror antes do update: `const { from, to } = this.editor.state.selection;`.
+    2. Invoca-se `editor.commands.setContent(wrappedHtml, { emitUpdate: false })` com a flag `emitUpdate: false` para evitar ciclos infinitos no listener de update.
+    3. Restaura-se a seleção clampada ao novo tamanho do documento: `editor.commands.setTextSelection({ from: safeFrom, to: safeTo })`.
+
+## 6. Comandos de Validação e Testes
 - **Backend (Rust):**
   ```bash
   cargo test commands::nlp
@@ -62,3 +76,4 @@ O backend (`lindera`) categoriza cada morfema de acordo com o dicionário IPADIC
   npm test -- --include src/app/features/notebook/**/*.spec.ts
   npm run build
   ```
+

@@ -12,8 +12,10 @@ import {
 } from '@angular/core'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
+import { Subject, Subscription } from 'rxjs'
+import { debounceTime } from 'rxjs/operators'
 import { NotebookService } from '../../services/notebook.service'
-import { MorphologicalToken, NotebookEntry } from '../../models/notebook.model'
+import { AnalysisMode, MorphologicalToken, NotebookEntry } from '../../models/notebook.model'
 import { SafeHtmlPipe } from '../../../../shared/pipes/safe-html.pipe'
 
 @Component({
@@ -30,6 +32,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   @ViewChild('editorElement') editorElementRef?: ElementRef<HTMLDivElement>
   private editor: Editor | null = null
 
+  readonly analysisMode = signal<AnalysisMode>('manual')
   readonly currentId = signal<string>(crypto.randomUUID())
   readonly title = signal<string>('Minha Anotação')
   readonly markdownContent = signal<string>('私は学生です。\n毎日日本語を勉強します。')
@@ -39,11 +42,25 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     return this.notebookService.formatTokensToHtml(this.tokens())
   })
 
-  private analyzeDebounceTimeout: ReturnType<typeof setTimeout> | null = null
+  // RxJS pipeline for 750ms debounce in auto mode
+  private readonly textChange$ = new Subject<string>()
+  private textSubscription: Subscription | null = null
+
+  // Guard flag to prevent infinite loops when setContent updates TipTap
+  private isApplyingGrammarHighlight = false
 
   async ngOnInit(): Promise<void> {
     await this.notebookService.loadEntries()
     await this.triggerAnalysis(this.markdownContent())
+
+    // Configure RxJS debounceTime(750) for auto mode
+    this.textSubscription = this.textChange$
+      .pipe(debounceTime(750))
+      .subscribe((text) => {
+        if (this.analysisMode() === 'auto') {
+          void this.performMorphologicalAnalysis(text)
+        }
+      })
   }
 
   ngAfterViewInit(): void {
@@ -54,29 +71,79 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
       extensions: [StarterKit],
       content: `<p>${this.markdownContent().replace(/\n/g, '</p><p>')}</p>`,
       onUpdate: ({ editor }) => {
+        if (this.isApplyingGrammarHighlight) {
+          return
+        }
+
         const text = editor.getText()
         this.markdownContent.set(text)
 
-        if (this.analyzeDebounceTimeout) {
-          clearTimeout(this.analyzeDebounceTimeout)
+        if (this.analysisMode() === 'auto') {
+          this.textChange$.next(text)
         }
-        this.analyzeDebounceTimeout = setTimeout(() => {
-          void this.triggerAnalysis(text)
-        }, 300)
       },
     })
   }
 
   ngOnDestroy(): void {
-    if (this.analyzeDebounceTimeout) {
-      clearTimeout(this.analyzeDebounceTimeout)
-    }
+    this.textSubscription?.unsubscribe()
     this.editor?.destroy()
+  }
+
+  setAnalysisMode(mode: AnalysisMode): void {
+    this.analysisMode.set(mode)
+    if (mode === 'auto') {
+      const text = this.editor?.getText() || this.markdownContent()
+      this.textChange$.next(text)
+    }
+  }
+
+  async analyzeManually(): Promise<void> {
+    const text = this.editor?.getText() || this.markdownContent()
+    await this.performMorphologicalAnalysis(text)
   }
 
   async triggerAnalysis(rawText: string): Promise<void> {
     const tokens = await this.notebookService.analyzeText(rawText)
     this.tokens.set(tokens)
+  }
+
+  /**
+   * Performs morphological analysis via Rust backend and updates TipTap with Tailwind color spans
+   * preserving exact cursor/selection coordinates via editor.state.selection and emitUpdate: false.
+   */
+  async performMorphologicalAnalysis(text: string): Promise<void> {
+    if (!text || !text.trim()) {
+      this.tokens.set([])
+      return
+    }
+
+    const tokens = await this.notebookService.analyzeText(text)
+    this.tokens.set(tokens)
+
+    if (!this.editor) return
+
+    const htmlContent = this.notebookService.formatTokensToHtml(tokens)
+    const wrappedHtml = `<p>${htmlContent.replace(/\n/g, '</p><p>')}</p>`
+
+    // Preserve cursor / selection anchor and head positions
+    const { from, to } = this.editor.state.selection
+
+    this.isApplyingGrammarHighlight = true
+    try {
+      this.editor.commands.setContent(wrappedHtml, {
+        emitUpdate: false,
+      })
+
+      // Safely restore selection within the newly rendered document bounds
+      const docSize = this.editor.state.doc.content.size
+      const safeFrom = Math.min(from, docSize)
+      const safeTo = Math.min(to, docSize)
+
+      this.editor.commands.setTextSelection({ from: safeFrom, to: safeTo })
+    } finally {
+      this.isApplyingGrammarHighlight = false
+    }
   }
 
   onTitleChange(event: Event): void {

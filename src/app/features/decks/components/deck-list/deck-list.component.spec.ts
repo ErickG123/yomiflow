@@ -34,6 +34,7 @@ describe('DeckListComponent', () => {
     deckServiceMock = {
       decks: mockDecksSignal,
       isLoading: signal(false),
+      activeDeckId: signal(null),
       loadDecks: vi.fn().mockResolvedValue(mockDecksSignal()),
       createDeck: vi.fn().mockResolvedValue({ id: 'new-id', name: 'Novo Deck' }),
       deleteDeck: vi.fn().mockResolvedValue(undefined),

@@ -83,4 +83,21 @@ describe('NotebookEditorComponent', () => {
     expect(formatted).toContain('text-green-400')
     expect(formatted).toContain('text-blue-400')
   })
+
+  it('should toggle analysis mode between auto and manual', () => {
+    expect(component.analysisMode()).toBe('manual')
+    component.setAnalysisMode('auto')
+    expect(component.analysisMode()).toBe('auto')
+    component.setAnalysisMode('manual')
+    expect(component.analysisMode()).toBe('manual')
+  })
+
+  it('should trigger morphological analysis on manual button click', async () => {
+    notebookServiceMock.analyzeText.mockClear()
+    component.markdownContent.set('日本語')
+
+    await component.analyzeManually()
+
+    expect(notebookServiceMock.analyzeText).toHaveBeenCalledWith('日本語')
+  })
 })

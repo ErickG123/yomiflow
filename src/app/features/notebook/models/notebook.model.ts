@@ -11,3 +11,6 @@ export interface NotebookEntry {
   created_at: string
   updated_at: string
 }
+
+export type AnalysisMode = 'auto' | 'manual'
+
