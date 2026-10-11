@@ -1,5 +1,6 @@
 pub mod ai_ocr;
 pub mod dictionary;
+pub mod discord;
 pub mod drive_sync;
 pub mod grading;
 pub mod importer;

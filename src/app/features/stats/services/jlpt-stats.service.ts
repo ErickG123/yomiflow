@@ -1,12 +1,13 @@
 import { Injectable, signal } from '@angular/core'
 import { invoke } from '@tauri-apps/api/core'
-import { JlptAnalyticsStats } from '../models/jlpt-stats.model'
+import { Badge, JlptAnalyticsStats } from '../models/jlpt-stats.model'
 
 @Injectable({
   providedIn: 'root',
 })
 export class JlptStatsService {
   readonly stats = signal<JlptAnalyticsStats | null>(null)
+  readonly badges = signal<Badge[]>([])
   readonly isLoading = signal<boolean>(false)
   readonly error = signal<string | null>(null)
 
@@ -21,6 +22,15 @@ export class JlptStatsService {
       this.error.set(String(err))
     } finally {
       this.isLoading.set(false)
+    }
+  }
+
+  async fetchBadges(): Promise<void> {
+    try {
+      const badgesData = await invoke<Badge[]>('get_badges')
+      this.badges.set(badgesData)
+    } catch (err) {
+      console.error('Failed to load achievement badges:', err)
     }
   }
 }

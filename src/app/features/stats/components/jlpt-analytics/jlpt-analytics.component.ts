@@ -45,7 +45,10 @@ export class JlptAnalyticsComponent implements OnInit, AfterViewInit, OnDestroy 
   private chartInstance: Chart | null = null
 
   async ngOnInit(): Promise<void> {
-    await this.statsService.fetchJlptStats()
+    await Promise.all([
+      this.statsService.fetchJlptStats(),
+      this.statsService.fetchBadges(),
+    ])
     this.renderRadarChart()
   }
 

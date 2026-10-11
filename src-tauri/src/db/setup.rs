@@ -171,6 +171,22 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             updated_at INTEGER NOT NULL
         );
 
+        CREATE TABLE IF NOT EXISTS badges (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            description TEXT NOT NULL,
+            icon TEXT NOT NULL,
+            category TEXT NOT NULL,
+            target_metric TEXT NOT NULL,
+            target_value INTEGER NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS user_badges (
+            badge_id TEXT PRIMARY KEY,
+            unlocked_at INTEGER NOT NULL,
+            FOREIGN KEY(badge_id) REFERENCES badges(id) ON DELETE CASCADE
+        );
+
         CREATE VIEW IF NOT EXISTS flashcards AS 
         SELECT id, entry_id, deck_id, due_date, stability, difficulty, reps, state FROM cards;
         ",
@@ -251,6 +267,96 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             "INSERT INTO dictionary_entries (kanji, reading, meaning) VALUES (?1, ?2, ?3)",
             params!["猫", "ねこ", "cat"],
         )?;
+    }
+
+    // Seed achievement badges
+    let badge_count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM badges", [], |row| row.get(0))
+        .unwrap_or(0);
+
+    if badge_count == 0 {
+        let badges_data = [
+            (
+                "first_card",
+                "Primeiro Passo",
+                "Adicione ou revise o seu primeiro cartão",
+                "pi-flag",
+                "srs",
+                "cards_learned",
+                1,
+            ),
+            (
+                "kanji_10",
+                "Aprendiz de Kanji",
+                "Aprenda os seus primeiros 10 kanjis",
+                "pi-book",
+                "kanji",
+                "kanji_count",
+                10,
+            ),
+            (
+                "kanji_50",
+                "Explorador de Ideogramas",
+                "Aprenda 50 kanjis no SRS",
+                "pi-compass",
+                "kanji",
+                "kanji_count",
+                50,
+            ),
+            (
+                "kanji_100",
+                "Mestre dos 100 Kanjis",
+                "Domine 100 kanjis no seu vocabulário",
+                "pi-star",
+                "kanji",
+                "kanji_count",
+                100,
+            ),
+            (
+                "streak_3",
+                "Foco Inicial",
+                "Mantenha uma ofensiva de 3 dias de estudo",
+                "pi-bolt",
+                "streak",
+                "streak_days",
+                3,
+            ),
+            (
+                "streak_7",
+                "Semana Perfeita",
+                "Mantenha uma ofensiva de 7 dias consecutivos",
+                "pi-calendar",
+                "streak",
+                "streak_days",
+                7,
+            ),
+            (
+                "streak_30",
+                "Guerreiro da Disciplina",
+                "Atingiu uma ofensiva ininterrupta de 30 dias",
+                "pi-trophy",
+                "streak",
+                "streak_days",
+                30,
+            ),
+            (
+                "kana_master",
+                "Sensei dos Kana",
+                "Complete o treino e alcance 100% no Kana Dojo",
+                "pi-check-circle",
+                "kana",
+                "kana_proficiency",
+                100,
+            ),
+        ];
+
+        for (id, name, desc, icon, category, metric, val) in badges_data {
+            let _ = conn.execute(
+                "INSERT INTO badges (id, name, description, icon, category, target_metric, target_value)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                params![id, name, desc, icon, category, metric, val],
+            );
+        }
     }
 
     Ok(())

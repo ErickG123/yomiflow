@@ -8,9 +8,11 @@ describe('JlptAnalyticsComponent', () => {
   let component: JlptAnalyticsComponent
   let statsServiceMock: {
     stats: ReturnType<typeof signal<JlptAnalyticsStats | null>>
+    badges: ReturnType<typeof signal<any[]>>
     isLoading: ReturnType<typeof signal<boolean>>
     error: ReturnType<typeof signal<string | null>>
     fetchJlptStats: ReturnType<typeof vi.fn>
+    fetchBadges: ReturnType<typeof vi.fn>
   }
 
   beforeEach(() => {
@@ -34,9 +36,11 @@ describe('JlptAnalyticsComponent', () => {
         total_kanji_learned: 20,
         total_vocab_learned: 150,
       }),
+      badges: signal([]),
       isLoading: signal(false),
       error: signal(null),
       fetchJlptStats: vi.fn().mockResolvedValue(undefined),
+      fetchBadges: vi.fn().mockResolvedValue(undefined),
     }
 
     const providers = [{ provide: JlptStatsService, useValue: statsServiceMock }]

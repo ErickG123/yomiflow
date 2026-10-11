@@ -64,3 +64,17 @@ pub struct DeckWithCounts {
     pub due_count: i32,
     pub total_count: i32,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Badge {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub icon: String,
+    pub category: String,
+    pub target_metric: String,
+    pub target_value: i32,
+    pub current_value: i32,
+    pub is_unlocked: bool,
+    pub unlocked_at: Option<i64>,
+}

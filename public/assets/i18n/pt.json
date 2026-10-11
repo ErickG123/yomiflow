@@ -531,7 +531,11 @@
     "radar_desc": "Comparativo percentual de retenção nos níveis oficiais do exame",
     "level_mastery": "Progresso {{level}}",
     "kanji_coverage": "Kanjis",
-    "vocab_coverage": "Vocabulário"
+    "vocab_coverage": "Vocabulário",
+    "badges_title": "Conquistas & Badges",
+    "badges_subtitle": "Marcos alcançados na sua jornada de imersão e maestria",
+    "unlocked": "Desbloqueado",
+    "locked": "Bloqueado"
   }
 }
 

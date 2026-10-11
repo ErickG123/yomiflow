@@ -531,7 +531,11 @@
     "radar_desc": "Retention percentage across official proficiency levels",
     "level_mastery": "{{level}} Progress",
     "kanji_coverage": "Kanji",
-    "vocab_coverage": "Vocabulary"
+    "vocab_coverage": "Vocabulary",
+    "badges_title": "Achievements & Badges",
+    "badges_subtitle": "Milestones achieved on your journey of immersion and mastery",
+    "unlocked": "Unlocked",
+    "locked": "Locked"
   }
 }
 

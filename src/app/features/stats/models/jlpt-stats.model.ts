@@ -15,3 +15,16 @@ export interface JlptAnalyticsStats {
   total_kanji_learned: number
   total_vocab_learned: number
 }
+
+export interface Badge {
+  id: string
+  name: string
+  description: string
+  icon: string
+  category: string
+  target_metric: string
+  target_value: number
+  current_value: number
+  is_unlocked: boolean
+  unlocked_at?: number | null
+}

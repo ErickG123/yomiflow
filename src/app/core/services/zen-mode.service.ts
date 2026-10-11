@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { invoke } from '@tauri-apps/api/core'
 
 export type PomodoroMode = 'work' | 'break'
 
@@ -42,6 +43,12 @@ export class ZenModeService {
       console.warn('Could not set fullscreen mode via Tauri API:', err)
     }
 
+    try {
+      await invoke('set_discord_zen_presence', { enabled: next })
+    } catch (err) {
+      console.warn('Discord Rich Presence error:', err)
+    }
+
     if (next && !this.isTimerRunning()) {
       this.startTimer()
     } else if (!next) {
@@ -57,6 +64,12 @@ export class ZenModeService {
       await appWindow.setFullscreen(false)
     } catch (err) {
       console.warn('Could not set fullscreen mode via Tauri API:', err)
+    }
+
+    try {
+      await invoke('set_discord_zen_presence', { enabled: false })
+    } catch (err) {
+      console.warn('Discord Rich Presence error:', err)
     }
   }
 

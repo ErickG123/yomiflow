@@ -200,6 +200,141 @@ pub fn get_jlpt_coverage_stats(
     })
 }
 
+#[tauri::command]
+pub fn get_badges(state: State<'_, AppState>) -> Result<Vec<crate::models::Badge>, String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+
+    // 1. Calculate current metrics
+    // Total distinct learned kanjis in SRS
+    let kanji_count: i32 = conn
+        .query_row(
+            "SELECT COUNT(DISTINCT k.character) 
+             FROM kanjis k
+             JOIN dictionary_entries d ON (d.kanji LIKE '%' || k.character || '%')
+             JOIN cards c ON c.entry_id = d.id
+             WHERE c.reps > 0 OR c.state > 0",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or(0);
+
+    // Total cards learned
+    let cards_learned: i32 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM cards WHERE reps > 0 OR state > 0",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or(0);
+
+    // Current study streak (distinct study days count)
+    let streak_days: i32 = conn
+        .query_row(
+            "SELECT COUNT(DISTINCT strftime('%Y-%m-%d', datetime(review_datetime, 'unixepoch', 'localtime'))) FROM review_logs",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or(0);
+
+    // Kana mastery proficiency average
+    let kana_prof: f64 = conn
+        .query_row(
+            "SELECT COALESCE(AVG(accuracy_percentage), 0.0) FROM kana_mastery WHERE total_attempts > 0",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or(0.0);
+    let kana_proficiency = kana_prof.round() as i32;
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
+
+    // 2. Fetch all badges
+    let mut stmt = conn
+        .prepare(
+            "SELECT b.id, b.name, b.description, b.icon, b.category, b.target_metric, b.target_value, 
+                    ub.unlocked_at
+             FROM badges b
+             LEFT JOIN user_badges ub ON ub.badge_id = b.id
+             ORDER BY b.target_value ASC"
+        )
+        .map_err(|e| e.to_string())?;
+
+    struct RawBadge {
+        id: String,
+        name: String,
+        description: String,
+        icon: String,
+        category: String,
+        target_metric: String,
+        target_value: i32,
+        unlocked_at: Option<i64>,
+    }
+
+    let raw_badges: Vec<RawBadge> = stmt
+        .query_map([], |row| {
+            Ok(RawBadge {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                description: row.get(2)?,
+                icon: row.get(3)?,
+                category: row.get(4)?,
+                target_metric: row.get(5)?,
+                target_value: row.get(6)?,
+                unlocked_at: row.get(7)?,
+            })
+        })
+        .map_err(|e| e.to_string())?
+        .filter_map(|r| r.ok())
+        .collect();
+
+    drop(stmt);
+
+    let mut result = Vec::new();
+    let mut to_unlock = Vec::new();
+
+    for b in raw_badges {
+        let current_value = match b.target_metric.as_str() {
+            "kanji_count" => kanji_count,
+            "cards_learned" => cards_learned,
+            "streak_days" => streak_days,
+            "kana_proficiency" => kana_proficiency,
+            _ => 0,
+        };
+
+        let is_unlocked = b.unlocked_at.is_some() || current_value >= b.target_value;
+
+        if is_unlocked && b.unlocked_at.is_none() {
+            to_unlock.push(b.id.clone());
+        }
+
+        result.push(crate::models::Badge {
+            id: b.id,
+            name: b.name,
+            description: b.description,
+            icon: b.icon,
+            category: b.category,
+            target_metric: b.target_metric,
+            target_value: b.target_value,
+            current_value,
+            is_unlocked,
+            unlocked_at: b.unlocked_at.or(if is_unlocked { Some(now) } else { None }),
+        });
+    }
+
+    // Persist newly unlocked badges
+    for id in to_unlock {
+        let _ = conn.execute(
+            "INSERT OR IGNORE INTO user_badges (badge_id, unlocked_at) VALUES (?1, ?2)",
+            params![id, now],
+        );
+    }
+
+    Ok(result)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -361,5 +496,28 @@ mod tests {
             .unwrap();
 
         assert_eq!(count_n5_kanji, 2);
+    }
+
+    #[test]
+    fn test_badges_system() {
+        let conn = Connection::open_in_memory().unwrap();
+        crate::db::create_tables_and_seed(&conn).unwrap();
+
+        let badge_count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM badges", [], |row| row.get(0))
+            .unwrap();
+        assert!(badge_count >= 8);
+
+        // Check unlocking a badge
+        conn.execute(
+            "INSERT INTO user_badges (badge_id, unlocked_at) VALUES ('first_card', 1700000000)",
+            [],
+        )
+        .unwrap();
+
+        let unlocked_count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM user_badges", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(unlocked_count, 1);
     }
 }

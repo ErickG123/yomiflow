@@ -162,7 +162,9 @@ pub fn run() {
             commands::dictionary::add_custom_word_to_srs,
             commands::srs::migrate_sm2_to_fsrs,
             commands::reader::save_epub_position,
-            commands::reader::get_epub_position
+            commands::reader::get_epub_position,
+            commands::stats::get_badges,
+            commands::discord::set_discord_zen_presence
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");
