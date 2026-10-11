@@ -24,6 +24,20 @@ struct JishoJapanese {
 struct JishoSense {
     english_definitions: Vec<String>,
     parts_of_speech: Vec<String>,
+    #[serde(default)]
+    sentences: Option<Vec<JishoSentence>>,
+    #[serde(default)]
+    examples: Option<Vec<JishoSentence>>,
+}
+
+#[derive(serde::Deserialize)]
+struct JishoSentence {
+    #[serde(default)]
+    english: Option<String>,
+    #[serde(default)]
+    japanese: Option<String>,
+    #[serde(default)]
+    text: Option<String>,
 }
 
 pub async fn query_jisho_fallback(keyword: &str) -> Vec<DictionaryEntry> {
@@ -71,11 +85,32 @@ pub async fn query_jisho_fallback(keyword: &str) -> Vec<DictionaryEntry> {
             continue;
         }
 
+        let mut example_sentence = None;
+
         let meanings = item
             .senses
             .into_iter()
             .take(3)
             .map(|s| {
+                if example_sentence.is_none() {
+                    let first_example = s
+                        .sentences
+                        .as_ref()
+                        .and_then(|list| list.first())
+                        .or_else(|| s.examples.as_ref().and_then(|list| list.first()));
+
+                    if let Some(ex) = first_example {
+                        let jp_text = ex.japanese.as_deref().or(ex.text.as_deref());
+                        let en_text = ex.english.as_deref();
+                        if let Some(jp) = jp_text {
+                            example_sentence = Some(match en_text {
+                                Some(en) => format!("{} ({})", jp, en),
+                                None => jp.to_string(),
+                            });
+                        }
+                    }
+                }
+
                 let pos = if !s.parts_of_speech.is_empty() {
                     format!("({}) ", s.parts_of_speech.join(", "))
                 } else {
@@ -101,6 +136,7 @@ pub async fn query_jisho_fallback(keyword: &str) -> Vec<DictionaryEntry> {
             in_srs: false,
             rank: None,
             pitch: None,
+            example_sentence,
         });
     }
 
@@ -152,6 +188,7 @@ pub async fn search_dictionary(
                 in_srs: row.get::<_, i32>(4)? == 1,
                 rank: row.get(5)?,
                 pitch: row.get(6)?,
+                example_sentence: None,
             })
         })
         .map_err(|e| e.to_string())?

@@ -256,17 +256,17 @@ mod tests {
         let conn = Connection::open_in_memory().unwrap();
         crate::db::create_tables_and_seed(&conn).unwrap();
 
-        // Simulate recording attempts directly
+        // Simulate recording attempts directly on seeded 'あ'
         conn.execute(
-            "INSERT INTO kana_mastery (character, romaji, kana_type, total_attempts, correct_attempts, accuracy_percentage, last_practiced)
-             VALUES ('あ', 'a', 'hiragana', 2, 2, 100.0, 1000)",
+            "UPDATE kana_mastery SET total_attempts = 2, correct_attempts = 2, correct_count = 2, accuracy_percentage = 100.0, last_practiced = 1000
+             WHERE character = 'あ'",
             [],
         ).unwrap();
 
         let count: i64 = conn
             .query_row("SELECT COUNT(*) FROM kana_mastery", [], |row| row.get(0))
             .unwrap();
-        assert_eq!(count, 1);
+        assert!(count >= 208);
 
         let accuracy: f64 = conn
             .query_row(

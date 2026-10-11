@@ -126,7 +126,8 @@ export class WebReaderComponent implements OnInit {
     const article = this.newsService.selectedArticle()
     const word = this.activeWord() || (article ? article.title : 'NHK Easy News')
     const definition = entry ? `${entry.reading} - ${entry.meaning}` : ''
-    const content = `### ${word}\n${definition ? `> **Leitura/Significado:** ${definition}\n\n` : ''}${article ? `**Artigo:** [${article.title}](${article.news_web_url || '#'})\n\n${article.body}` : ''}`
+    const example = entry?.example_sentence ? `> **Exemplo:** ${entry.example_sentence}\n\n` : ''
+    const content = `### ${word}\n${definition ? `> **Leitura/Significado:** ${definition}\n\n` : ''}${example}${article ? `**Artigo:** [${article.title}](${article.news_web_url || '#'})\n\n${article.body}` : ''}`
 
     try {
       const noteId = `news-${Date.now()}`

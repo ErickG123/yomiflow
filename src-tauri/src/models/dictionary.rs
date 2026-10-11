@@ -9,6 +9,7 @@ pub struct DictionaryEntry {
     pub in_srs: bool,
     pub rank: Option<i64>,
     pub pitch: Option<String>,
+    pub example_sentence: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

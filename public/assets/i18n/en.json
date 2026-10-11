@@ -469,7 +469,10 @@
     "send_word_notebook": "Send Word to Notebook",
     "in_srs": "In SRS",
     "add_srs": "Add to SRS",
-    "send_to_notebook": "Send to Notebook"
+    "send_to_notebook": "Send to Notebook",
+    "audio_player": "Article Audio",
+    "no_audio": "No audio available for this article.",
+    "example_sentence": "Example Sentence"
   },
   "epub_reader": {
     "title": "Light Novel Reader",

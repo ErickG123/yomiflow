@@ -152,6 +152,19 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             last_practiced INTEGER DEFAULT 0
         );
 
+        CREATE TABLE IF NOT EXISTS nhk_news_cache (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            title_with_ruby TEXT,
+            body_text TEXT NOT NULL,
+            body_html TEXT NOT NULL,
+            image_url TEXT,
+            audio_url TEXT,
+            published_at TEXT,
+            web_url TEXT,
+            cached_at INTEGER NOT NULL
+        );
+
         CREATE VIEW IF NOT EXISTS flashcards AS 
         SELECT id, entry_id, deck_id, due_date, stability, difficulty, reps, state FROM cards;
         ",

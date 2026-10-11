@@ -469,7 +469,10 @@
     "send_word_notebook": "Enviar Palavra para o Caderno",
     "in_srs": "No SRS",
     "add_srs": "Adicionar ao SRS",
-    "send_to_notebook": "Enviar para o Caderno"
+    "send_to_notebook": "Enviar para o Caderno",
+    "audio_player": "Áudio da Notícia",
+    "no_audio": "Sem áudio disponível para esta notícia.",
+    "example_sentence": "Frase de Exemplo"
   },
   "epub_reader": {
     "title": "Leitor de Light Novels",

@@ -6,6 +6,7 @@ export interface DictionaryEntry {
   in_srs: boolean
   rank?: number | null
   pitch?: string | null
+  example_sentence?: string | null
   tags?: string[]
 }
 

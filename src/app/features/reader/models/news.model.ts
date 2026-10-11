@@ -7,4 +7,5 @@ export interface NhkNewsItem {
   image_url: string | null
   news_web_url: string | null
   published_at: string | null
+  audio_url: string | null
 }

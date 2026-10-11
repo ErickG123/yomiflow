@@ -144,6 +144,21 @@
           }
         </div>
 
+        <!-- Mini Audio Player -->
+        @if (article.audio_url) {
+          <div class="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800/80 shadow-md flex flex-col sm:flex-row items-center gap-3">
+            <div class="flex items-center gap-2.5 text-indigo-400 shrink-0">
+              <div class="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
+                <i class="pi pi-volume-up text-sm"></i>
+              </div>
+              <span class="text-xs font-semibold text-zinc-300">{{ t('web_reader.audio_player') }}</span>
+            </div>
+            <audio controls [src]="article.audio_url" class="w-full h-9 rounded-lg outline-none accent-indigo-500">
+              Your browser does not support the audio element.
+            </audio>
+          </div>
+        }
+
         <!-- Optional Article Image -->
         @if (article.image_url) {
           <div class="rounded-2xl overflow-hidden border border-zinc-800/80 bg-zinc-900/50 max-h-80 flex items-center justify-center">
@@ -261,6 +276,19 @@
               <p class="text-xs text-zinc-300 leading-relaxed">
                 {{ entry.meaning }}
               </p>
+
+              <!-- Example Sentence (if available) -->
+              @if (entry.example_sentence) {
+                <div class="p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-800 text-[11px] space-y-1">
+                  <div class="font-semibold text-indigo-400 flex items-center gap-1.5">
+                    <i class="pi pi-comment text-[10px]"></i>
+                    <span>{{ t('web_reader.example_sentence') }}</span>
+                  </div>
+                  <p class="text-zinc-300 italic leading-normal font-sans">
+                    {{ entry.example_sentence }}
+                  </p>
+                </div>
+              }
 
               <!-- Send to Notebook Button -->
               <div class="pt-2 border-t border-zinc-800 flex justify-end">
