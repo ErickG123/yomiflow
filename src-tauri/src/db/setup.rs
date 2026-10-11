@@ -165,6 +165,12 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
             cached_at INTEGER NOT NULL
         );
 
+        CREATE TABLE IF NOT EXISTS epub_reading_positions (
+            book_hash TEXT PRIMARY KEY,
+            cfi TEXT NOT NULL,
+            updated_at INTEGER NOT NULL
+        );
+
         CREATE VIEW IF NOT EXISTS flashcards AS 
         SELECT id, entry_id, deck_id, due_date, stability, difficulty, reps, state FROM cards;
         ",

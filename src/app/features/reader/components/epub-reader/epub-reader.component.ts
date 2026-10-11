@@ -28,9 +28,10 @@ interface EpubBookInstance {
 
 interface EpubRenditionInstance {
   hooks?: { content?: { register?: (cb: (contents: { document: Document }) => Promise<void>) => void } }
-  display?: () => void
+  display?: (target?: string) => Promise<void> | void
   next?: () => void
   prev?: () => void
+  on?: (event: string, callback: (...args: unknown[]) => void) => void
   destroy?: () => void
 }
 
@@ -84,7 +85,18 @@ export class EpubReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private initEpubBook(dataUri: string): void {
+  private currentBookHash = ''
+
+  private computeBookHash(pathOrData: string): string {
+    let hash = 0
+    for (let i = 0; i < pathOrData.length; i++) {
+      hash = ((hash << 5) - hash) + pathOrData.charCodeAt(i)
+      hash |= 0
+    }
+    return `epub-${Math.abs(hash).toString(16)}`
+  }
+
+  private async initEpubBook(dataUri: string): Promise<void> {
     const container = this.viewerContainerRef?.nativeElement
     if (!container) {
       return
@@ -94,6 +106,7 @@ export class EpubReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.book?.destroy?.()
 
     try {
+      this.currentBookHash = this.computeBookHash(this.epubService.currentEpubPath() || dataUri.slice(0, 500))
       this.book = ePub(dataUri)
 
       this.book?.loaded?.metadata?.then((meta) => {
@@ -158,7 +171,23 @@ export class EpubReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         })
       })
 
-      this.rendition?.display?.()
+      // Listen for page relocation and persist CFI in SQLite
+      this.rendition?.on?.('relocated', (location: unknown) => {
+        const loc = location as { start?: { cfi?: string } } | undefined
+        const cfi = loc?.start?.cfi
+        if (cfi && this.currentBookHash) {
+          void this.epubService.saveReadingPosition(this.currentBookHash, cfi)
+        }
+      })
+
+      // Restore saved location if present, otherwise start at beginning
+      const savedCfi = await this.epubService.getReadingPosition(this.currentBookHash)
+      if (savedCfi) {
+        this.rendition?.display?.(savedCfi)
+      } else {
+        this.rendition?.display?.()
+      }
+
       this.isBookLoaded.set(true)
     } catch (err) {
       console.error('Failed to initialize EPUB rendition:', err)

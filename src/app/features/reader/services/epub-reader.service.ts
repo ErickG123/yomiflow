@@ -59,4 +59,21 @@ export class EpubReaderService {
       return htmlContent
     }
   }
+
+  async saveReadingPosition(bookHash: string, cfi: string): Promise<void> {
+    try {
+      await invoke('save_epub_position', { bookHash, cfi })
+    } catch (err) {
+      console.error('Failed to save EPUB reading position:', err)
+    }
+  }
+
+  async getReadingPosition(bookHash: string): Promise<string | null> {
+    try {
+      return await invoke<string | null>('get_epub_position', { bookHash })
+    } catch (err) {
+      console.error('Failed to get EPUB reading position:', err)
+      return null
+    }
+  }
 }

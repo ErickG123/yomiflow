@@ -135,6 +135,25 @@ pub fn calculate_fsrs_step(
     })
 }
 
+/// Converts SM-2 parameters (reps, interval in days, ease_factor) into FSRS initial stability & difficulty.
+/// Formula:
+/// - Initial stability correlates to the retrievability interval: S ≈ Interval (in days).
+/// - Initial difficulty correlates inversely to ease_factor: D = 11.0 - (ease_factor - 1.3) * (9.0 / (2.5 - 1.3)).
+pub fn convert_sm2_to_fsrs(reps: i32, interval_days: f64, ease_factor: f64) -> (f64, f64) {
+    let params = FsrsParameters::default();
+    let stability = if reps == 0 {
+        params.w[2] // Good initial stability ~ 3.17
+    } else {
+        interval_days.max(0.5)
+    };
+
+    let ef_clamped = ease_factor.clamp(1.3, 2.5);
+    // When EF is 2.5 (easy), difficulty is low (~3.0). When EF is 1.3 (hard), difficulty is high (~9.0).
+    let difficulty = (11.0 - (ef_clamped - 1.3) * (8.0 / 1.2)).clamp(1.0, 10.0);
+
+    (stability, difficulty)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -168,5 +187,18 @@ mod tests {
 
         assert!(step2.stability > step1.stability);
         assert_eq!(step2.reps, 2);
+    }
+
+    #[test]
+    fn test_convert_sm2_to_fsrs() {
+        // New card with 0 reps
+        let (s_new, d_new) = convert_sm2_to_fsrs(0, 0.0, 2.5);
+        assert!(s_new > 3.0);
+        assert!(d_new <= 3.5);
+
+        // Experienced card with 5 reps, 15 days interval, 2.1 ease factor
+        let (s_exp, d_exp) = convert_sm2_to_fsrs(5, 15.0, 2.1);
+        assert_eq!(s_exp, 15.0);
+        assert!(d_exp > 3.0 && d_exp < 8.0);
     }
 }

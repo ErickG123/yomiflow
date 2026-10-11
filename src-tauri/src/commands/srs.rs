@@ -482,6 +482,60 @@ pub async fn get_study_streaks(state: State<'_, AppState>) -> Result<StreakStats
     })
 }
 
+#[tauri::command]
+pub fn migrate_sm2_to_fsrs(state: State<'_, AppState>) -> Result<usize, String> {
+    let mut conn = state.db.lock().map_err(|e| e.to_string())?;
+    migrate_sm2_to_fsrs_in_conn(&mut conn).map_err(|e| e.to_string())
+}
+
+pub fn migrate_sm2_to_fsrs_in_conn(
+    conn: &mut rusqlite::Connection,
+) -> Result<usize, rusqlite::Error> {
+    let tx = conn.transaction()?;
+
+    // Fetch cards that have stability == 0.0 or difficulty == 0.0
+    let mut stmt = tx.prepare(
+        "SELECT id, reps, due_date FROM cards WHERE stability = 0.0 OR difficulty = 0.0",
+    )?;
+
+    let unmigrated_cards: Vec<(String, i32, i64)> = stmt
+        .query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?
+        .filter_map(|r| r.ok())
+        .collect();
+
+    drop(stmt);
+
+    let mut count = 0;
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
+
+    for (card_id, reps, due_date) in unmigrated_cards {
+        // Estimate interval in days from reps and due_date
+        let interval_days = if reps <= 0 {
+            0.0
+        } else {
+            let days_until_due = ((due_date - now) as f64 / 86400.0).max(1.0);
+            days_until_due.max(reps as f64)
+        };
+
+        let default_ease_factor = 2.5;
+        let (stability, difficulty) =
+            crate::domain::fsrs::convert_sm2_to_fsrs(reps, interval_days, default_ease_factor);
+
+        tx.execute(
+            "UPDATE cards SET stability = ?1, difficulty = ?2 WHERE id = ?3",
+            params![stability, difficulty, card_id],
+        )?;
+
+        count += 1;
+    }
+
+    tx.commit()?;
+    Ok(count)
+}
+
 /// Pure business logic for FSRS-inspired interval calculation based on rating:
 /// 1: Again (10 min, reset reps, state 1)
 /// 2: Hard (12h if new else reps*1.2 days)
@@ -657,5 +711,32 @@ mod tests {
 
         // Ensure deck A has no card from deck B
         assert!(!cards_a.contains(&"card-anime-1".to_string()));
+    }
+
+    #[test]
+    fn test_migrate_sm2_to_fsrs() {
+        let mut conn = rusqlite::Connection::open_in_memory().unwrap();
+        crate::db::create_tables_and_seed(&conn).unwrap();
+
+        // Insert legacy card with stability=0.0 and difficulty=0.0
+        conn.execute(
+            "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state)
+             VALUES ('card-legacy', 1, 'default', 1700000000, 0.0, 0.0, 3, 2)",
+            [],
+        ).unwrap();
+
+        let migrated = migrate_sm2_to_fsrs_in_conn(&mut conn).unwrap();
+        assert!(migrated >= 1);
+
+        let (stability, difficulty): (f64, f64) = conn
+            .query_row(
+                "SELECT stability, difficulty FROM cards WHERE id = 'card-legacy'",
+                [],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .unwrap();
+
+        assert!(stability > 0.0);
+        assert!(difficulty > 0.0);
     }
 }

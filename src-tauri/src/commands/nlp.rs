@@ -13,14 +13,17 @@ pub fn inject_furigana_epub(
     html_text: String,
     state: State<'_, AppState>,
 ) -> Result<String, String> {
-    let known_words = {
+    // Cross-reference with SRS: only words with high retention stage / mastery skip furigana.
+    // Words with low retention (e.g. state == 0 / new, or stability < 10.0, or reps < 3) still receive furigana.
+    let mastered_words = {
         let conn = state.db.lock().map_err(|e| e.to_string())?;
         let mut stmt = conn
             .prepare(
                 "SELECT DISTINCT d.kanji 
                  FROM cards c 
                  JOIN dictionary_entries d ON c.entry_id = d.id 
-                 WHERE d.kanji IS NOT NULL",
+                 WHERE d.kanji IS NOT NULL 
+                   AND (c.stability >= 10.0 OR (c.state = 2 AND c.reps >= 3))",
             )
             .map_err(|e| e.to_string())?;
 
@@ -30,7 +33,7 @@ pub fn inject_furigana_epub(
             .collect::<std::collections::HashSet<String>>()
     };
 
-    crate::domain::nlp::inject_furigana_for_unlearned_words(&html_text, &known_words)
+    crate::domain::nlp::inject_furigana_for_unlearned_words(&html_text, &mastered_words)
 }
 
 #[tauri::command]

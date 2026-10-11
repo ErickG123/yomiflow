@@ -371,6 +371,51 @@ pub fn read_epub_file(path: String) -> Result<String, String> {
     Ok(format!("data:application/epub+zip;base64,{}", encoded))
 }
 
+#[tauri::command]
+pub fn save_epub_position(
+    book_hash: String,
+    cfi: String,
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
+
+    conn.execute(
+        "INSERT INTO epub_reading_positions (book_hash, cfi, updated_at) 
+         VALUES (?1, ?2, ?3)
+         ON CONFLICT(book_hash) DO UPDATE SET cfi = ?2, updated_at = ?3",
+        rusqlite::params![book_hash, cfi, now],
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn get_epub_position(
+    book_hash: String,
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<Option<String>, String> {
+    let conn = state.db.lock().map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare("SELECT cfi FROM epub_reading_positions WHERE book_hash = ?1")
+        .map_err(|e| e.to_string())?;
+
+    let mut rows = stmt
+        .query(rusqlite::params![book_hash])
+        .map_err(|e| e.to_string())?;
+
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        let cfi: String = row.get(0).map_err(|e| e.to_string())?;
+        Ok(Some(cfi))
+    } else {
+        Ok(None)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
