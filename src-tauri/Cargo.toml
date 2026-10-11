@@ -42,6 +42,7 @@ tokenizers = { version = "0.23.2", default-features = false, features = ["progre
 oauth2 = "4.4.2"
 tiny_http = "0.12.0"
 lindera = { version = "6.2.0", features = ["embed-ipadic"] }
+tokio = { version = "1.38", features = ["rt", "sync"] }
 
 [profile.release]
 codegen-units = 1

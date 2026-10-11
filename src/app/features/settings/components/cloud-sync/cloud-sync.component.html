@@ -1,16 +1,16 @@
-<div class="cloud-sync-container space-y-4 text-left">
+<div *transloco="let t" class="cloud-sync-container space-y-4 text-left">
   <div class="flex items-center justify-between pb-2 border-b border-zinc-800">
     <div class="flex items-center gap-2">
       <i class="pi pi-cloud text-indigo-400 text-lg"></i>
-      <h4 class="text-sm font-semibold text-zinc-100">Google Drive Cloud Sync</h4>
+      <h4 class="text-sm font-semibold text-zinc-100">{{ t('cloud.title') }}</h4>
     </div>
     @if (isAuthenticated()) {
       <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Conectado
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> {{ t('cloud.status_connected') }}
       </span>
     } @else {
       <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-800 border border-zinc-700 text-zinc-400">
-        Não Conectado
+        {{ t('cloud.status_not_connected') }}
       </span>
     }
   </div>
@@ -34,31 +34,31 @@
   @if (!isAuthenticated()) {
     <div class="space-y-3">
       <p class="text-xs text-zinc-400 leading-relaxed">
-        Faça backup do seu banco de dados SQLite (<code class="bg-zinc-800 px-1 py-0.5 rounded text-zinc-300">yomiflow.db</code>) diretamente na sua conta do Google Drive com encriptação e segurança.
+        {{ t('cloud.not_connected_desc') }} (<code class="bg-zinc-800 px-1 py-0.5 rounded-zinc-300">yomiflow.db</code>) {{ t('cloud.not_connected_desc_end') }}
       </p>
 
       <div class="space-y-2">
         <label class="text-[11px] font-medium uppercase tracking-wider text-zinc-400 block">
-          Client ID
+          {{ t('cloud.client_id_label') }}
         </label>
         <input
           type="text"
           [value]="clientId()"
           (input)="onClientIdChange($event)"
-          placeholder="ex: 12345-abc.apps.googleusercontent.com"
+          [placeholder]="t('cloud.client_id_placeholder')"
           class="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-zinc-200 outline-none transition-colors"
         />
       </div>
 
       <div class="space-y-2">
         <label class="text-[11px] font-medium uppercase tracking-wider text-zinc-400 block">
-          Client Secret
+          {{ t('cloud.client_secret_label') }}
         </label>
         <input
           type="password"
           [value]="clientSecret()"
           (input)="onClientSecretChange($event)"
-          placeholder="ex: GOCSPX-xxxxxxxxxxxx"
+          [placeholder]="t('cloud.client_secret_placeholder')"
           class="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-zinc-200 outline-none transition-colors"
         />
       </div>
@@ -71,10 +71,10 @@
       >
         @if (isAuthenticating()) {
           <i class="pi pi-spin pi-spinner text-xs"></i>
-          <span>Aguardando autorização no navegador...</span>
+          <span>{{ t('cloud.awaiting_browser') }}</span>
         } @else {
           <i class="pi pi-google text-xs"></i>
-          <span>Conectar com Google Drive</span>
+          <span>{{ t('cloud.connect_btn') }}</span>
         }
       </button>
     </div>
@@ -85,13 +85,13 @@
     <div class="space-y-4">
       <div class="p-3 bg-zinc-950/70 border border-zinc-800/80 rounded-xl space-y-1.5">
         <div class="flex justify-between items-center text-xs">
-          <span class="text-zinc-400">Último Backup Realizado:</span>
+          <span class="text-zinc-400">{{ t('cloud.last_backup') }}:</span>
           <span class="font-mono text-zinc-200">
-            {{ lastBackupTime() ? (lastBackupTime() | date:'dd/MM/yyyy HH:mm:ss') : 'Nenhum backup registrado' }}
+            {{ lastBackupTime() ? (lastBackupTime() | date:'dd/MM/yyyy HH:mm:ss') : t('cloud.no_backup_recorded') }}
           </span>
         </div>
         <div class="flex justify-between items-center text-xs">
-          <span class="text-zinc-400">Destino:</span>
+          <span class="text-zinc-400">{{ t('cloud.destination') }}:</span>
           <span class="font-mono text-zinc-300">Google Drive / yomiflow_backup.db</span>
         </div>
       </div>
@@ -105,10 +105,10 @@
         >
           @if (isBackingUp()) {
             <i class="pi pi-spin pi-spinner text-xs"></i>
-            <span>Enviando backup para o Google Drive...</span>
+            <span>{{ t('cloud.sending_backup') }}</span>
           } @else {
             <i class="pi pi-cloud-upload text-sm"></i>
-            <span>Fazer Backup Agora</span>
+            <span>{{ t('cloud.backup_now_btn') }}</span>
           }
         </button>
 
@@ -117,7 +117,7 @@
           (click)="disconnect()"
           class="w-full py-1.5 text-zinc-500 hover:text-zinc-300 text-[11px] transition-colors cursor-pointer"
         >
-          Desconectar Conta do Google Drive
+          {{ t('cloud.disconnect_btn') }}
         </button>
       </div>
     </div>

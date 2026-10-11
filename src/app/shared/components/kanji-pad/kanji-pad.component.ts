@@ -12,6 +12,7 @@ import {
   signal,
 } from '@angular/core'
 import { invoke } from '@tauri-apps/api/core'
+import { TranslocoDirective } from '@ngneat/transloco'
 import { DictionaryService } from '../../../features/dictionary/services/dictionary.service'
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe'
 import { StrokeCoordinate } from '../../models/media.model'
@@ -19,7 +20,7 @@ import { StrokeCoordinate } from '../../models/media.model'
 @Component({
   selector: 'app-kanji-pad',
   standalone: true,
-  imports: [SafeHtmlPipe],
+  imports: [SafeHtmlPipe, TranslocoDirective],
   templateUrl: './kanji-pad.component.html',
   styleUrl: './kanji-pad.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

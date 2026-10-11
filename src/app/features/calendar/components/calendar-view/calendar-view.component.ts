@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core'
 import { RouterLink } from '@angular/router'
+import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
 import { CalendarService } from '../../services/calendar.service'
 import {
   CalendarDayCell,
@@ -16,35 +17,37 @@ import {
 @Component({
   selector: 'app-calendar-view',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslocoDirective],
   templateUrl: './calendar-view.component.html',
   styleUrl: './calendar-view.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarViewComponent implements OnInit {
   readonly calendarService = inject(CalendarService)
+  private readonly translocoService = inject(TranslocoService, { optional: true })
 
   readonly currentYear = signal<number>(new Date().getFullYear())
   readonly currentMonth = signal<number>(new Date().getMonth() + 1) // 1-12
   readonly selectedDate = signal<string>(this.formatDate(new Date()))
 
-  private readonly monthNames = [
-    'Janeiro',
-    'Fevereiro',
-    'Março',
-    'Abril',
-    'Maio',
-    'Junho',
-    'Julho',
-    'Agosto',
-    'Setembro',
-    'Outubro',
-    'Novembro',
-    'Dezembro',
+  private readonly monthKeys = [
+    'calendar.months.jan',
+    'calendar.months.feb',
+    'calendar.months.mar',
+    'calendar.months.apr',
+    'calendar.months.may',
+    'calendar.months.jun',
+    'calendar.months.jul',
+    'calendar.months.aug',
+    'calendar.months.sep',
+    'calendar.months.oct',
+    'calendar.months.nov',
+    'calendar.months.dec',
   ]
 
   readonly currentMonthName = computed(() => {
-    return this.monthNames[this.currentMonth() - 1]
+    const key = this.monthKeys[this.currentMonth() - 1]
+    return this.translocoService?.translate(key) ?? key
   })
 
   // Format date to local YYYY-MM-DD

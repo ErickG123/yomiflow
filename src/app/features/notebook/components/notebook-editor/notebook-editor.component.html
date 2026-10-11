@@ -1,16 +1,19 @@
-<div class="notebook-editor-container p-6 bg-zinc-950 text-zinc-100 flex flex-col md:flex-row gap-6">
+<div *transloco="let t" class="notebook-editor-container p-6 bg-zinc-950 text-zinc-100 flex flex-col md:flex-row gap-6">
   <!-- Left Side: Notes Sidebar List -->
   <aside class="w-full md:w-64 bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col justify-between shrink-0 shadow-lg">
     <div class="space-y-3">
       <div class="flex items-center justify-between pb-2 border-b border-zinc-800">
         <h3 class="text-sm font-bold text-zinc-200 flex items-center gap-2">
-          <span>📓 Caderno Híbrido</span>
+          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span>{{ t('notebook.title') }}</span>
         </h3>
         <button
           type="button"
           (click)="createNewNote()"
           class="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors cursor-pointer text-xs"
-          title="Nova Nota"
+          [title]="t('notebook.new_note')"
         >
           <i class="pi pi-plus"></i>
         </button>
@@ -29,12 +32,12 @@
             [class.border-zinc-850]="currentId() !== entry.id"
             [class.text-zinc-400]="currentId() !== entry.id"
           >
-            <div class="font-semibold truncate">{{ entry.title || 'Sem título' }}</div>
+            <div class="font-semibold truncate">{{ entry.title || t('notebook.untitled') }}</div>
             <div class="text-[10px] text-zinc-500 mt-1 truncate">{{ entry.content_md }}</div>
           </button>
         } @empty {
           <div class="text-xs text-zinc-600 text-center py-6 italic">
-            Nenhuma nota salva.
+            {{ t('notebook.empty_state') }}
           </div>
         }
       </div>
@@ -42,18 +45,18 @@
 
     <!-- Grammatical Color Legend -->
     <div class="pt-3 border-t border-zinc-800 text-[11px] space-y-1 text-zinc-400">
-      <div class="font-semibold text-zinc-300 text-xs mb-1">Legenda Morfológica:</div>
+      <div class="font-semibold text-zinc-300 text-xs mb-1">{{ t('notebook.morphological_legend') }}</div>
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-red-400"></span>
-        <span class="text-red-400 font-medium">Verbo</span>
+        <span class="text-red-400 font-medium">{{ t('notebook.verb') }}</span>
       </div>
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
-        <span class="text-blue-400 font-medium">Partícula</span>
+        <span class="text-blue-400 font-medium">{{ t('notebook.particle') }}</span>
       </div>
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-green-400"></span>
-        <span class="text-green-400 font-medium">Substantivo</span>
+        <span class="text-green-400 font-medium">{{ t('notebook.noun') }}</span>
       </div>
     </div>
   </aside>
@@ -66,7 +69,7 @@
         type="text"
         [value]="title()"
         (input)="onTitleChange($event)"
-        placeholder="Título da anotação..."
+        [placeholder]="t('notebook.title_placeholder')"
         class="bg-transparent text-2xl font-bold text-white focus:outline-none w-full placeholder-zinc-600"
       />
 
@@ -76,19 +79,139 @@
         class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs rounded-xl transition-all shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
       >
         <i class="pi pi-save text-xs"></i>
-        <span>Guardar Nota</span>
+        <span>{{ t('notebook.save_note') }}</span>
       </button>
     </div>
 
-    <!-- TipTap Markdown Editor Box -->
-    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-xl space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-800 text-xs text-zinc-400">
-        <div class="flex items-center gap-3">
-          <div class="flex items-center gap-2">
-            <i class="pi pi-pencil text-indigo-400"></i>
-            <span class="font-medium">Editor de Idiomas</span>
-          </div>
+    <!-- Main Editor Paper Canvas (Obsidian/Notion Style) -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl flex flex-col flex-1 overflow-hidden relative">
+      <!-- Fixed Formatting Toolbar -->
+      <div class="flex flex-wrap items-center justify-between gap-2 px-5 py-3 border-b border-zinc-800/80 bg-zinc-900/90 backdrop-blur-xs text-xs text-zinc-400">
+        <!-- Text Styling Buttons -->
+        <div class="flex items-center gap-1">
+          <!-- H1 -->
+          <button
+            type="button"
+            (click)="toggleHeading(1)"
+            class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white font-bold text-xs transition-colors cursor-pointer"
+            [class.bg-zinc-800]="editor?.isActive('heading', { level: 1 })"
+            [class.text-white]="editor?.isActive('heading', { level: 1 })"
+            [title]="t('notebook.toolbar.h1')"
+          >
+            H1
+          </button>
+          <!-- H2 -->
+          <button
+            type="button"
+            (click)="toggleHeading(2)"
+            class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white font-bold text-xs transition-colors cursor-pointer"
+            [class.bg-zinc-800]="editor?.isActive('heading', { level: 2 })"
+            [class.text-white]="editor?.isActive('heading', { level: 2 })"
+            [title]="t('notebook.toolbar.h2')"
+          >
+            H2
+          </button>
+          <!-- H3 -->
+          <button
+            type="button"
+            (click)="toggleHeading(3)"
+            class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white font-bold text-xs transition-colors cursor-pointer"
+            [class.bg-zinc-800]="editor?.isActive('heading', { level: 3 })"
+            [class.text-white]="editor?.isActive('heading', { level: 3 })"
+            [title]="t('notebook.toolbar.h3')"
+          >
+            H3
+          </button>
 
+          <div class="h-4 w-px bg-zinc-800 mx-1"></div>
+
+          <!-- Bold -->
+          <button
+            type="button"
+            (click)="toggleBold()"
+            class="p-2 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+            [class.bg-zinc-800]="editor?.isActive('bold')"
+            [class.text-white]="editor?.isActive('bold')"
+            [title]="t('notebook.toolbar.bold')"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 12h8a4 4 0 100-8H6v8zm0 0h9a4 4 0 110 8H6v-8z" />
+            </svg>
+          </button>
+
+          <!-- Italic -->
+          <button
+            type="button"
+            (click)="toggleItalic()"
+            class="p-2 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+            [class.bg-zinc-800]="editor?.isActive('italic')"
+            [class.text-white]="editor?.isActive('italic')"
+            [title]="t('notebook.toolbar.italic')"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 0h-6m2 16h-6" />
+            </svg>
+          </button>
+
+          <div class="h-4 w-px bg-zinc-800 mx-1"></div>
+
+          <!-- Bullet List -->
+          <button
+            type="button"
+            (click)="toggleBulletList()"
+            class="p-2 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+            [class.bg-zinc-800]="editor?.isActive('bulletList')"
+            [class.text-white]="editor?.isActive('bulletList')"
+            [title]="t('notebook.toolbar.bullet_list')"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M2 6h.01M2 12h.01M2 18h.01" />
+            </svg>
+          </button>
+
+          <!-- Ordered List -->
+          <button
+            type="button"
+            (click)="toggleOrderedList()"
+            class="p-2 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+            [class.bg-zinc-800]="editor?.isActive('orderedList')"
+            [class.text-white]="editor?.isActive('orderedList')"
+            [title]="t('notebook.toolbar.ordered_list')"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 6h13M7 12h13M7 18h13M3 5v3m0 3h1.5a1 1 0 011 1v1a1 1 0 01-1 1H3m0 3h2v3H3" />
+            </svg>
+          </button>
+
+          <!-- Blockquote -->
+          <button
+            type="button"
+            (click)="toggleBlockquote()"
+            class="p-2 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+            [class.bg-zinc-800]="editor?.isActive('blockquote')"
+            [class.text-white]="editor?.isActive('blockquote')"
+            [title]="t('notebook.toolbar.blockquote')"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </button>
+
+          <!-- Table -->
+          <button
+            type="button"
+            (click)="insertTable()"
+            class="p-2 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+            [title]="t('notebook.toolbar.table')"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-10v16M4 4h16a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mode & Analysis Controls -->
+        <div class="flex items-center gap-3">
           <!-- Segmented Control for Auto / Manual Analysis Mode -->
           <div class="flex items-center bg-zinc-950 p-0.5 rounded-lg border border-zinc-800">
             <button
@@ -97,11 +220,10 @@
               class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer"
               [class.bg-indigo-600]="analysisMode() === 'auto'"
               [class.text-white]="analysisMode() === 'auto'"
-              [class.shadow-xs]="analysisMode() === 'auto'"
               [class.text-zinc-400]="analysisMode() !== 'auto'"
               [class.hover:text-zinc-200]="analysisMode() !== 'auto'"
             >
-              Modo Auto
+              {{ t('notebook.mode_auto') }}
             </button>
             <button
               type="button"
@@ -109,48 +231,52 @@
               class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer"
               [class.bg-indigo-600]="analysisMode() === 'manual'"
               [class.text-white]="analysisMode() === 'manual'"
-              [class.shadow-xs]="analysisMode() === 'manual'"
               [class.text-zinc-400]="analysisMode() !== 'manual'"
               [class.hover:text-zinc-200]="analysisMode() !== 'manual'"
             >
-              Modo Manual
+              {{ t('notebook.mode_manual') }}
             </button>
           </div>
-        </div>
 
-        <div class="flex items-center gap-2.5">
           <!-- Analisar Gramática Action Button with Magic Wand Icon -->
           <button
             type="button"
             (click)="analyzeManually()"
             [disabled]="notebookService.isAnalyzing()"
-            class="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Executar análise gramatical no texto agora"
+            class="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            [title]="t('notebook.analyze_grammar_title')"
           >
-            <i class="pi pi-sparkles text-indigo-400 text-xs"></i>
-            <span>Analisar Gramática</span>
+            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+            <span>{{ t('notebook.analyze_grammar') }}</span>
           </button>
-
-          @if (notebookService.isAnalyzing()) {
-            <span class="text-indigo-400 flex items-center gap-1.5 text-[11px]">
-              <i class="pi pi-spin pi-spinner text-xs"></i>
-              Analisando...
-            </span>
-          }
         </div>
       </div>
 
-      <!-- Native Container where TipTap mounts its contenteditable DOM element -->
-      <div #editorElement class="tiptap-editor-surface text-sm text-zinc-200"></div>
+      <!-- Borderless Infinite-Page Editor Surface (Obsidian feel) -->
+      <div class="p-6 md:p-8 flex-1 overflow-y-auto">
+        <div #editorElement class="tiptap-editor-surface text-base text-zinc-100"></div>
+      </div>
+
+      <!-- Toast Feedback Popup -->
+      @if (toastMessage()) {
+        <div class="absolute bottom-5 right-5 bg-emerald-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xl border border-emerald-400/40 flex items-center gap-2 animate-bounce">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span>{{ toastMessage() }}</span>
+        </div>
+      }
     </div>
 
     <!-- Live Morphological Visual Parser (Tailwind Categorized) -->
     <div class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-5 shadow-lg space-y-3">
       <div class="flex items-center justify-between">
         <h4 class="text-xs uppercase tracking-wider font-semibold text-zinc-400 flex items-center gap-2">
-          <span>🔬 Análise Morfológica em Tempo Real (Lindera NLP)</span>
+          <span>{{ t('notebook.realtime_nlp_title') }}</span>
         </h4>
-        <span class="text-[11px] text-zinc-500 font-mono">{{ tokens().length }} morfemas identificados</span>
+        <span class="text-[11px] text-zinc-500 font-mono">{{ tokens().length }} {{ t('notebook.morphemes_identified') }}</span>
       </div>
 
       <div class="p-4 bg-zinc-950 rounded-xl border border-zinc-800/80 min-h-16 flex items-center">
@@ -161,10 +287,11 @@
           ></div>
         } @else {
           <div class="text-xs text-zinc-600 italic">
-            Digite frases em japonês no editor acima (ex: "私は学生です") para analisar a estrutura morfológica.
+            {{ t('notebook.empty_prompt') }}
           </div>
         }
       </div>
     </div>
   </main>
 </div>
+

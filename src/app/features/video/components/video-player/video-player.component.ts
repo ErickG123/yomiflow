@@ -7,7 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core'
-import { TranslocoPipe } from '@ngneat/transloco'
+import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
 import { VideoService } from '../../services/video.service'
 import { DictionaryService } from '../../../dictionary/services/dictionary.service'
 import { DictionaryEntry } from '../../../dictionary/models/dictionary.model'
@@ -19,7 +19,7 @@ import { DeckService } from '../../../decks/services/deck.service'
 @Component({
   selector: 'app-video-player',
   standalone: true,
-  imports: [TranslocoPipe, PitchAccentComponent],
+  imports: [TranslocoDirective, PitchAccentComponent],
   templateUrl: './video-player.component.html',
   styleUrl: './video-player.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +29,7 @@ export class VideoPlayerComponent implements OnInit {
   readonly dictionaryService = inject(DictionaryService)
   readonly audioService = inject(AudioService)
   readonly deckService = inject(DeckService)
+  readonly translocoService = inject(TranslocoService)
 
   @ViewChild('videoElement') videoRef?: ElementRef<HTMLVideoElement>
 
@@ -95,7 +96,7 @@ export class VideoPlayerComponent implements OnInit {
   async createFlashcardWithAudio(entry: DictionaryEntry): Promise<void> {
     const dialogue = this.videoService.currentDialogue()
     if (!dialogue) {
-      alert('Nenhuma legenda ativa no momento para recortar áudio.')
+      alert(this.translocoService.translate('video.no_active_dialogue'))
       return
     }
 
@@ -112,10 +113,10 @@ export class VideoPlayerComponent implements OnInit {
       // 2. Add entry to SRS targeting selected deck
       await this.dictionaryService.addToSrs(entry.id, this.selectedDeckId())
 
-      alert(`Flashcard criado com sucesso com áudio nativo!\nÁudio salvo em: ${audioPath}`)
+      alert(`${this.translocoService.translate('video.card_created_success')}\n${this.translocoService.translate('video.audio_saved_at')}: ${audioPath}`)
     } catch (err) {
       console.error('Failed to create flashcard with audio:', err)
-      alert(`Erro ao criar flashcard com áudio nativo: ${err}`)
+      alert(`${this.translocoService.translate('video.card_create_error')}: ${err}`)
     } finally {
       this.isCreatingCardWithAudio.set(false)
     }

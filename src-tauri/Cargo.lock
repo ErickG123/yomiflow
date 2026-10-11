@@ -132,6 +132,7 @@ dependencies = [
  "tauri-plugin-process",
  "tiny_http",
  "tokenizers",
+ "tokio",
  "unrar",
  "uuid",
  "walkdir",

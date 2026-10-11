@@ -5,9 +5,7 @@ use std::process::Command;
 /// Checks if the FFmpeg CLI is installed and accessible in the system PATH
 #[tauri::command]
 pub async fn check_ffmpeg_installed() -> Result<bool, String> {
-    let result = Command::new("ffmpeg")
-        .arg("-version")
-        .output();
+    let result = Command::new("ffmpeg").arg("-version").output();
 
     match result {
         Ok(out) => Ok(out.status.success()),
@@ -21,7 +19,10 @@ pub async fn check_ffmpeg_installed() -> Result<bool, String> {
 pub async fn extract_subtitles(video_path: String) -> Result<Vec<SubtitleDialogue>, String> {
     let p = Path::new(&video_path);
     if !p.exists() || !p.is_file() {
-        return Err(format!("Ficheiro inválido ou não encontrado: {}", video_path));
+        return Err(format!(
+            "Ficheiro inválido ou não encontrado: {}",
+            video_path
+        ));
     }
 
     // If the file is already a subtitle file (.srt, .vtt, .ass), parse directly
@@ -60,13 +61,15 @@ pub async fn extract_subtitles(video_path: String) -> Result<Vec<SubtitleDialogu
             // Fallback: Check if there's a sidecar .srt or .ass with same name
             let srt_sidecar = p.with_extension("srt");
             if srt_sidecar.exists()
-                && let Ok(c) = std::fs::read_to_string(srt_sidecar) {
+                && let Ok(c) = std::fs::read_to_string(srt_sidecar)
+            {
                 return Ok(parse_srt_or_vtt(&c));
             }
 
             let vtt_sidecar = p.with_extension("vtt");
             if vtt_sidecar.exists()
-                && let Ok(c) = std::fs::read_to_string(vtt_sidecar) {
+                && let Ok(c) = std::fs::read_to_string(vtt_sidecar)
+            {
                 return Ok(parse_srt_or_vtt(&c));
             }
 
@@ -76,13 +79,15 @@ pub async fn extract_subtitles(video_path: String) -> Result<Vec<SubtitleDialogu
             // If ffmpeg is not installed, look for sidecar subtitle files (.srt/.vtt)
             let srt_sidecar = p.with_extension("srt");
             if srt_sidecar.exists()
-                && let Ok(c) = std::fs::read_to_string(srt_sidecar) {
+                && let Ok(c) = std::fs::read_to_string(srt_sidecar)
+            {
                 return Ok(parse_srt_or_vtt(&c));
             }
 
             let vtt_sidecar = p.with_extension("vtt");
             if vtt_sidecar.exists()
-                && let Ok(c) = std::fs::read_to_string(vtt_sidecar) {
+                && let Ok(c) = std::fs::read_to_string(vtt_sidecar)
+            {
                 return Ok(parse_srt_or_vtt(&c));
             }
 
@@ -157,7 +162,10 @@ pub async fn cut_audio_clip(
 
     let video_p = Path::new(&video_path);
     if !video_p.exists() || !video_p.is_file() {
-        return Err(format!("Ficheiro de vídeo inválido ou não encontrado: {}", video_path));
+        return Err(format!(
+            "Ficheiro de vídeo inválido ou não encontrado: {}",
+            video_path
+        ));
     }
 
     if end_time <= start_time {

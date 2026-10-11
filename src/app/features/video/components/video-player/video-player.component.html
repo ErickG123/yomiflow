@@ -1,4 +1,4 @@
-<div class="min-h-[calc(100vh-3.5rem)] bg-zinc-950 text-zinc-100 flex flex-col justify-between relative overflow-hidden select-none">
+<div *transloco="let t" class="min-h-[calc(100vh-3.5rem)] bg-zinc-950 text-zinc-100 flex flex-col justify-between relative overflow-hidden select-none">
   <!-- Top Bar -->
   <header class="py-2.5 px-6 border-b border-zinc-900 bg-zinc-950/80 backdrop-blur flex items-center justify-between z-20">
     <div class="flex items-center space-x-3">
@@ -8,7 +8,7 @@
         class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs py-2 px-4 rounded-lg transition-colors flex items-center space-x-2 cursor-pointer shadow-sm active:scale-95"
       >
         <i class="pi pi-folder-open text-xs"></i>
-        <span>Abrir Vídeo (.mkv, .mp4)</span>
+        <span>{{ t('video.open_video') }}</span>
       </button>
 
       @if (videoService.currentVideoPath(); as path) {
@@ -20,7 +20,7 @@
 
     <div class="flex items-center space-x-3 text-xs text-zinc-400">
       <span class="bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full font-mono">
-        {{ videoService.subtitles().length }} legendas carregadas
+        {{ videoService.subtitles().length }} {{ t('video.subtitles_loaded') }}
       </span>
     </div>
   </header>
@@ -30,10 +30,10 @@
     <div class="bg-amber-950/80 border-b border-amber-800/80 px-6 py-2.5 text-xs text-amber-200 flex items-center justify-between z-20">
       <div class="flex items-center space-x-2">
         <i class="pi pi-exclamation-triangle text-amber-400"></i>
-        <span><strong>FFmpeg não detectado no sistema:</strong> A extração de legendas embutidas (.mkv) e o corte de clipes de áudio requerem o FFmpeg instalado no PATH do Windows. (Legendas externas .srt continuam a funcionar).</span>
+        <span><strong>{{ t('video.ffmpeg_warning_title') }}</strong> {{ t('video.ffmpeg_warning_desc') }}</span>
       </div>
       <a href="https://ffmpeg.org/download.html" target="_blank" class="underline hover:text-white font-medium ml-4 shrink-0">
-        Instalar FFmpeg
+        {{ t('video.install_ffmpeg') }}
       </a>
     </div>
   }
@@ -46,9 +46,9 @@
         <div class="w-16 h-16 mx-auto rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500">
           <i class="pi pi-video text-3xl"></i>
         </div>
-        <h2 class="text-xl font-bold text-zinc-200">Nenhum vídeo aberto</h2>
+        <h2 class="text-xl font-bold text-zinc-200">{{ t('video.empty_title') }}</h2>
         <p class="text-sm text-zinc-400 leading-relaxed">
-          Abra um episódio ou filme (.mkv, .mp4). As legendas japonesas serão extraídas e ao passar o rato pelas palavras o vídeo pausa automaticamente para pesquisa no dicionário.
+          {{ t('video.empty_desc') }}
         </p>
         <button
           type="button"
@@ -56,7 +56,7 @@
           class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 px-6 rounded-lg transition-colors cursor-pointer shadow-md inline-flex items-center space-x-2"
         >
           <i class="pi pi-upload text-sm"></i>
-          <span>Selecionar Vídeo</span>
+          <span>{{ t('video.select_video') }}</span>
         </button>
       </div>
     } @else {
@@ -82,7 +82,7 @@
                 <span
                   (mouseenter)="onWordHover(token)"
                   class="hover:text-indigo-400 hover:bg-zinc-800/80 rounded px-0.5 transition-colors cursor-pointer"
-                  [title]="'Pesquisar: ' + token"
+                  [title]="t('video.search_token_prefix') + ': ' + token"
                 >
                   {{ token }}
                 </span>
@@ -103,7 +103,7 @@
       <div class="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/40">
         <div class="flex items-center space-x-2">
           <i class="pi pi-search text-indigo-400 text-sm"></i>
-          <h3 class="font-bold text-sm text-zinc-100">Dicionário & SRS</h3>
+          <h3 class="font-bold text-sm text-zinc-100">{{ t('video.drawer_title') }}</h3>
         </div>
         <button
           type="button"
@@ -120,12 +120,12 @@
         <div class="bg-zinc-950 p-3.5 rounded-xl border border-zinc-800/80 space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-              Palavra Selecionada
+              {{ t('video.selected_word') }}
             </span>
             <button
               type="button"
               (click)="audioService.speak(selectedWord() || '')"
-              title="Ouvir Pronúncia"
+              [title]="t('pitch.listen_audio')"
               class="p-1 rounded text-zinc-500 hover:text-indigo-400 hover:bg-zinc-900 transition-colors cursor-pointer"
             >
               <i class="pi pi-volume-up text-xs"></i>
@@ -146,7 +146,7 @@
         @if (kanjiResults().length > 0) {
           <div class="space-y-2">
             <h4 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              Kanjis ({{ kanjiResults().length }})
+              {{ t('video.kanjis_header') }} ({{ kanjiResults().length }})
             </h4>
             <div class="grid grid-cols-2 gap-2">
               @for (k of kanjiResults(); track k.character) {
@@ -177,12 +177,12 @@
         <div class="space-y-2">
           <div class="flex items-center justify-between">
             <h4 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              Vocabulário ({{ dictionaryResults().length }})
+              {{ t('video.vocab_header') }} ({{ dictionaryResults().length }})
             </h4>
 
             <!-- Deck Selector Dropdown -->
             <div class="flex items-center space-x-1.5">
-              <label for="video-deck-select" class="text-[10px] text-zinc-500 font-medium">Baralho:</label>
+              <label for="video-deck-select" class="text-[10px] text-zinc-500 font-medium">{{ t('video.deck_selector_label') }}:</label>
               <select
                 id="video-deck-select"
                 [value]="selectedDeckId()"
@@ -229,7 +229,7 @@
                   type="button"
                   (click)="createFlashcardWithAudio(entry)"
                   [disabled]="isCreatingCardWithAudio()"
-                  title="Criar Flashcard com Áudio Nativo"
+                  [title]="t('video.native_audio_tooltip')"
                   class="p-2 rounded-lg bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer border border-indigo-500/20 text-xs flex items-center space-x-1 disabled:opacity-50"
                 >
                   <i
@@ -238,13 +238,13 @@
                     [class.pi-spinner]="isCreatingCardWithAudio()"
                     [class.pi-sparkles]="!isCreatingCardWithAudio()"
                   ></i>
-                  <span class="text-[10px] font-medium hidden sm:inline">Áudio Nativo</span>
+                  <span class="text-[10px] font-medium hidden sm:inline">{{ t('video.native_audio_btn') }}</span>
                 </button>
 
                 <!-- Standard Toggle SRS Button -->
                 <button
                   type="button"
-                  [title]="entry.in_srs ? ('search.remove_srs' | transloco) : ('search.add_srs' | transloco)"
+                  [title]="entry.in_srs ? t('search.remove_srs') : t('search.add_srs')"
                   (click)="toggleSrs(entry)"
                   class="p-2 rounded-lg transition-colors cursor-pointer"
                   [class.text-green-500]="entry.in_srs"
@@ -266,7 +266,7 @@
           } @empty {
             @if (!isSearching()) {
               <div class="text-xs text-zinc-500 py-2">
-                Nenhum termo correspondente encontrado no dicionário.
+                {{ t('video.no_terms_found') }}
               </div>
             }
           }

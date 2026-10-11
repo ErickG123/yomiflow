@@ -2,8 +2,8 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use futures_util::StreamExt;
 use image::imageops::FilterType;
-use ort::session::builder::GraphOptimizationLevel;
 use ort::session::Session;
+use ort::session::builder::GraphOptimizationLevel;
 use ort::value::Tensor;
 use std::fs::File;
 use std::io::Write;
@@ -16,9 +16,9 @@ const TOKENIZER_FILENAME: &str = "tokenizer.json";
 
 // Public URLs for MangaOCR ONNX model and tokenizer
 const MODEL_DOWNLOAD_URL: &str =
-    "https://huggingface.co/kha-white/manga-ocr-base/resolve/main/onnx/model.onnx";
+    "https://huggingface.co/DigitalLarynx/manga-ocr-onnx/resolve/main/onnx/encoder_model.onnx";
 const TOKENIZER_DOWNLOAD_URL: &str =
-    "https://huggingface.co/kha-white/manga-ocr-base/resolve/main/tokenizer.json";
+    "https://huggingface.co/DigitalLarynx/manga-ocr-onnx/resolve/main/tokenizer.json";
 
 // In-memory cache for loaded Session and Tokenizer to prevent reload latency per crop
 static MODEL_SESSION: Mutex<Option<Session>> = Mutex::new(None);
@@ -105,7 +105,8 @@ pub async fn download_ai_model(window: Window, app_handle: AppHandle) -> Result<
             .map_err(|e| format!("Erro ao gravar dados no disco: {}", e))?;
 
         downloaded += chunk.len() as u64;
-        let percent = (((downloaded as f64) / (total_size as f64)) * 100.0).clamp(0.0, 100.0) as u32;
+        let percent =
+            (((downloaded as f64) / (total_size as f64)) * 100.0).clamp(0.0, 100.0) as u32;
 
         if percent != last_emitted_percent {
             last_emitted_percent = percent;
@@ -159,8 +160,8 @@ pub async fn process_image_with_ai(
         .map_err(|e| format!("Erro ao descodificar imagem base64: {}", e))?;
 
     // 2. Load image and preprocess for MangaOCR vision backbone
-    let dynamic_img = image::load_from_memory(&bytes)
-        .map_err(|e| format!("Erro ao carregar imagem: {}", e))?;
+    let dynamic_img =
+        image::load_from_memory(&bytes).map_err(|e| format!("Erro ao carregar imagem: {}", e))?;
 
     // Standard Vision Transformer input shape for MangaOCR: (1, 3, height, width) with height=384, width=384
     let target_h = 384u32;

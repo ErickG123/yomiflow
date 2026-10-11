@@ -1,7 +1,7 @@
 import { DecimalPipe } from '@angular/common'
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core'
 import { Router, RouterLink } from '@angular/router'
-import { TranslocoPipe } from '@ngneat/transloco'
+import { TranslocoDirective } from '@ngneat/transloco'
 import { DashboardService } from '../../services/dashboard.service'
 import { DeckService } from '../../../decks/services/deck.service'
 import { HeatmapDay } from '../../models/dashboard-stats.model'
@@ -9,7 +9,7 @@ import { HeatmapDay } from '../../models/dashboard-stats.model'
 @Component({
   selector: 'app-dashboard-main',
   standalone: true,
-  imports: [TranslocoPipe, DecimalPipe, RouterLink],
+  imports: [TranslocoDirective, DecimalPipe, RouterLink],
   templateUrl: './dashboard-main.component.html',
   styleUrl: './dashboard-main.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,13 +1,13 @@
-<div class="space-y-6">
+<div *transloco="let t" class="space-y-6">
   <!-- Decks Header -->
   <div class="flex items-center justify-between">
     <div>
       <h2 class="text-xl font-bold tracking-tight text-zinc-100 flex items-center space-x-2">
         <i class="pi pi-clone text-indigo-400"></i>
-        <span>Baralhos de Estudo (Decks)</span>
+        <span>{{ t('decks.title') }}</span>
       </h2>
       <p class="text-xs text-zinc-400 mt-0.5">
-        Segmentação de revisões por tópicos, listas JLPT e mídias
+        {{ t('decks.subtitle') }}
       </p>
     </div>
 
@@ -17,7 +17,7 @@
       class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2 px-3.5 rounded-lg transition-colors flex items-center space-x-1.5 cursor-pointer shadow-xs active:scale-95"
     >
       <i class="pi pi-plus text-xs"></i>
-      <span>Novo Baralho</span>
+      <span>{{ t('decks.new_deck') }}</span>
     </button>
   </div>
 
@@ -42,7 +42,7 @@
                 <button
                   type="button"
                   (click)="deleteDeck(deck.id, $event)"
-                  title="Excluir Baralho"
+                  [title]="t('decks.delete_deck')"
                   class="text-zinc-600 hover:text-red-400 p-1 rounded transition-colors cursor-pointer"
                 >
                   <i class="pi pi-trash text-xs"></i>
@@ -51,7 +51,7 @@
             </div>
 
             <p class="text-xs text-zinc-400 line-clamp-2 min-h-8">
-              {{ deck.description || 'Sem descrição cadastrada.' }}
+              {{ deck.description || t('decks.no_description') }}
             </p>
           </div>
 
@@ -59,15 +59,15 @@
           <div class="pt-4 border-t border-zinc-800/80 mt-4 space-y-3">
             <div class="grid grid-cols-3 gap-2 text-center text-xs">
               <div class="bg-zinc-950/60 border border-emerald-500/20 rounded-lg py-1.5 px-1">
-                <span class="block text-[10px] text-zinc-400 font-medium">Novos</span>
+                <span class="block text-[10px] text-zinc-400 font-medium">{{ t('decks.new_badge') }}</span>
                 <span class="font-bold text-emerald-400">{{ deck.new_count }}</span>
               </div>
               <div class="bg-zinc-950/60 border border-indigo-500/20 rounded-lg py-1.5 px-1">
-                <span class="block text-[10px] text-zinc-400 font-medium">Revisar</span>
+                <span class="block text-[10px] text-zinc-400 font-medium">{{ t('decks.review_badge') }}</span>
                 <span class="font-bold text-indigo-400">{{ deck.due_count }}</span>
               </div>
               <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg py-1.5 px-1">
-                <span class="block text-[10px] text-zinc-400 font-medium">Total</span>
+                <span class="block text-[10px] text-zinc-400 font-medium">{{ t('decks.total_badge') }}</span>
                 <span class="font-bold text-zinc-300">{{ deck.total_count }}</span>
               </div>
             </div>
@@ -79,13 +79,13 @@
               class="w-full bg-zinc-800 hover:bg-indigo-600 disabled:opacity-40 disabled:hover:bg-zinc-800 disabled:cursor-not-allowed text-zinc-100 hover:text-white text-xs font-semibold py-2 px-3 rounded-lg transition-colors flex items-center justify-center space-x-1.5 cursor-pointer"
             >
               <i class="pi pi-play text-[11px]"></i>
-              <span>Estudar Baralho</span>
+              <span>{{ t('decks.study_deck') }}</span>
             </button>
           </div>
         </div>
       } @empty {
         <div class="col-span-full py-8 text-center text-zinc-500 text-xs">
-          Nenhum baralho disponível no momento.
+          {{ t('decks.empty_decks') }}
         </div>
       }
     </div>
@@ -98,7 +98,7 @@
         <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
           <h3 class="font-bold text-base text-zinc-100 flex items-center space-x-2">
             <i class="pi pi-folder-plus text-indigo-400"></i>
-            <span>Criar Novo Baralho</span>
+            <span>{{ t('decks.modal_title') }}</span>
           </h3>
           <button
             type="button"
@@ -112,28 +112,28 @@
         <div class="space-y-3">
           <div>
             <label for="deck-name" class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-              Nome do Baralho *
+              {{ t('decks.deck_name_label') }}
             </label>
             <input
               id="deck-name"
               type="text"
               [value]="newDeckName()"
               (input)="onNameInput($event)"
-              placeholder="ex: JLPT N3, Vocabulário de Anime..."
+              [placeholder]="t('decks.deck_name_placeholder')"
               class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-100 focus:outline-hidden focus:border-indigo-500"
             />
           </div>
 
           <div>
             <label for="deck-desc" class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-              Descrição (Opcional)
+              {{ t('decks.deck_desc_label') }}
             </label>
             <textarea
               id="deck-desc"
               rows="3"
               [value]="newDeckDescription()"
               (input)="onDescInput($event)"
-              placeholder="Adicione um resumo ou objetivo de estudo..."
+              [placeholder]="t('decks.deck_desc_placeholder')"
               class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-100 focus:outline-hidden focus:border-indigo-500 resize-none"
             ></textarea>
           </div>
@@ -145,7 +145,7 @@
             (click)="toggleCreateModal()"
             class="px-4 py-2 text-xs font-semibold rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer"
           >
-            Cancelar
+            {{ t('common.cancel') }}
           </button>
           <button
             type="button"
@@ -153,7 +153,7 @@
             [disabled]="!newDeckName().trim() || isSubmitting()"
             class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer transition-colors shadow-xs"
           >
-            Salvar Baralho
+            {{ t('decks.save_deck') }}
           </button>
         </div>
       </div>

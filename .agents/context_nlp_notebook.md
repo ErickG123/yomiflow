@@ -58,6 +58,20 @@ O backend (`lindera`) categoriza cada morfema de acordo com o dicionário IPADIC
 - **Modo Manual (`manual` - Padrão):**
   - O evento `onUpdate` apenas sincroniza a string Markdown sem invocar o analisador Lindera.
   - O utilizador clica no botão com ícone de varinha/faíscas **"Analisar Gramática"**, que analisa o texto atual sob demanda.
+
+## 6. Validação de Build, Lint & CI
+Ao concluir qualquer implementação referente ao caderno híbrido ou extensões TipTap, valide estritamente antes de qualquer commit ou push:
+```bash
+npm run lint
+npm run test:ci
+npm run build
+cargo fmt -- --check --manifest-path src-tauri/Cargo.toml
+cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+cargo test --manifest-path src-tauri/Cargo.toml
+cargo check --manifest-path src-tauri/Cargo.toml
+```
+*Certifique-se também da conformidade de i18n (Transloco) e de que todas as strings de UI estão devidamente internacionalizadas nos dicionários de tradução.*
+
 - **Preservação de Posição do Cursor no TipTap:**
   - Desafio: Injetar HTML colorido via `setContent()` costuma resetar o cursor para o final do documento.
   - Solução:

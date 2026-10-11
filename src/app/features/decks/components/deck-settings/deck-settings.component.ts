@@ -6,12 +6,13 @@ import {
   signal,
 } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
+import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
 import { DeckService } from '../../services/deck.service'
 
 @Component({
   selector: 'app-deck-settings',
   standalone: true,
-  imports: [],
+  imports: [TranslocoDirective],
   templateUrl: './deck-settings.component.html',
   styleUrl: './deck-settings.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,6 +21,7 @@ export class DeckSettingsComponent implements OnInit {
   private readonly deckService = inject(DeckService)
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
+  private readonly translocoService = inject(TranslocoService)
 
   readonly deckId = signal<string>('')
   readonly deckName = signal<string>('')
@@ -62,7 +64,7 @@ export class DeckSettingsComponent implements OnInit {
       void this.router.navigate(['/decks'])
     } catch (err) {
       console.error('Failed to update deck:', err)
-      alert(`Erro ao atualizar baralho: ${err}`)
+      alert(`${this.translocoService.translate('decks.update_deck_error')}: ${err}`)
     } finally {
       this.isSaving.set(false)
     }

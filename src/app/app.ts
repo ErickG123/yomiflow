@@ -1,19 +1,20 @@
 import { Component, OnInit, inject, signal } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco'
+import { TranslocoDirective, TranslocoPipe, TranslocoService } from '@ngneat/transloco'
 import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification'
 import { SettingsService } from './core/services/settings.service'
-import { NotificationState } from './core/models/settings.model'
+import { NotificationState, SettingsTab } from './core/models/settings.model'
 import { SchedulerService } from './core/services/scheduler.service'
 import { AppStateService } from './core/services/app-state.service'
 import { DictionaryService } from './features/dictionary/services/dictionary.service'
+import { AiModelService } from './features/reader/services/ai-model.service'
 import { CloudSyncComponent } from './features/settings/components/cloud-sync/cloud-sync.component'
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslocoPipe, FormsModule, CloudSyncComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective, TranslocoPipe, FormsModule, CloudSyncComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -23,9 +24,12 @@ export class App implements OnInit {
   readonly schedulerService = inject(SchedulerService)
   readonly appState = inject(AppStateService)
   readonly dictionaryService = inject(DictionaryService)
+  readonly aiModelService = inject(AiModelService)
 
   readonly isSettingsOpen = signal<boolean>(false)
-  readonly settingsActiveTab = signal<'general' | 'cloud'>('general')
+  readonly settingsActiveTab = signal<SettingsTab>('general')
+  readonly isAiReady = signal<boolean>(false)
+  readonly settingsToast = signal<string | null>(null)
 
   readonly availableLangs = [
     { id: 'pt', label: 'PT' },
@@ -37,6 +41,7 @@ export class App implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.appState.initTauriListeners()
+    await this.refreshAiStatus()
 
     try {
       let permissionGranted = await isPermissionGranted()
@@ -46,9 +51,12 @@ export class App implements OnInit {
       }
 
       if (permissionGranted && this.settingsService.notificationState() === 'on') {
+        const bodyMsg =
+          this.translocoService?.translate('nav.bg_notification') ??
+          'O YomiFlow está a correr em background!'
         sendNotification({
           title: 'YomiFlow',
-          body: 'O YomiFlow está a correr em background!',
+          body: bodyMsg,
         })
       }
     } catch (error) {
@@ -66,12 +74,43 @@ export class App implements OnInit {
   }
 
 
-  toggleSettings(): void {
-    this.isSettingsOpen.update((open) => !open)
+  async toggleSettings(): Promise<void> {
+    const nextState = !this.isSettingsOpen()
+    this.isSettingsOpen.set(nextState)
+    if (nextState) {
+      await this.refreshAiStatus()
+    }
   }
 
   closeSettings(): void {
     this.isSettingsOpen.set(false)
+  }
+
+  async refreshAiStatus(): Promise<void> {
+    try {
+      const ready = await this.aiModelService.checkModelExists()
+      this.isAiReady.set(ready)
+    } catch {
+      this.isAiReady.set(false)
+    }
+  }
+
+  async downloadAiModel(): Promise<void> {
+    const success = await this.aiModelService.ensureModelExists()
+    if (success) {
+      this.isAiReady.set(true)
+      const toastText =
+        this.translocoService?.translate('settings.ai_ready_toast') ??
+        'Modelo MangaOCR pronto a usar!'
+      this.showSettingsToast(toastText)
+    }
+  }
+
+  private showSettingsToast(message: string): void {
+    this.settingsToast.set(message)
+    setTimeout(() => {
+      this.settingsToast.set(null)
+    }, 3500)
   }
 
   async clearDatabase(): Promise<void> {

@@ -53,7 +53,7 @@ export class NotebookService {
   formatTokensToHtml(tokens: MorphologicalToken[]): string {
     return tokens
       .map((t) => {
-        let colorClass = ''
+        let colorClass: string
         if (t.pos === 'verb') {
           colorClass = 'text-red-400 font-medium'
         } else if (t.pos === 'particle') {

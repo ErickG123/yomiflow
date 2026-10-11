@@ -47,3 +47,16 @@ As intensidades térmicas de estudo do calendário obedecem ao seguinte degradê
 ## 4. Integração com o Caderno Híbrido
 - Na visão mensal, dias que possuem anotações criadas ou editadas no caderno exibem um ponto pulsante âmbar (`.bg-amber-400`).
 - Ao clicar em qualquer célula do calendário, o painel lateral exibe a lista completa de anotações vinculadas àquela data com link direto para o editor Markdown TipTap (`/notebook`).
+
+## 5. Validação de Build, Lint & CI
+Ao concluir qualquer implementação referente a este contexto, execute a validação completa de compilação, lint e testes antes de cada commit e push:
+```bash
+npm run lint
+npm run test:ci
+npm run build
+cargo fmt -- --check --manifest-path src-tauri/Cargo.toml
+cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+cargo test --manifest-path src-tauri/Cargo.toml
+cargo check --manifest-path src-tauri/Cargo.toml
+```
+*Garantir 100% de cobertura de i18n via Transloco em novos elementos visuais.*

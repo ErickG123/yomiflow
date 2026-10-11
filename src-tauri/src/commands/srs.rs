@@ -65,11 +65,8 @@ pub fn remove_from_srs(entry_id: i64, state: State<'_, AppState>) -> Result<(), 
         )
         .map_err(|e| e.to_string())?;
 
-        tx.execute(
-            "DELETE FROM card_tags WHERE card_id = ?1",
-            params![card_id],
-        )
-        .map_err(|e| e.to_string())?;
+        tx.execute("DELETE FROM card_tags WHERE card_id = ?1", params![card_id])
+            .map_err(|e| e.to_string())?;
     }
 
     // Delete cards
@@ -277,7 +274,6 @@ pub fn create_tag(
 
     Ok(Tag { id, name, color })
 }
-
 
 #[tauri::command]
 pub fn answer_card(card_id: String, rating: i32, state: State<'_, AppState>) -> Result<(), String> {
@@ -577,13 +573,23 @@ mod tests {
         // Create two separate decks
         conn.execute(
             "INSERT INTO decks (id, name, description) VALUES (?1, ?2, ?3)",
-            params!["deck-jlpt-n3", "JLPT N3", "Decks de gramática e vocabulário"],
-        ).unwrap();
+            params![
+                "deck-jlpt-n3",
+                "JLPT N3",
+                "Decks de gramática e vocabulário"
+            ],
+        )
+        .unwrap();
 
         conn.execute(
             "INSERT INTO decks (id, name, description) VALUES (?1, ?2, ?3)",
-            params!["deck-anime", "Anime Vocab", "Vocabulário extraído de animes"],
-        ).unwrap();
+            params![
+                "deck-anime",
+                "Anime Vocab",
+                "Vocabulário extraído de animes"
+            ],
+        )
+        .unwrap();
 
         // Insert card in deck A
         conn.execute(
@@ -604,7 +610,8 @@ mod tests {
             "SELECT c.id FROM cards c WHERE c.deck_id = ?1 AND (c.due_date <= strftime('%s', 'now') OR c.state = 0)"
         ).unwrap();
 
-        let cards_a: Vec<String> = stmt_a.query_map(params!["deck-jlpt-n3"], |row| row.get(0))
+        let cards_a: Vec<String> = stmt_a
+            .query_map(params!["deck-jlpt-n3"], |row| row.get(0))
             .unwrap()
             .map(|r| r.unwrap())
             .collect();
@@ -617,7 +624,8 @@ mod tests {
             "SELECT c.id FROM cards c WHERE c.deck_id = ?1 AND (c.due_date <= strftime('%s', 'now') OR c.state = 0)"
         ).unwrap();
 
-        let cards_b: Vec<String> = stmt_b.query_map(params!["deck-anime"], |row| row.get(0))
+        let cards_b: Vec<String> = stmt_b
+            .query_map(params!["deck-anime"], |row| row.get(0))
             .unwrap()
             .map(|r| r.unwrap())
             .collect();
@@ -629,4 +637,3 @@ mod tests {
         assert!(!cards_a.contains(&"card-anime-1".to_string()));
     }
 }
-

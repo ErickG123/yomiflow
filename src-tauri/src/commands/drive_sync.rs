@@ -2,8 +2,8 @@ use crate::AppState;
 use oauth2::basic::BasicClient;
 use oauth2::reqwest::async_http_client;
 use oauth2::{
-    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl,
-    Scope, TokenResponse, TokenUrl,
+    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
+    TokenResponse, TokenUrl,
 };
 use reqwest::multipart::{Form, Part};
 use rusqlite::params;
@@ -49,8 +49,12 @@ pub async fn authenticate_google_drive(
         .url();
 
     // 1. Inicia micro-servidor local não-bloqueante na porta 8080
-    let server = Server::http("127.0.0.1:8080")
-        .map_err(|e| format!("Não foi possível abrir o servidor local na porta 8080: {}", e))?;
+    let server = Server::http("127.0.0.1:8080").map_err(|e| {
+        format!(
+            "Não foi possível abrir o servidor local na porta 8080: {}",
+            e
+        )
+    })?;
 
     // Abre navegador padrão para o utilizador
     let _ = tauri_plugin_opener::open_url(authorize_url.as_str(), None::<&str>);
@@ -64,7 +68,9 @@ pub async fn authenticate_google_drive(
 
         loop {
             if start_time.elapsed() > timeout {
-                let _ = tx.send(Err("Tempo limite excedido esperando autorização do Google.".to_string()));
+                let _ = tx.send(Err(
+                    "Tempo limite excedido esperando autorização do Google.".to_string(),
+                ));
                 break;
             }
 
@@ -77,11 +83,11 @@ pub async fn authenticate_google_drive(
                         if let Some(query) = url.split('?').nth(1) {
                             for pair in query.split('&') {
                                 let mut parts = pair.split('=');
-                                if let (Some(k), Some(v)) = (parts.next(), parts.next()) {
-                                    if k == "code" {
-                                        code_found = Some(v.to_string());
-                                        break;
-                                    }
+                                if let (Some(k), Some(v)) = (parts.next(), parts.next())
+                                    && k == "code"
+                                {
+                                    code_found = Some(v.to_string());
+                                    break;
                                 }
                             }
                         }
@@ -99,19 +105,27 @@ pub async fn authenticate_google_drive(
                                 </html>
                             "#;
                             let mut response = Response::from_string(html);
-                            if let Ok(content_type) = Header::from_bytes(&b"Content-Type"[..], &b"text/html; charset=utf-8"[..]) {
+                            if let Ok(content_type) = Header::from_bytes(
+                                &b"Content-Type"[..],
+                                &b"text/html; charset=utf-8"[..],
+                            ) {
                                 response.add_header(content_type);
                             }
                             let _ = request.respond(response);
                             let _ = tx.send(Ok(code));
                             break;
                         } else {
-                            let _ = request.respond(Response::from_string("Código de autorização não encontrado."));
-                            let _ = tx.send(Err("Parâmetro 'code' não encontrado no callback.".to_string()));
+                            let _ = request.respond(Response::from_string(
+                                "Código de autorização não encontrado.",
+                            ));
+                            let _ = tx.send(Err(
+                                "Parâmetro 'code' não encontrado no callback.".to_string()
+                            ));
                             break;
                         }
                     } else {
-                        let _ = request.respond(Response::from_string("Aguardando callback do YomiFlow..."));
+                        let _ = request
+                            .respond(Response::from_string("Aguardando callback do YomiFlow..."));
                     }
                 }
                 Ok(None) => {
@@ -340,7 +354,8 @@ mod tests {
         let mock_sqlite_header = b"SQLite format 3\0\x04\0\x01\x01\0@  \0\0\0\x01";
         {
             let mut file = fs::File::create(&test_db_path).expect("failed to create temp db");
-            file.write_all(mock_sqlite_header).expect("failed to write mock bytes");
+            file.write_all(mock_sqlite_header)
+                .expect("failed to write mock bytes");
         }
 
         // Simulate pre-upload read

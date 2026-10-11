@@ -1,16 +1,19 @@
 import { DatePipe } from '@angular/common'
-import { ChangeDetectionStrategy, Component, OnInit, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core'
+import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
 import { invoke } from '@tauri-apps/api/core'
 
 @Component({
   selector: 'app-cloud-sync',
   standalone: true,
-  imports: [DatePipe],
+  imports: [DatePipe, TranslocoDirective],
   templateUrl: './cloud-sync.component.html',
   styleUrl: './cloud-sync.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CloudSyncComponent implements OnInit {
+  private readonly translocoService = inject(TranslocoService)
+
   // Pre-filled with user's client ID for seamless UX while allowing customization
   readonly clientId = signal<string>(
     '160252445437-pp8aj1i6e0gabnrjan50pum50vddpgti.apps.googleusercontent.com'
@@ -76,11 +79,13 @@ export class CloudSyncComponent implements OnInit {
         clientSecret: this.clientSecret().trim(),
       })
       this.isAuthenticated.set(true)
-      this.backupSuccessToast.set('Conta Google conectada com sucesso!')
+      this.backupSuccessToast.set(this.translocoService.translate('cloud.account_connected'))
       setTimeout(() => this.backupSuccessToast.set(null), 4000)
     } catch (err) {
       console.error('Falha na autenticação Google Drive:', err)
-      this.errorMessage.set(typeof err === 'string' ? err : 'Falha ao autenticar com o Google Drive.')
+      this.errorMessage.set(
+        typeof err === 'string' ? err : this.translocoService.translate('cloud.auth_error')
+      )
     } finally {
       this.isAuthenticating.set(false)
     }
@@ -95,11 +100,15 @@ export class CloudSyncComponent implements OnInit {
       const fileId = await invoke<string>('backup_database_to_drive')
       const now = new Date()
       this.lastBackupTime.set(now)
-      this.backupSuccessToast.set(`Backup concluído com sucesso no Google Drive! (ID: ${fileId})`)
+      this.backupSuccessToast.set(
+        `${this.translocoService.translate('cloud.backup_success')} (ID: ${fileId})`
+      )
       setTimeout(() => this.backupSuccessToast.set(null), 5000)
     } catch (err) {
       console.error('Falha ao enviar backup para o Drive:', err)
-      this.errorMessage.set(typeof err === 'string' ? err : 'Falha ao realizar backup no Google Drive.')
+      this.errorMessage.set(
+        typeof err === 'string' ? err : this.translocoService.translate('cloud.backup_error')
+      )
     } finally {
       this.isBackingUp.set(false)
     }

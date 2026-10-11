@@ -63,7 +63,7 @@
           class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
         >
           <i class="pi pi-file-edit text-xs"></i>
-          <span>Caderno</span>
+          <span>{{ 'nav.notebook' | transloco }}</span>
         </a>
 
         <a
@@ -73,7 +73,7 @@
           class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
         >
           <i class="pi pi-clone text-xs"></i>
-          <span>Baralhos</span>
+          <span>{{ 'nav.decks' | transloco }}</span>
         </a>
 
         <a
@@ -83,7 +83,7 @@
           class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors flex items-center space-x-1.5"
         >
           <i class="pi pi-calendar text-xs"></i>
-          <span>Calendário</span>
+          <span>{{ 'nav.calendar' | transloco }}</span>
         </a>
       </nav>
 
@@ -106,198 +106,404 @@
 
 @if (isSettingsOpen()) {
   <div class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs animate-fadeIn">
-    <div class="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-sm p-6 shadow-2xl space-y-6">
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between pb-3 border-b border-zinc-800">
-        <h3 class="text-lg font-semibold text-zinc-100 flex items-center space-x-2">
-          <i class="pi pi-cog text-indigo-400"></i>
-          <span>{{ 'settings.title' | transloco }}</span>
-        </h3>
-        <button
-          type="button"
-          (click)="closeSettings()"
-          class="text-zinc-500 hover:text-zinc-300 p-1 rounded-md transition-colors cursor-pointer"
-        >
-          <i class="pi pi-times"></i>
-        </button>
-      </div>
+    <div
+      *transloco="let t"
+      class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-[800px] h-[600px] shadow-2xl flex flex-row overflow-hidden relative"
+    >
+      <!-- Left Sidebar Navigation -->
+      <aside class="w-64 bg-zinc-950 border-r border-zinc-800 p-5 flex flex-col justify-between shrink-0">
+        <div class="space-y-6">
+          <!-- Sidebar Header -->
+          <div class="flex items-center space-x-3 px-1">
+            <div class="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-zinc-100 leading-none">{{ t('settings.title') }}</h3>
+              <p class="text-[11px] text-zinc-500 mt-0.5">YomiFlow Desktop</p>
+            </div>
+          </div>
 
-      <!-- Settings Tabs Navigation -->
-      <div class="flex rounded-lg bg-zinc-950 p-1 border border-zinc-800">
-        <button
-          type="button"
-          (click)="settingsActiveTab.set('general')"
-          class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center justify-center gap-2"
-          [class.bg-zinc-800]="settingsActiveTab() === 'general'"
-          [class.text-white]="settingsActiveTab() === 'general'"
-          [class.text-zinc-400]="settingsActiveTab() !== 'general'"
-        >
-          <i class="pi pi-sliders-h text-xs"></i>
-          <span>Geral</span>
-        </button>
-        <button
-          type="button"
-          (click)="settingsActiveTab.set('cloud')"
-          class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center justify-center gap-2"
-          [class.bg-zinc-800]="settingsActiveTab() === 'cloud'"
-          [class.text-white]="settingsActiveTab() === 'cloud'"
-          [class.text-zinc-400]="settingsActiveTab() !== 'cloud'"
-        >
-          <i class="pi pi-cloud text-xs"></i>
-          <span>Backup em Nuvem</span>
-        </button>
-      </div>
-
-      <!-- TAB 1: General Settings -->
-      @if (settingsActiveTab() === 'general') {
-      <!-- Language Section -->
-      <div class="space-y-2">
-        <label class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          {{ 'settings.language' | transloco }}
-        </label>
-        <div class="grid grid-cols-3 gap-2">
-          @for (lang of availableLangs; track lang.id) {
+          <!-- Tabs Navigation -->
+          <nav class="space-y-1.5">
+            <!-- Tab: General -->
             <button
               type="button"
-              (click)="changeLanguage(lang.id)"
-              class="py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer border"
-              [class.bg-indigo-600]="activeLang() === lang.id"
-              [class.border-indigo-500]="activeLang() === lang.id"
-              [class.text-white]="activeLang() === lang.id"
-              [class.bg-zinc-800]="activeLang() !== lang.id"
-              [class.border-zinc-700]="activeLang() !== lang.id"
-              [class.text-zinc-300]="activeLang() !== lang.id"
+              (click)="settingsActiveTab.set('general')"
+              class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer text-left"
+              [class.bg-indigo-600]="settingsActiveTab() === 'general'"
+              [class.text-white]="settingsActiveTab() === 'general'"
+              [class.shadow-md]="settingsActiveTab() === 'general'"
+              [class.text-zinc-400]="settingsActiveTab() !== 'general'"
+              [class.hover:text-zinc-200]="settingsActiveTab() !== 'general'"
+              [class.hover:bg-zinc-900]="settingsActiveTab() !== 'general'"
             >
-              {{ lang.label }}
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+              <span>{{ t('settings.tab_general') }}</span>
             </button>
+
+            <!-- Tab: Engines & Data -->
+            <button
+              type="button"
+              (click)="settingsActiveTab.set('engines')"
+              class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer text-left"
+              [class.bg-indigo-600]="settingsActiveTab() === 'engines'"
+              [class.text-white]="settingsActiveTab() === 'engines'"
+              [class.shadow-md]="settingsActiveTab() === 'engines'"
+              [class.text-zinc-400]="settingsActiveTab() !== 'engines'"
+              [class.hover:text-zinc-200]="settingsActiveTab() !== 'engines'"
+              [class.hover:bg-zinc-900]="settingsActiveTab() !== 'engines'"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span>{{ t('settings.tab_engines') }}</span>
+            </button>
+
+            <!-- Tab: Cloud -->
+            <button
+              type="button"
+              (click)="settingsActiveTab.set('cloud')"
+              class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer text-left"
+              [class.bg-indigo-600]="settingsActiveTab() === 'cloud'"
+              [class.text-white]="settingsActiveTab() === 'cloud'"
+              [class.shadow-md]="settingsActiveTab() === 'cloud'"
+              [class.text-zinc-400]="settingsActiveTab() !== 'cloud'"
+              [class.hover:text-zinc-200]="settingsActiveTab() !== 'cloud'"
+              [class.hover:bg-zinc-900]="settingsActiveTab() !== 'cloud'"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z" />
+              </svg>
+              <span>{{ t('settings.tab_cloud') }}</span>
+            </button>
+
+            <!-- Tab: Danger Zone -->
+            <button
+              type="button"
+              (click)="settingsActiveTab.set('danger')"
+              class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer text-left"
+              [class.bg-red-600]="settingsActiveTab() === 'danger'"
+              [class.text-white]="settingsActiveTab() === 'danger'"
+              [class.shadow-md]="settingsActiveTab() === 'danger'"
+              [class.text-red-400]="settingsActiveTab() !== 'danger'"
+              [class.hover:text-red-300]="settingsActiveTab() !== 'danger'"
+              [class.hover:bg-red-950/20]="settingsActiveTab() !== 'danger'"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>{{ t('settings.tab_danger') }}</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Sidebar Footer / Close Action -->
+        <div class="pt-4 border-t border-zinc-900">
+          <button
+            type="button"
+            (click)="closeSettings()"
+            class="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-900/60 hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer border border-zinc-800"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <span>{{ t('common.close') }}</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Right Content Area -->
+      <main class="flex-1 p-8 overflow-y-auto bg-zinc-900 flex flex-col justify-between">
+        <div class="space-y-6">
+          <!-- Toast Notification inside modal if available -->
+          @if (settingsToast(); as msg) {
+            <div class="p-3 bg-emerald-950/60 border border-emerald-800/80 rounded-xl text-emerald-300 text-xs flex items-center gap-2.5 animate-fadeIn">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{{ msg }}</span>
+            </div>
+          }
+
+          <!-- SWITCH TAB CONTENT -->
+          @switch (settingsActiveTab()) {
+            <!-- TAB 1: General -->
+            @case ('general') {
+              <div class="space-y-6 animate-fadeIn">
+                <div class="border-b border-zinc-800 pb-4">
+                  <h4 class="text-base font-semibold text-zinc-100">{{ t('settings.tab_general') }}</h4>
+                  <p class="text-xs text-zinc-400 mt-1">{{ t('settings.general_desc') }}</p>
+                </div>
+
+                <!-- Language Section -->
+                <div class="space-y-2">
+                  <label class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    {{ t('settings.language') }}
+                  </label>
+                  <div class="grid grid-cols-3 gap-3">
+                    @for (lang of availableLangs; track lang.id) {
+                      <button
+                        type="button"
+                        (click)="changeLanguage(lang.id)"
+                        class="py-2.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border flex items-center justify-center gap-1.5"
+                        [class.bg-indigo-600]="activeLang() === lang.id"
+                        [class.border-indigo-500]="activeLang() === lang.id"
+                        [class.text-white]="activeLang() === lang.id"
+                        [class.bg-zinc-950]="activeLang() !== lang.id"
+                        [class.border-zinc-800]="activeLang() !== lang.id"
+                        [class.text-zinc-300]="activeLang() !== lang.id"
+                        [class.hover:border-zinc-700]="activeLang() !== lang.id"
+                      >
+                        {{ lang.label }}
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div class="space-y-2">
+                  <label class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    {{ t('settings.notifications') }}
+                  </label>
+                  <div class="grid grid-cols-3 gap-3">
+                    <button
+                      type="button"
+                      (click)="setNotificationState('on')"
+                      class="py-2.5 px-2 text-xs font-semibold rounded-xl transition-all cursor-pointer border text-center"
+                      [class.bg-indigo-600]="settingsService.notificationState() === 'on'"
+                      [class.border-indigo-500]="settingsService.notificationState() === 'on'"
+                      [class.text-white]="settingsService.notificationState() === 'on'"
+                      [class.bg-zinc-950]="settingsService.notificationState() !== 'on'"
+                      [class.border-zinc-800]="settingsService.notificationState() !== 'on'"
+                      [class.text-zinc-300]="settingsService.notificationState() !== 'on'"
+                    >
+                      {{ t('settings.notif_on') }}
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="setNotificationState('off')"
+                      class="py-2.5 px-2 text-xs font-semibold rounded-xl transition-all cursor-pointer border text-center"
+                      [class.bg-indigo-600]="settingsService.notificationState() === 'off'"
+                      [class.border-indigo-500]="settingsService.notificationState() === 'off'"
+                      [class.text-white]="settingsService.notificationState() === 'off'"
+                      [class.bg-zinc-950]="settingsService.notificationState() !== 'off'"
+                      [class.border-zinc-800]="settingsService.notificationState() !== 'off'"
+                      [class.text-zinc-300]="settingsService.notificationState() !== 'off'"
+                    >
+                      {{ t('settings.notif_off') }}
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="setNotificationState('paused')"
+                      class="py-2.5 px-2 text-xs font-semibold rounded-xl transition-all cursor-pointer border text-center"
+                      [class.bg-indigo-600]="settingsService.notificationState() === 'paused'"
+                      [class.border-indigo-500]="settingsService.notificationState() === 'paused'"
+                      [class.text-white]="settingsService.notificationState() === 'paused'"
+                      [class.bg-zinc-950]="settingsService.notificationState() !== 'paused'"
+                      [class.border-zinc-800]="settingsService.notificationState() !== 'paused'"
+                      [class.text-zinc-300]="settingsService.notificationState() !== 'paused'"
+                    >
+                      {{ t('settings.notif_1h') }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Notification Interval Section -->
+                <div class="space-y-1.5">
+                  <label class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    {{ t('settings.interval_label') }}
+                  </label>
+                  <select
+                    [ngModel]="settingsService.notificationInterval()"
+                    (ngModelChange)="settingsService.setNotificationInterval($event)"
+                    class="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-xl p-2.5 text-xs outline-none w-full hover:border-zinc-700 transition-colors cursor-pointer"
+                    aria-label="Select Notification Interval"
+                  >
+                    <option [ngValue]="15">{{ t('settings.interval_15m') }}</option>
+                    <option [ngValue]="30">{{ t('settings.interval_30m') }}</option>
+                    <option [ngValue]="60">{{ t('settings.interval_1h') }}</option>
+                    <option [ngValue]="120">{{ t('settings.interval_2h') }}</option>
+                    <option [ngValue]="240">{{ t('settings.interval_4h') }}</option>
+                  </select>
+                </div>
+              </div>
+            }
+
+            <!-- TAB 2: Engines & Data -->
+            @case ('engines') {
+              <div class="space-y-6 animate-fadeIn">
+                <div class="border-b border-zinc-800 pb-4">
+                  <h4 class="text-base font-semibold text-zinc-100">{{ t('settings.tab_engines') }}</h4>
+                  <p class="text-xs text-zinc-400 mt-1">{{ t('settings.engines_desc') }}</p>
+                </div>
+
+                <!-- AI OCR Engine Card -->
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 space-y-4">
+                  <div class="flex items-start justify-between">
+                    <div class="space-y-1 pr-4">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm font-semibold text-zinc-100">{{ t('settings.ai_mangaocr_title') }}</span>
+                        <!-- Status Badge -->
+                        @if (isAiReady()) {
+                          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            {{ t('settings.ai_status_ready') }}
+                          </span>
+                        } @else {
+                          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                            {{ t('settings.ai_status_not_installed') }}
+                          </span>
+                        }
+                      </div>
+                      <p class="text-xs text-zinc-400 leading-relaxed">{{ t('settings.ai_mangaocr_desc') }}</p>
+                    </div>
+
+                    <!-- Download Trigger Button -->
+                    @if (!isAiReady()) {
+                      <button
+                        type="button"
+                        (click)="downloadAiModel()"
+                        [disabled]="aiModelService.isDownloading()"
+                        class="shrink-0 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-2"
+                      >
+                        @if (aiModelService.isDownloading()) {
+                          <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                          </svg>
+                          <span>{{ t('settings.ai_downloading') }}</span>
+                        } @else {
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          <span>{{ t('settings.ai_download_btn') }}</span>
+                        }
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Progress Bar when downloading -->
+                  @if (aiModelService.isDownloading()) {
+                    <div class="space-y-1.5 pt-2 border-t border-zinc-900">
+                      <div class="flex justify-between text-[11px] text-zinc-400 font-medium">
+                        <span>{{ t('settings.ai_download_huggingface') }}</span>
+                        <span>{{ aiModelService.downloadProgress() }}%</span>
+                      </div>
+                      <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+                        <div
+                          class="bg-indigo-500 h-2 rounded-full transition-all duration-300"
+                          [style.width.%]="aiModelService.downloadProgress()"
+                        ></div>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <!-- Vocabulary & Kanji Import Section -->
+                <div class="space-y-2">
+                  <label class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    {{ t('settings.data_management') }}
+                  </label>
+                  <div class="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      (click)="dictionaryService.openImportJlptKanjiDialog()"
+                      class="bg-zinc-950 hover:bg-zinc-800/80 border border-zinc-800 hover:border-zinc-700 text-zinc-200 p-3.5 rounded-xl flex items-center justify-between transition-colors cursor-pointer text-left shadow-sm"
+                    >
+                      <div>
+                        <div class="text-xs font-semibold text-zinc-200">{{ t('settings.import_jlpt') }}</div>
+                        <div class="text-[11px] text-zinc-500 mt-0.5">{{ t('settings.import_jlpt_subtitle') }}</div>
+                      </div>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="dictionaryService.openImportKanjiVgDialog()"
+                      class="bg-zinc-950 hover:bg-zinc-800/80 border border-zinc-800 hover:border-zinc-700 text-zinc-200 p-3.5 rounded-xl flex items-center justify-between transition-colors cursor-pointer text-left shadow-sm"
+                    >
+                      <div>
+                        <div class="text-xs font-semibold text-zinc-200">{{ t('settings.import_kanjivg') }}</div>
+                        <div class="text-[11px] text-zinc-500 mt-0.5">{{ t('settings.import_kanjivg_subtitle') }}</div>
+                      </div>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- TAB 3: Cloud Sync -->
+            @case ('cloud') {
+              <div class="space-y-6 animate-fadeIn">
+                <div class="border-b border-zinc-800 pb-4">
+                  <h4 class="text-base font-semibold text-zinc-100">{{ t('settings.tab_cloud') }}</h4>
+                  <p class="text-xs text-zinc-400 mt-1">{{ t('settings.cloud_desc') }}</p>
+                </div>
+                <app-cloud-sync></app-cloud-sync>
+              </div>
+            }
+
+            <!-- TAB 4: Danger Zone -->
+            @case ('danger') {
+              <div class="space-y-6 animate-fadeIn">
+                <div class="border-b border-zinc-800 pb-4">
+                  <h4 class="text-base font-semibold text-red-400">{{ t('settings.tab_danger') }}</h4>
+                  <p class="text-xs text-zinc-400 mt-1">{{ t('settings.danger_zone_desc') }}</p>
+                </div>
+
+                <div class="bg-red-950/20 border border-red-900/40 rounded-2xl p-5 space-y-4">
+                  <div>
+                    <h5 class="text-sm font-semibold text-red-200">{{ t('settings.clear_db') }}</h5>
+                    <p class="text-xs text-red-300/80 mt-1 leading-relaxed">
+                      {{ t('settings.clear_db_confirm') }}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="clearDatabase()"
+                    class="py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>{{ t('settings.clear_db') }}</span>
+                  </button>
+                </div>
+
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 flex items-center justify-between">
+                  <div>
+                    <h5 class="text-sm font-semibold text-zinc-200">{{ t('settings.exit') }}</h5>
+                    <p class="text-xs text-zinc-400 mt-0.5">{{ t('settings.exit_desc') }}</p>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="exitApp()"
+                    class="py-2.5 px-4 rounded-xl text-xs font-medium text-rose-400 hover:text-rose-200 bg-rose-950/30 hover:bg-rose-900/50 border border-rose-900/50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>{{ t('settings.exit') }}</span>
+                  </button>
+                </div>
+              </div>
+            }
           }
         </div>
-      </div>
-
-      <!-- Notifications Section -->
-      <div class="space-y-2">
-        <label class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          {{ 'settings.notifications' | transloco }}
-        </label>
-        <div class="grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            (click)="setNotificationState('on')"
-            class="py-2 px-1 text-xs font-semibold rounded-lg transition-all cursor-pointer border text-center"
-            [class.bg-indigo-600]="settingsService.notificationState() === 'on'"
-            [class.border-indigo-500]="settingsService.notificationState() === 'on'"
-            [class.text-white]="settingsService.notificationState() === 'on'"
-            [class.bg-zinc-800]="settingsService.notificationState() !== 'on'"
-            [class.border-zinc-700]="settingsService.notificationState() !== 'on'"
-            [class.text-zinc-300]="settingsService.notificationState() !== 'on'"
-          >
-            {{ 'settings.notif_on' | transloco }}
-          </button>
-
-          <button
-            type="button"
-            (click)="setNotificationState('off')"
-            class="py-2 px-1 text-xs font-semibold rounded-lg transition-all cursor-pointer border text-center"
-            [class.bg-indigo-600]="settingsService.notificationState() === 'off'"
-            [class.border-indigo-500]="settingsService.notificationState() === 'off'"
-            [class.text-white]="settingsService.notificationState() === 'off'"
-            [class.bg-zinc-800]="settingsService.notificationState() !== 'off'"
-            [class.border-zinc-700]="settingsService.notificationState() !== 'off'"
-            [class.text-zinc-300]="settingsService.notificationState() !== 'off'"
-          >
-            {{ 'settings.notif_off' | transloco }}
-          </button>
-
-          <button
-            type="button"
-            (click)="setNotificationState('paused')"
-            class="py-2 px-1 text-xs font-semibold rounded-lg transition-all cursor-pointer border text-center"
-            [class.bg-indigo-600]="settingsService.notificationState() === 'paused'"
-            [class.border-indigo-500]="settingsService.notificationState() === 'paused'"
-            [class.text-white]="settingsService.notificationState() === 'paused'"
-            [class.bg-zinc-800]="settingsService.notificationState() !== 'paused'"
-            [class.border-zinc-700]="settingsService.notificationState() !== 'paused'"
-            [class.text-zinc-300]="settingsService.notificationState() !== 'paused'"
-          >
-            {{ 'settings.notif_1h' | transloco }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Notification Interval Section -->
-      <div class="space-y-1">
-        <label class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          {{ 'settings.interval_label' | transloco }}
-        </label>
-        <select
-          [ngModel]="settingsService.notificationInterval()"
-          (ngModelChange)="settingsService.setNotificationInterval($event)"
-          class="bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg p-2 text-sm outline-none w-full hover:border-zinc-700 transition-colors cursor-pointer"
-          aria-label="Select Notification Interval"
-        >
-          <option [ngValue]="15">{{ 'settings.interval_15m' | transloco }}</option>
-          <option [ngValue]="30">{{ 'settings.interval_30m' | transloco }}</option>
-          <option [ngValue]="60">{{ 'settings.interval_1h' | transloco }}</option>
-          <option [ngValue]="120">{{ 'settings.interval_2h' | transloco }}</option>
-          <option [ngValue]="240">{{ 'settings.interval_4h' | transloco }}</option>
-        </select>
-      </div>
-
-      <!-- Hard Exit Section -->
-      <div class="pt-4 border-t border-zinc-800 space-y-4">
-        <!-- Data Management Section -->
-        <div class="space-y-2">
-          <label class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-            {{ 'settings.data_management' | transloco }}
-          </label>
-          <button
-            type="button"
-            (click)="dictionaryService.openImportJlptKanjiDialog()"
-            class="w-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 py-2.5 px-4 rounded-lg flex justify-between items-center transition-colors cursor-pointer shadow-sm active:scale-[0.99]"
-          >
-            <span class="text-sm font-medium">Importar Kanjis JLPT (.json)</span>
-            <i class="pi pi-upload text-zinc-400"></i>
-          </button>
-          <button
-            type="button"
-            (click)="dictionaryService.openImportKanjiVgDialog()"
-            class="w-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 py-2.5 px-4 rounded-lg flex justify-between items-center transition-colors cursor-pointer shadow-sm active:scale-[0.99]"
-          >
-            <span class="text-sm font-medium">Importar KanjiVG (Pasta .svg)</span>
-            <i class="pi pi-folder-open text-zinc-400"></i>
-          </button>
-        </div>
-
-        <!-- Danger Zone -->
-        <div class="space-y-2">
-          <label class="text-xs font-semibold uppercase tracking-wider text-red-400">
-            {{ 'settings.danger_zone' | transloco }}
-          </label>
-          <button
-            type="button"
-            (click)="clearDatabase()"
-            class="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 cursor-pointer shadow-md active:scale-95"
-          >
-            <i class="pi pi-trash text-xs"></i>
-            <span>{{ 'settings.clear_db' | transloco }}</span>
-          </button>
-        </div>
-
-        <button
-          type="button"
-          (click)="exitApp()"
-          class="w-full py-2.5 px-4 rounded-lg text-sm font-medium text-rose-400 hover:text-rose-200 bg-rose-950/20 hover:bg-rose-900/40 border border-rose-900/40 transition-colors flex items-center justify-center space-x-2 cursor-pointer"
-        >
-          <i class="pi pi-power-off text-xs"></i>
-          <span>{{ 'settings.exit' | transloco }}</span>
-        </button>
-      </div>
-      }
-
-      <!-- TAB 2: Cloud Sync Settings -->
-      @if (settingsActiveTab() === 'cloud') {
-        <app-cloud-sync></app-cloud-sync>
-      }
+      </main>
     </div>
   </div>
 }

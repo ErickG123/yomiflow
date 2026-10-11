@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core'
+import { TranslocoPipe } from '@ngneat/transloco'
 import { AudioService } from '../../../core/services/audio.service'
 import { PitchMora } from './models/pitch-accent.model'
 
 @Component({
   selector: 'app-pitch-accent',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './pitch-accent.component.html',
   styleUrl: './pitch-accent.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

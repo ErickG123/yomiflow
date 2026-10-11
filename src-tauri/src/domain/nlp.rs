@@ -18,8 +18,12 @@ where
         .map_err(|e| format!("Falha no mutex do segmenter: {}", e))?;
 
     if lock.is_none() {
-        let dictionary = load_dictionary("embedded://ipadic")
-            .map_err(|e| format!("Falha ao carregar dicionário IPADIC embutido do Lindera: {}", e))?;
+        let dictionary = load_dictionary("embedded://ipadic").map_err(|e| {
+            format!(
+                "Falha ao carregar dicionário IPADIC embutido do Lindera: {}",
+                e
+            )
+        })?;
         *lock = Some(Segmenter::new(Mode::Normal, dictionary, None));
     }
 

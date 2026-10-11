@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnInit, input, signal } from '@angular/core'
+import { TranslocoDirective } from '@ngneat/transloco'
 import { invoke } from '@tauri-apps/api/core'
 import { KanjiComponent, KanjiDetails } from './models/kanji-breakdown.model'
 
 @Component({
   selector: 'app-kanji-breakdown',
   standalone: true,
+  imports: [TranslocoDirective],
   templateUrl: './kanji-breakdown.component.html',
   styleUrl: './kanji-breakdown.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

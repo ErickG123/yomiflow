@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { CloudSyncComponent } from './cloud-sync.component'
 import * as tauriCore from '@tauri-apps/api/core'
 import { EnvironmentInjector, createEnvironmentInjector, runInInjectionContext } from '@angular/core'
+import { TranslocoService } from '@ngneat/transloco'
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
@@ -9,9 +10,18 @@ vi.mock('@tauri-apps/api/core', () => ({
 
 describe('CloudSyncComponent', () => {
   let component: CloudSyncComponent
+  let translocoMock: Partial<TranslocoService>
 
   beforeEach(() => {
     vi.restoreAllMocks()
+
+    translocoMock = {
+      translate: vi.fn((key: string) => {
+        if (key === 'cloud.account_connected') return 'Conta Google conectada com sucesso!'
+        if (key === 'cloud.backup_success') return 'Backup concluído com sucesso no Google Drive!'
+        return key
+      }),
+    }
 
     vi.mocked(tauriCore.invoke).mockImplementation(async (cmd: string) => {
       if (cmd === 'get_setting') {
@@ -20,7 +30,10 @@ describe('CloudSyncComponent', () => {
       return null
     })
 
-    const parentInjector = { get: () => null } as unknown as EnvironmentInjector
+    const providers = [{ provide: TranslocoService, useValue: translocoMock }]
+    const parentInjector = {
+      get: (token: unknown) => providers.find((p) => p.provide === token)?.useValue ?? null,
+    } as unknown as EnvironmentInjector
     const injector = createEnvironmentInjector([], parentInjector)
 
     runInInjectionContext(injector, () => {

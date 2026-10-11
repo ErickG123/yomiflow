@@ -101,10 +101,18 @@ pub async fn evaluate_kanji_drawing(
 
     for stroke in &user_strokes {
         for pt in stroke {
-            if pt.x < min_x { min_x = pt.x; }
-            if pt.x > max_x { max_x = pt.x; }
-            if pt.y < min_y { min_y = pt.y; }
-            if pt.y > max_y { max_y = pt.y; }
+            if pt.x < min_x {
+                min_x = pt.x;
+            }
+            if pt.x > max_x {
+                max_x = pt.x;
+            }
+            if pt.y < min_y {
+                min_y = pt.y;
+            }
+            if pt.y > max_y {
+                max_y = pt.y;
+            }
         }
     }
 
@@ -167,8 +175,10 @@ fn parse_svg_path_direction(d: &str) -> Option<RefPathDirection> {
             }
         }
     }
-    if !current_num.is_empty() && current_num != "-"
-        && let Ok(val) = current_num.parse::<f32>() {
+    if !current_num.is_empty()
+        && current_num != "-"
+        && let Ok(val) = current_num.parse::<f32>()
+    {
         numbers.push(val);
     }
 

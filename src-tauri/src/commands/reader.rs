@@ -40,7 +40,9 @@ fn is_rar_or_cbr(path: &str) -> bool {
 
 // --- ZIP / CBZ IMPLEMENTATIONS ---
 
-pub fn parse_zip_metadata_reader<R: Read + std::io::Seek>(reader: R) -> Result<Vec<String>, String> {
+pub fn parse_zip_metadata_reader<R: Read + std::io::Seek>(
+    reader: R,
+) -> Result<Vec<String>, String> {
     let mut archive =
         ZipArchive::new(reader).map_err(|e| format!("Failed to read ZIP archive: {}", e))?;
 

@@ -94,19 +94,22 @@ mod tests {
             "INSERT INTO cards (id, entry_id, due_date, stability, difficulty, reps, state) 
              VALUES (?1, 1, ?2, 2.0, 0.3, 1, 2)",
             params!["c1", timestamp_day1],
-        ).unwrap();
+        )
+        .unwrap();
 
         conn.execute(
             "INSERT INTO cards (id, entry_id, due_date, stability, difficulty, reps, state) 
              VALUES (?1, 2, ?2, 2.0, 0.3, 1, 2)",
             params!["c2", timestamp_day1],
-        ).unwrap();
+        )
+        .unwrap();
 
         conn.execute(
             "INSERT INTO cards (id, entry_id, due_date, stability, difficulty, reps, state) 
              VALUES (?1, 3, ?2, 2.0, 0.3, 1, 2)",
             params!["c3", timestamp_day2],
-        ).unwrap();
+        )
+        .unwrap();
 
         // Query grouped by DATE(datetime(due_date, 'unixepoch', 'localtime'))
         let mut stmt = conn
@@ -141,17 +144,20 @@ mod tests {
             "INSERT INTO cards (id, entry_id, due_date, stability, difficulty, reps, state) 
              VALUES ('c1', 1, 1000, 2.0, 0.3, 1, 2)",
             [],
-        ).unwrap();
+        )
+        .unwrap();
 
         let review_time: i64 = 1792065600; // 2026-10-15
         conn.execute(
             "INSERT INTO review_logs (card_id, rating, review_datetime) VALUES ('c1', 3, ?1)",
             params![review_time],
-        ).unwrap();
+        )
+        .unwrap();
         conn.execute(
             "INSERT INTO review_logs (card_id, rating, review_datetime) VALUES ('c1', 4, ?1)",
             params![review_time],
-        ).unwrap();
+        )
+        .unwrap();
 
         let date_ymd: String = conn
             .query_row(

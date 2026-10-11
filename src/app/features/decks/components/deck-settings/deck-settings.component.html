@@ -1,18 +1,18 @@
-<div class="space-y-6 max-w-2xl mx-auto">
+<div *transloco="let t" class="space-y-6 max-w-2xl mx-auto">
   <div class="border-b border-zinc-800 pb-4">
     <h2 class="text-xl font-bold tracking-tight text-zinc-100 flex items-center space-x-2">
       <i class="pi pi-cog text-indigo-400"></i>
-      <span>Configurações do Baralho</span>
+      <span>{{ t('decks.settings_title') }}</span>
     </h2>
     <p class="text-xs text-zinc-400 mt-0.5">
-      Edite o nome e parâmetros deste baralho
+      {{ t('decks.settings_subtitle') }}
     </p>
   </div>
 
   <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
     <div>
       <label for="deck-edit-name" class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-        Nome do Baralho
+        {{ t('decks.deck_name_label') }}
       </label>
       <input
         id="deck-edit-name"
@@ -25,7 +25,7 @@
 
     <div>
       <label for="deck-edit-desc" class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-        Descrição
+        {{ t('decks.deck_desc_label') }}
       </label>
       <textarea
         id="deck-edit-desc"
@@ -43,7 +43,7 @@
         [disabled]="!deckName().trim() || isSaving()"
         class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer transition-colors"
       >
-        Salvar Alterações
+        {{ t('decks.settings_save') }}
       </button>
     </div>
   </div>

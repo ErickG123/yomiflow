@@ -78,7 +78,9 @@ pub fn check_onboarding_needed(state: State<'_, AppState>) -> Result<bool, Strin
     let conn = state.db.lock().map_err(|e| e.to_string())?;
 
     let dictionary_count: i64 = conn
-        .query_row("SELECT COUNT(*) FROM dictionary_entries", [], |row| row.get(0))
+        .query_row("SELECT COUNT(*) FROM dictionary_entries", [], |row| {
+            row.get(0)
+        })
         .unwrap_or(0);
 
     let kanji_strokes_count: i64 = conn

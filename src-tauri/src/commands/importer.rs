@@ -205,55 +205,57 @@ pub async fn import_kanjivg_folder(
     window: Window,
     state: State<'_, AppState>,
 ) -> Result<usize, String> {
-    let path = Path::new(&folder_path);
-    if !path.exists() || !path.is_dir() {
-        return Err("O caminho fornecido não é uma pasta válida.".to_string());
-    }
+    let db_mutex = state.db.clone();
 
-    let entries = fs::read_dir(path).map_err(|e| e.to_string())?;
-    let mut total_inserted = 0usize;
+    let total_inserted = tokio::task::spawn_blocking(move || -> Result<usize, String> {
+        let path = Path::new(&folder_path);
+        if !path.exists() || !path.is_dir() {
+            return Err("O caminho fornecido não é uma pasta válida.".to_string());
+        }
 
-    let mut conn = state.db.lock().map_err(|e| e.to_string())?;
-    let tx = conn.transaction().map_err(|e| e.to_string())?;
+        let entries = fs::read_dir(path).map_err(|e| e.to_string())?;
+        let mut count = 0usize;
 
-    {
-        let mut stmt = tx
-            .prepare(
-                "INSERT OR REPLACE INTO kanji_strokes (kanji, svg_data) VALUES (?1, ?2)",
-            )
-            .map_err(|e| e.to_string())?;
+        let mut conn = db_mutex.lock().map_err(|e| e.to_string())?;
+        let tx = conn.transaction().map_err(|e| e.to_string())?;
 
-        for entry in entries {
-            let entry = entry.map_err(|e| e.to_string())?;
-            let file_path = entry.path();
+        {
+            let mut stmt = tx
+                .prepare("INSERT OR REPLACE INTO kanji_strokes (kanji, svg_data) VALUES (?1, ?2)")
+                .map_err(|e| e.to_string())?;
 
-            if file_path.is_file()
-                && file_path
-                    .extension()
-                    .map(|ext| ext == "svg")
-                    .unwrap_or(false)
-            {
-                let file_name = file_path
-                    .file_stem()
-                    .and_then(|n| n.to_str())
-                    .unwrap_or("");
+            for entry in entries {
+                let entry = entry.map_err(|e| e.to_string())?;
+                let file_path = entry.path();
 
-                // Some KanjiVG files have variant suffixes like '05bdd-Kaisho', take the hex part
-                let hex_part = file_name.split('-').next().unwrap_or(file_name);
-
-                if let Ok(code_point) = u32::from_str_radix(hex_part, 16)
-                    && let Some(ch) = std::char::from_u32(code_point)
-                    && let Ok(svg_content) = fs::read_to_string(&file_path)
+                if file_path.is_file()
+                    && file_path
+                        .extension()
+                        .map(|ext| ext == "svg")
+                        .unwrap_or(false)
                 {
-                    stmt.execute(params![ch.to_string(), svg_content])
-                        .map_err(|e| e.to_string())?;
-                    total_inserted += 1;
+                    let file_name = file_path.file_stem().and_then(|n| n.to_str()).unwrap_or("");
+
+                    // Some KanjiVG files have variant suffixes like '05bdd-Kaisho', take the hex part
+                    let hex_part = file_name.split('-').next().unwrap_or(file_name);
+
+                    if let Ok(code_point) = u32::from_str_radix(hex_part, 16)
+                        && let Some(ch) = std::char::from_u32(code_point)
+                        && let Ok(svg_content) = fs::read_to_string(&file_path)
+                    {
+                        stmt.execute(params![ch.to_string(), svg_content])
+                            .map_err(|e| e.to_string())?;
+                        count += 1;
+                    }
                 }
             }
         }
-    }
 
-    tx.commit().map_err(|e| e.to_string())?;
+        tx.commit().map_err(|e| e.to_string())?;
+        Ok(count)
+    })
+    .await
+    .map_err(|e| format!("Falha na execução da tarefa em segundo plano: {}", e))??;
 
     let _ = window.emit(
         "backend-progress",
@@ -314,29 +316,35 @@ pub async fn import_frequency_list(
         // 1. Array of pairs: [["word", 1], ["word2", 2]]
         // 2. Array of objects: [{"term": "word", "rank": 1}]
         // 3. Object map: {"word": 1, "word2": 2}
-        let parsed: Value = serde_json::from_str(&content)
-            .map_err(|e| format!("Formato JSON inválido: {}", e))?;
+        let parsed: Value =
+            serde_json::from_str(&content).map_err(|e| format!("Formato JSON inválido: {}", e))?;
 
         match parsed {
             Value::Array(arr) => {
                 for item in arr {
                     if let Value::Array(pair) = item {
-                        if pair.len() >= 2 {
-                            if let (Some(term), Some(rank)) =
-                                (pair[0].as_str(), pair[1].as_i64().or_else(|| pair[1].as_str().and_then(|s| s.parse().ok())))
-                            {
-                                items.push((term.trim().to_string(), rank));
-                            }
+                        if pair.len() >= 2
+                            && let (Some(term), Some(rank)) = (
+                                pair[0].as_str(),
+                                pair[1]
+                                    .as_i64()
+                                    .or_else(|| pair[1].as_str().and_then(|s| s.parse().ok())),
+                            )
+                        {
+                            items.push((term.trim().to_string(), rank));
                         }
                     } else if let Value::Object(obj) = item {
                         let term_val = obj
                             .get("term")
                             .or_else(|| obj.get("word"))
                             .and_then(|v| v.as_str());
-                        let rank_val = obj
-                            .get("rank")
-                            .or_else(|| obj.get("ranking"))
-                            .and_then(|v| v.as_i64().or_else(|| v.as_str().and_then(|s| s.parse().ok())));
+                        let rank_val =
+                            obj.get("rank")
+                                .or_else(|| obj.get("ranking"))
+                                .and_then(|v| {
+                                    v.as_i64()
+                                        .or_else(|| v.as_str().and_then(|s| s.parse().ok()))
+                                });
 
                         if let (Some(term), Some(rank)) = (term_val, rank_val) {
                             items.push((term.trim().to_string(), rank));
@@ -346,7 +354,10 @@ pub async fn import_frequency_list(
             }
             Value::Object(map) => {
                 for (term, rank_val) in map {
-                    if let Some(rank) = rank_val.as_i64().or_else(|| rank_val.as_str().and_then(|s| s.parse().ok())) {
+                    if let Some(rank) = rank_val
+                        .as_i64()
+                        .or_else(|| rank_val.as_str().and_then(|s| s.parse().ok()))
+                    {
                         items.push((term.trim().to_string(), rank));
                     }
                 }
@@ -399,9 +410,11 @@ pub async fn import_frequency_list(
     let total = items.len();
     let _ = window.emit(
         "backend-progress",
-        format!("Importação concluída: {} palavras indexadas com ranking.", total),
+        format!(
+            "Importação concluída: {} palavras indexadas com ranking.",
+            total
+        ),
     );
 
     Ok(total)
 }
-

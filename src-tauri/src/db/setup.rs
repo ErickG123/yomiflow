@@ -139,11 +139,17 @@ pub fn create_tables_and_seed(conn: &Connection) -> Result<(), Box<dyn std::erro
     let _ = conn.execute("ALTER TABLE tags ADD COLUMN color TEXT", []);
 
     // Seed default deck if none exists
-    let deck_count: i64 = conn.query_row("SELECT COUNT(*) FROM decks", [], |row| row.get(0)).unwrap_or(0);
+    let deck_count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM decks", [], |row| row.get(0))
+        .unwrap_or(0);
     if deck_count == 0 {
         let _ = conn.execute(
             "INSERT INTO decks (id, name, description) VALUES (?1, ?2, ?3)",
-            params!["default", "Padrão", "Baralho principal de vocabulário e estudos"],
+            params![
+                "default",
+                "Padrão",
+                "Baralho principal de vocabulário e estudos"
+            ],
         );
     }
 
@@ -204,7 +210,11 @@ mod tests {
         ).unwrap();
 
         let card_reps: i32 = conn
-            .query_row("SELECT reps FROM cards WHERE id = ?1", params!["test-card-1"], |row| row.get(0))
+            .query_row(
+                "SELECT reps FROM cards WHERE id = ?1",
+                params!["test-card-1"],
+                |row| row.get(0),
+            )
             .unwrap();
         assert_eq!(card_reps, 1);
 
@@ -212,7 +222,8 @@ mod tests {
         conn.execute(
             "INSERT INTO kanji_strokes (kanji, svg_data) VALUES (?1, ?2)",
             params!["日", "<svg><path d=\"M...\"/></svg>"],
-        ).unwrap();
+        )
+        .unwrap();
 
         let svg: String = conn
             .query_row(
@@ -232,7 +243,11 @@ mod tests {
 
         // Check default deck exists
         let default_deck_exists: i64 = conn
-            .query_row("SELECT COUNT(*) FROM decks WHERE id = 'default'", [], |row| row.get(0))
+            .query_row(
+                "SELECT COUNT(*) FROM decks WHERE id = 'default'",
+                [],
+                |row| row.get(0),
+            )
             .unwrap();
         assert_eq!(default_deck_exists, 1);
 
@@ -240,13 +255,15 @@ mod tests {
         conn.execute(
             "INSERT INTO decks (id, name, description) VALUES (?1, ?2, ?3)",
             params!["deck-jlpt-n3", "JLPT N3", "Vocabulário intermediário"],
-        ).unwrap();
+        )
+        .unwrap();
 
         // Create a tag
         conn.execute(
             "INSERT INTO tags (id, name, color) VALUES (?1, ?2, ?3)",
             params!["tag-verbs", "Verbos", "#3b82f6"],
-        ).unwrap();
+        )
+        .unwrap();
 
         // Insert a card in custom deck
         conn.execute(
@@ -258,25 +275,40 @@ mod tests {
         conn.execute(
             "INSERT INTO card_tags (card_id, tag_id) VALUES (?1, ?2)",
             params!["card-custom-1", "tag-verbs"],
-        ).unwrap();
+        )
+        .unwrap();
 
         // Assert card_tag exists
         let ct_count: i64 = conn
-            .query_row("SELECT COUNT(*) FROM card_tags WHERE card_id = 'card-custom-1'", [], |row| row.get(0))
+            .query_row(
+                "SELECT COUNT(*) FROM card_tags WHERE card_id = 'card-custom-1'",
+                [],
+                |row| row.get(0),
+            )
             .unwrap();
         assert_eq!(ct_count, 1);
 
         // Delete the card and verify CASCADE deletes from card_tags
-        conn.execute("DELETE FROM cards WHERE id = 'card-custom-1'", []).unwrap();
+        conn.execute("DELETE FROM cards WHERE id = 'card-custom-1'", [])
+            .unwrap();
         let ct_count_after: i64 = conn
-            .query_row("SELECT COUNT(*) FROM card_tags WHERE card_id = 'card-custom-1'", [], |row| row.get(0))
+            .query_row(
+                "SELECT COUNT(*) FROM card_tags WHERE card_id = 'card-custom-1'",
+                [],
+                |row| row.get(0),
+            )
             .unwrap();
         assert_eq!(ct_count_after, 0);
 
         // Deleting the tag cascades to any remaining references
-        conn.execute("DELETE FROM tags WHERE id = 'tag-verbs'", []).unwrap();
+        conn.execute("DELETE FROM tags WHERE id = 'tag-verbs'", [])
+            .unwrap();
         let tag_count: i64 = conn
-            .query_row("SELECT COUNT(*) FROM tags WHERE id = 'tag-verbs'", [], |row| row.get(0))
+            .query_row(
+                "SELECT COUNT(*) FROM tags WHERE id = 'tag-verbs'",
+                [],
+                |row| row.get(0),
+            )
             .unwrap();
         assert_eq!(tag_count, 0);
 
@@ -286,15 +318,23 @@ mod tests {
             params!["card-custom-2", 1, "deck-jlpt-n3", 1700000000, 2.5, 0.3, 0, 0],
         ).unwrap();
         let card_before: i64 = conn
-            .query_row("SELECT COUNT(*) FROM cards WHERE deck_id = 'deck-jlpt-n3'", [], |row| row.get(0))
+            .query_row(
+                "SELECT COUNT(*) FROM cards WHERE deck_id = 'deck-jlpt-n3'",
+                [],
+                |row| row.get(0),
+            )
             .unwrap();
         assert_eq!(card_before, 1);
 
-        conn.execute("DELETE FROM decks WHERE id = 'deck-jlpt-n3'", []).unwrap();
+        conn.execute("DELETE FROM decks WHERE id = 'deck-jlpt-n3'", [])
+            .unwrap();
         let card_after: i64 = conn
-            .query_row("SELECT COUNT(*) FROM cards WHERE deck_id = 'deck-jlpt-n3'", [], |row| row.get(0))
+            .query_row(
+                "SELECT COUNT(*) FROM cards WHERE deck_id = 'deck-jlpt-n3'",
+                [],
+                |row| row.get(0),
+            )
             .unwrap();
         assert_eq!(card_after, 0);
     }
 }
-

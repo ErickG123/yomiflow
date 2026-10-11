@@ -74,7 +74,7 @@ mod tests {
     fn test_analyze_japanese_sentence_pos_tagging() {
         let text = "私は学生です".to_string();
         let tokens = analyze_japanese_text(text).unwrap();
-        
+
         assert!(!tokens.is_empty());
         // 私 -> noun
         assert_eq!(tokens[0].surface, "私");

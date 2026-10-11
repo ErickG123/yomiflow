@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "YomiFlow",
   "version": "1.0.0",
-  "identifier": "com.yomiflow.app",
+  "identifier": "com.yomiflow.desktop",
   "build": {
     "frontendDist": "../dist/yomiflow/browser",
     "devUrl": "http://localhost:4200",

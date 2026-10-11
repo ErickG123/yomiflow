@@ -4,13 +4,13 @@ pub mod domain;
 pub mod importer;
 pub mod models;
 
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{Manager, WindowEvent};
 
 pub struct AppState {
-    pub db: Mutex<rusqlite::Connection>,
+    pub db: Arc<Mutex<rusqlite::Connection>>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -33,7 +33,7 @@ pub fn run() {
                 .map_err(|e| Box::<dyn std::error::Error>::from(e.to_string()))?;
 
             app.manage(AppState {
-                db: Mutex::new(conn),
+                db: Arc::new(Mutex::new(conn)),
             });
 
             // Create context menu items for system tray

@@ -195,13 +195,15 @@ flowchart LR
     E --> F[Tauri Bundle .exe]
 ```
 
-### Checklist Obrigatório de CI:
-- [ ] **Lint do Frontend:** `npm run lint` finaliza com código 0 (sem erros de tipagem estrita ou regras de arquitetura).
-- [ ] **Testes do Frontend:** `npm run test:ci` passa com 100% de sucesso em todas as suítes.
-- [ ] **Formatação Rust:** `cargo fmt --check --manifest-path src-tauri/Cargo.toml`.
+### Checklist Obrigatório de CI (Pré-Commit & Push):
+- [ ] **Lint do Frontend:** `npm run lint` finaliza com código 0 (sem erros de ESLint ou variáveis/atribuições não utilizadas).
+- [ ] **Testes do Frontend:** `npm run test:ci` passa com 100% de sucesso em todas as suítes (Vitest).
+- [ ] **Build de Produção:** `npm run build` compila todos os chunks de forma otimizada sem warnings ou erros de template.
+- [ ] **Auditoria de i18n:** Todos os textos de UI usam `Transloco` e as chaves existem de forma sincronizada em `pt.json`, `en.json` e `es.json`.
+- [ ] **Formatação Rust:** `cargo fmt -- --check --manifest-path src-tauri/Cargo.toml` sem divergências de estilo.
 - [ ] **Linter Rust:** `cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings` sem avisos.
-- [ ] **Testes do Backend:** `cargo test --lib --manifest-path src-tauri/Cargo.toml` passa em todos os testes unitários e de integração.
-- [ ] **Build de Produção:** `npm run build` compila todos os chunks de forma otimizada.
+- [ ] **Testes do Backend:** `cargo test --manifest-path src-tauri/Cargo.toml` passa em todos os testes unitários e de integração.
+- [ ] **Checagem do Backend:** `cargo check --manifest-path src-tauri/Cargo.toml` compila sem erros.
 
 ---
 

@@ -71,14 +71,19 @@ erDiagram
 - **Validação de Entrada:**
   - Parâmetros opcionais como `deck_id` são tratados como `Option<String>` e repassados por binding seguro nos prepared statements.
 
-## 5. Comandos de Validação e Testes
-- **Testes Backend (Rust):**
+## 5. Comandos de Validação, Lint, Build & CI
+Antes de efetuar commit ou push de qualquer alteração, execute a suíte de validação do CI:
+- **Frontend (Angular):**
   ```bash
-  cargo test --manifest-path src-tauri/Cargo.toml commands::srs
-  cargo test --manifest-path src-tauri/Cargo.toml db::setup
-  ```
-- **Testes Frontend (Angular):**
-  ```bash
-  npm test
+  npm run lint
+  npm run test:ci
   npm run build
+  ```
+  *(Validar que todos os novos elementos de UI utilizam chaves Transloco e que estão sincronizadas nos dicionários i18n).*
+- **Backend (Rust):**
+  ```bash
+  cargo fmt -- --check --manifest-path src-tauri/Cargo.toml
+  cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+  cargo test --manifest-path src-tauri/Cargo.toml
+  cargo check --manifest-path src-tauri/Cargo.toml
   ```

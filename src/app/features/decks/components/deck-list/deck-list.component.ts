@@ -6,12 +6,13 @@ import {
   signal,
 } from '@angular/core'
 import { Router } from '@angular/router'
+import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
 import { DeckService } from '../../services/deck.service'
 
 @Component({
   selector: 'app-deck-list',
   standalone: true,
-  imports: [],
+  imports: [TranslocoDirective],
   templateUrl: './deck-list.component.html',
   styleUrl: './deck-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,6 +20,7 @@ import { DeckService } from '../../services/deck.service'
 export class DeckListComponent implements OnInit {
   readonly deckService = inject(DeckService)
   private readonly router = inject(Router)
+  private readonly translocoService = inject(TranslocoService, { optional: true })
 
   readonly isCreateModalOpen = signal<boolean>(false)
   readonly newDeckName = signal<string>('')
@@ -57,7 +59,8 @@ export class DeckListComponent implements OnInit {
       this.newDeckDescription.set('')
     } catch (err) {
       console.error('Failed to create deck:', err)
-      alert(`Erro ao criar baralho: ${err}`)
+      const errPrefix = this.translocoService?.translate('decks.create_error') ?? 'Erro ao criar baralho:'
+      alert(`${errPrefix} ${err}`)
     } finally {
       this.isSubmitting.set(false)
     }
@@ -65,7 +68,10 @@ export class DeckListComponent implements OnInit {
 
   async deleteDeck(id: string, event: Event): Promise<void> {
     event.stopPropagation()
-    if (!confirm('Deseja realmente excluir este baralho? Os cartões associados serão movidos para o baralho padrão.')) {
+    const confirmMsg =
+      this.translocoService?.translate('decks.delete_confirm') ??
+      'Deseja realmente excluir este baralho? Os cartões associados serão movidos para o baralho padrão.'
+    if (!confirm(confirmMsg)) {
       return
     }
 
@@ -73,7 +79,8 @@ export class DeckListComponent implements OnInit {
       await this.deckService.deleteDeck(id)
     } catch (err) {
       console.error('Failed to delete deck:', err)
-      alert(`Erro ao excluir baralho: ${err}`)
+      const errPrefix = this.translocoService?.translate('decks.delete_error') ?? 'Erro ao excluir baralho:'
+      alert(`${errPrefix} ${err}`)
     }
   }
 

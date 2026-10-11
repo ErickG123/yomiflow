@@ -2,12 +2,14 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { Router } from '@angular/router'
 import { open } from '@tauri-apps/plugin-dialog'
 import { invoke } from '@tauri-apps/api/core'
+import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
 import { AiModelService } from '../../../reader/services/ai-model.service'
 import { OnboardingStep } from '../../models/onboarding.model'
 
 @Component({
   selector: 'app-onboarding',
   standalone: true,
+  imports: [TranslocoDirective],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,6 +17,7 @@ import { OnboardingStep } from '../../models/onboarding.model'
 export class OnboardingComponent implements OnInit {
   private readonly router = inject(Router)
   readonly aiService = inject(AiModelService)
+  private readonly translocoService = inject(TranslocoService, { optional: true })
 
   readonly step = signal<OnboardingStep>('welcome')
   readonly isAiReady = signal<boolean>(false)
@@ -59,10 +62,13 @@ export class OnboardingComponent implements OnInit {
 
   async selectAndImportKanjiVgFolder(): Promise<void> {
     try {
+      const dialogTitle =
+        this.translocoService?.translate('onboarding.kanjivg_step.folder_dialog_title') ??
+        'Selecionar pasta contendo ficheiros SVG do KanjiVG'
       const selected = await open({
         directory: true,
         multiple: false,
-        title: 'Selecionar pasta contendo ficheiros SVG do KanjiVG',
+        title: dialogTitle,
       })
 
       if (!selected || typeof selected !== 'string') {
@@ -76,7 +82,10 @@ export class OnboardingComponent implements OnInit {
       this.importedKanjiCount.set(count)
     } catch (err) {
       console.error('Erro ao importar pasta KanjiVG:', err)
-      alert(`Falha ao importar KanjiVG: ${err}`)
+      const alertPrefix =
+        this.translocoService?.translate('onboarding.kanjivg_step.error_alert') ??
+        'Falha ao importar KanjiVG:'
+      alert(`${alertPrefix} ${err}`)
     } finally {
       this.isImporting.set(false)
     }
