@@ -2,4 +2,8 @@
   display: block;
   height: 5rem;
   flex: 0 0 5rem;
+  overflow: visible;
+  transition:
+    height 300ms ease-in-out,
+    flex-basis 300ms ease-in-out;
 }

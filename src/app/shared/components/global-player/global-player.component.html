@@ -1,7 +1,18 @@
 <footer
   [style.left.px]="sidebarOffset()"
-  class="fixed bottom-0 right-0 z-50 grid h-20 grid-cols-[1fr_1.3fr_1fr] items-center border-t border-zinc-800 bg-zinc-950/95 px-5 shadow-2xl backdrop-blur"
+  [class.translate-y-16]="!isPlayerExpanded()"
+  class="fixed bottom-0 right-0 z-50 grid h-20 grid-cols-[1fr_1.3fr_1fr] items-center border-t border-zinc-800 bg-zinc-950/95 px-5 shadow-2xl backdrop-blur transition-transform duration-300 ease-in-out"
 >
+  <button
+    type="button"
+    class="absolute -top-4 left-1/2 z-[60] flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-zinc-300 shadow-lg transition-colors hover:bg-zinc-800 hover:text-white"
+    [attr.aria-expanded]="isPlayerExpanded()"
+    [attr.aria-label]="isPlayerExpanded() ? 'Recolher Player' : 'Expandir Player'"
+    [title]="isPlayerExpanded() ? 'Recolher Player' : 'Expandir Player'"
+    (click)="togglePlayer()"
+  >
+    <i [class]="isPlayerExpanded() ? 'pi pi-chevron-down' : 'pi pi-chevron-up'"></i>
+  </button>
   <div class="flex min-w-0 items-center gap-3">
     @if (player.track()?.cover_data_url; as cover) {
       <img
