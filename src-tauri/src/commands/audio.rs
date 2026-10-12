@@ -185,6 +185,55 @@ pub fn get_audio_library(state: State<'_, AppState>) -> Result<Vec<AudioTrackMet
         .map_err(|error| error.to_string())
 }
 
+#[tauri::command]
+pub async fn import_audio_folder(
+    folder_path: String,
+    state: State<'_, AppState>,
+) -> Result<Vec<AudioTrackMetadata>, String> {
+    let root = Path::new(&folder_path).to_path_buf();
+    if !root.is_dir() {
+        return Err("A pasta de áudio selecionada não existe ou não pode ser lida.".into());
+    }
+    let db = state.db.clone();
+    tokio::task::spawn_blocking(move || {
+        let mut paths = walkdir::WalkDir::new(&root)
+            .follow_links(false)
+            .into_iter()
+            .filter_map(Result::ok)
+            .filter(|entry| entry.file_type().is_file())
+            .filter(|entry| {
+                entry
+                    .path()
+                    .extension()
+                    .and_then(|extension| extension.to_str())
+                    .is_some_and(|extension| {
+                        matches!(extension.to_ascii_lowercase().as_str(), "mp3" | "wav" | "m4a" | "flac" | "ogg")
+                    })
+            })
+            .map(|entry| entry.path().to_path_buf())
+            .collect::<Vec<_>>();
+        paths.sort_by_key(|path| path.file_name().unwrap_or_default().to_string_lossy().to_lowercase());
+
+        let mut connection = db.lock().map_err(|error| error.to_string())?;
+        let transaction = connection.transaction().map_err(|error| error.to_string())?;
+        let mut tracks = Vec::with_capacity(paths.len());
+        for path in paths {
+            let absolute_path = path.canonicalize().unwrap_or(path.clone());
+            let mut metadata = extract_metadata(&absolute_path, 0);
+            if metadata.album.is_empty() {
+                metadata.album = root.file_name().and_then(|name| name.to_str()).unwrap_or_default().to_owned();
+            }
+            transaction.execute(
+                "INSERT INTO audio_library (path, title, artist, album, cover_data_url, duration_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6) ON CONFLICT(path) DO UPDATE SET title = excluded.title, artist = excluded.artist, album = excluded.album, cover_data_url = excluded.cover_data_url, duration_ms = excluded.duration_ms",
+                params![metadata.path, metadata.title, metadata.artist, metadata.album, metadata.cover_data_url, metadata.duration_ms],
+            ).map_err(|error| error.to_string())?;
+            tracks.push(metadata);
+        }
+        transaction.commit().map_err(|error| error.to_string())?;
+        Ok(tracks)
+    }).await.map_err(|error| error.to_string())?
+}
+
 pub fn start_listening_tracker(runtime: Arc<AudioRuntime>) {
     std::thread::spawn(move || {
         loop {

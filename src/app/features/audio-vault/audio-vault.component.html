@@ -7,13 +7,38 @@
       <h1 class="text-3xl font-bold">{{ 'audioVault.title' | transloco }}</h1>
       <p class="mt-2 text-zinc-400">{{ 'audioVault.subtitle' | transloco }}</p>
     </div>
-    <button
-      class="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-zinc-950 hover:bg-emerald-400"
-      (click)="player.chooseAndPlay()"
-    >
-      <i class="pi pi-plus"></i> {{ 'audioVault.import' | transloco }}
-    </button>
+    <div class="flex flex-wrap gap-3">
+      <button
+        class="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-white hover:bg-emerald-400"
+        (click)="player.chooseAndPlay()"
+      >
+        <i class="pi pi-plus"></i> {{ 'audioVault.import' | transloco }}
+      </button>
+      <button
+        class="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 font-semibold text-white hover:bg-zinc-800"
+        (click)="importFolder()"
+      >
+        <i class="pi pi-folder-open"></i> Import Folder
+      </button>
+    </div>
   </header>
+
+  @if (importNotice(); as notice) {
+    <div
+      class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-200"
+      role="status"
+    >
+      <span>{{ notice }}</span>
+      @if (pendingFolderTracks().length) {
+        <button
+          class="rounded-lg bg-emerald-600 px-3 py-2 font-semibold text-white hover:bg-emerald-500"
+          (click)="addImportedFolderToQueue()"
+        >
+          Adicionar pasta à fila de reprodução
+        </button>
+      }
+    </div>
+  }
 
   <section class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
     <h2 class="mb-4 text-lg font-semibold">{{ 'audioVault.queue' | transloco }}</h2>

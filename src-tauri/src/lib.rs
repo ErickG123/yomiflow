@@ -229,7 +229,8 @@ pub fn run() {
             commands::audio::seek_to,
             commands::audio::get_audio_player_snapshot,
             commands::audio::get_passive_listening_history,
-            commands::audio::get_audio_library
+            commands::audio::get_audio_library,
+            commands::audio::import_audio_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

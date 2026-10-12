@@ -80,6 +80,29 @@ export class GlobalAudioPlayerService {
     this.library.set(await invoke<AudioTrackMetadata[]>('get_audio_library'))
   }
 
+  async chooseFolderAndImport(): Promise<AudioTrackMetadata[] | null> {
+    const selected = await open({ multiple: false, directory: true })
+    if (typeof selected !== 'string') return null
+    const tracks = await invoke<AudioTrackMetadata[]>('import_audio_folder', {
+      folderPath: selected,
+    })
+    if (tracks.length) {
+      const importedPaths = new Set(tracks.map((track) => track.path))
+      this.library.update((library) => [
+        ...tracks,
+        ...library.filter((track) => !importedPaths.has(track.path)),
+      ])
+    }
+    return tracks
+  }
+
+  enqueueTracks(tracks: AudioTrackMetadata[]): void {
+    this.queue.update((queue) => {
+      const queuedPaths = new Set(queue.map((track) => track.path))
+      return [...queue, ...tracks.filter((track) => !queuedPaths.has(track.path))]
+    })
+  }
+
   formatTime(milliseconds: number): string {
     const totalSeconds = Math.floor(milliseconds / 1000)
     return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, '0')}`
