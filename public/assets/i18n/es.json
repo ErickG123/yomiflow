@@ -326,6 +326,11 @@
   },
   "decks": {
     "title": "Mazos de Estudio (Decks)",
+    "modal_title": "Crear Nuevo Mazo",
+    "deck_name_label": "Nombre del Mazo *",
+    "deck_name_placeholder": "Ej.: JLPT N3, Vocabulario de Anime...",
+    "deck_desc_label": "Descripción (Opcional)",
+    "deck_desc_placeholder": "Añade un resumen u objetivo de estudio...",
     "subtitle": "Segmentación de revisiones por temas, listas JLPT y medios",
     "new_deck": "Nuevo Mazo",
     "delete_deck": "Eliminar Mazo",

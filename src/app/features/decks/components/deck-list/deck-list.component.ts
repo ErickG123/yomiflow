@@ -1,18 +1,12 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core'
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core'
 import { Router } from '@angular/router'
-import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
+import { TranslocoDirective, TranslocoPipe, TranslocoService } from '@ngneat/transloco'
 import { DeckService } from '../../services/deck.service'
 
 @Component({
   selector: 'app-deck-list',
   standalone: true,
-  imports: [TranslocoDirective],
+  imports: [TranslocoDirective, TranslocoPipe],
   templateUrl: './deck-list.component.html',
   styleUrl: './deck-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,7 +53,8 @@ export class DeckListComponent implements OnInit {
       this.newDeckDescription.set('')
     } catch (err) {
       console.error('Failed to create deck:', err)
-      const errPrefix = this.translocoService?.translate('decks.create_error') ?? 'Erro ao criar baralho:'
+      const errPrefix =
+        this.translocoService?.translate('decks.create_error') ?? 'Erro ao criar baralho:'
       alert(`${errPrefix} ${err}`)
     } finally {
       this.isSubmitting.set(false)
@@ -79,7 +74,8 @@ export class DeckListComponent implements OnInit {
       await this.deckService.deleteDeck(id)
     } catch (err) {
       console.error('Failed to delete deck:', err)
-      const errPrefix = this.translocoService?.translate('decks.delete_error') ?? 'Erro ao excluir baralho:'
+      const errPrefix =
+        this.translocoService?.translate('decks.delete_error') ?? 'Erro ao excluir baralho:'
       alert(`${errPrefix} ${err}`)
     }
   }

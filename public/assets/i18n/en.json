@@ -326,6 +326,11 @@
   },
   "decks": {
     "title": "Study Decks",
+    "modal_title": "Create New Deck",
+    "deck_name_label": "Deck Name *",
+    "deck_name_placeholder": "e.g. JLPT N3, Anime Vocabulary...",
+    "deck_desc_label": "Description (Optional)",
+    "deck_desc_placeholder": "Add a summary or study goal...",
     "subtitle": "Review segmentation by topics, JLPT levels and media",
     "new_deck": "New Deck",
     "delete_deck": "Delete Deck",

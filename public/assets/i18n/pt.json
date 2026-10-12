@@ -327,6 +327,11 @@
   },
   "decks": {
     "title": "Baralhos de Estudo (Decks)",
+    "modal_title": "Criar Novo Baralho",
+    "deck_name_label": "Nome do Baralho *",
+    "deck_name_placeholder": "Ex.: JLPT N3, Vocabulário de Anime...",
+    "deck_desc_label": "Descrição (Opcional)",
+    "deck_desc_placeholder": "Adicione um resumo ou objetivo de estudo...",
     "subtitle": "Segmentação de revisões por tópicos, listas JLPT e mídias",
     "new_deck": "Novo Baralho",
     "delete_deck": "Excluir Baralho",
