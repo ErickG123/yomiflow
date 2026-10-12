@@ -1,0 +1,79 @@
+<footer
+  [style.left.px]="sidebarOffset()"
+  class="fixed bottom-0 right-0 z-50 grid h-20 grid-cols-[1fr_1.3fr_1fr] items-center border-t border-zinc-800 bg-zinc-950/95 px-5 shadow-2xl backdrop-blur"
+>
+  <div class="flex min-w-0 items-center gap-3">
+    @if (player.track()?.cover_data_url; as cover) {
+      <img
+        class="h-12 w-12 rounded object-cover"
+        [src]="cover"
+        [alt]="player.track()?.album || 'Album cover'"
+      />
+    } @else {
+      <div class="flex h-12 w-12 items-center justify-center rounded bg-zinc-800 text-zinc-400">
+        <i class="pi pi-headphones"></i>
+      </div>
+    }
+    <div class="min-w-0">
+      <div class="truncate text-sm font-medium text-zinc-100">
+        {{ player.track()?.title || 'Cofre de Áudio' }}
+      </div>
+      <div class="truncate text-xs text-zinc-400">
+        {{ player.track()?.artist || 'Imersão passiva' }}
+      </div>
+    </div>
+  </div>
+
+  <div class="mx-auto flex w-full max-w-xl flex-col items-center gap-1">
+    <div class="flex items-center gap-5 text-zinc-300">
+      <button aria-label="Anterior" class="hover:text-white" (click)="player.playNext(-1)">
+        <i class="pi pi-step-backward"></i>
+      </button>
+      <button
+        aria-label="Reproduzir ou pausar"
+        class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-950 hover:scale-105"
+        (click)="player.togglePlayback()"
+      >
+        <i [class]="player.isPlaying() ? 'pi pi-pause' : 'pi pi-play'"></i>
+      </button>
+      <button aria-label="Próxima" class="hover:text-white" (click)="player.playNext(1)">
+        <i class="pi pi-step-forward"></i>
+      </button>
+    </div>
+    <div class="flex w-full items-center gap-2 text-[10px] text-zinc-500">
+      <span>{{ player.formatTime(player.positionMs()) }}</span>
+      <input
+        aria-label="Progresso da faixa"
+        class="h-1 flex-1 accent-emerald-500"
+        type="range"
+        min="0"
+        [max]="player.track()?.duration_ms || 1"
+        [ngModel]="player.positionMs()"
+        (ngModelChange)="player.seek($event)"
+      />
+      <span>{{ player.formatTime(player.track()?.duration_ms || 0) }}</span>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-end gap-4 text-zinc-400">
+    <a
+      routerLink="/audio-vault"
+      aria-label="Fila e Cofre de Áudio"
+      title="Fila e Cofre de Áudio"
+      class="hover:text-white"
+      ><i class="pi pi-list"></i
+    ></a>
+    <i class="pi pi-volume-up text-sm"></i>
+    <input
+      aria-label="Volume"
+      class="w-24 accent-emerald-500"
+      type="range"
+      min="0"
+      max="1"
+      step="0.01"
+      [ngModel]="player.volume()"
+      (ngModelChange)="player.setVolume($event)"
+    />
+    <span class="text-[10px]" title="Rastreamento local ativo">● Local</span>
+  </div>
+</footer>

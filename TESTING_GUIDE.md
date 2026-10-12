@@ -445,3 +445,23 @@ Migration tests use only `Connection::open_in_memory()` and never touch the prod
 
    cargo test grammar_linter_suggests_ga_for_wakaru_potential_usage
    npm run test:ci -- --run src/app/features/notebook/extensions/grammar-linter.extension.spec.ts
+
+### Cenário M: Cofre de Áudio e Imersão Passiva
+
+**Objetivo:** Confirmar que o player persiste ao navegar, importa metadados locais e registra somente o tempo reproduzido.
+
+1. Abra `/audio-vault` e importe um MP3 com tags ID3. Confirme título, artista e capa quando esses metadados existirem.
+2. Inicie a faixa e navegue para Dashboard ou Caderno. A barra global deve permanecer visível e o áudio deve continuar.
+3. Pause por alguns segundos e confirme que o tempo do histórico não aumenta durante a pausa; retome por alguns segundos e pause novamente.
+4. Volte ao Cofre. Confirme a faixa na Biblioteca e a sessão no Histórico. Para verificar diretamente, consulte `SELECT title, listened_ms FROM passive_listening_log ORDER BY updated_at DESC LIMIT 1;` no banco de dados de desenvolvimento.
+5. Ajuste volume, busque uma posição no slider e use anterior/próxima com duas faixas importadas. Feche e reabra a janela: a biblioteca deve continuar disponível no SQLite.
+
+### Cenário M: Cofre de Áudio e Imersão Passiva
+
+**Objetivo:** Confirmar que o player persiste ao navegar, importa metadados locais e registra somente o tempo reproduzido.
+
+1. Abra `/audio-vault` e importe um MP3 com tags ID3. Confirme título, artista e capa quando esses metadados existirem.
+2. Inicie a faixa e navegue para Dashboard ou Caderno. A barra global deve permanecer visível e o áudio deve continuar.
+3. Pause por alguns segundos e confirme que o tempo do histórico não aumenta durante a pausa; retome por alguns segundos e pause novamente.
+4. Volte ao Cofre. Confirme a faixa na Biblioteca e a sessão no Histórico. Para verificar diretamente, consulte `SELECT title, listened_ms FROM passive_listening_log ORDER BY updated_at DESC LIMIT 1;` no banco de dados de desenvolvimento.
+5. Ajuste volume, busque uma posição no slider e use anterior/próxima com duas faixas importadas. Feche e reabra a janela: a biblioteca deve continuar disponível no SQLite.

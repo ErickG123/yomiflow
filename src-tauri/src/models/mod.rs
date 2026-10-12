@@ -21,3 +21,4 @@ pub use reader::*;
 pub use search::*;
 pub use srs::*;
 pub use system::*;
+pub mod audio;

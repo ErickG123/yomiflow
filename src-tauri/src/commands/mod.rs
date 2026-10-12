@@ -1,4 +1,5 @@
 pub mod ai_ocr;
+pub mod audio;
 pub mod dictionary;
 pub mod discord;
 pub mod drive_sync;

@@ -1,0 +1,96 @@
+<main class="h-full w-full overflow-y-auto p-6 text-zinc-100 md:p-8">
+  <header class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div>
+      <p class="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-emerald-400">
+        Immersion
+      </p>
+      <h1 class="text-3xl font-bold">Cofre de Áudio</h1>
+      <p class="mt-2 text-zinc-400">
+        Suas faixas locais e tempo de exposição passiva, guardados neste dispositivo.
+      </p>
+    </div>
+    <button
+      class="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-zinc-950 hover:bg-emerald-400"
+      (click)="player.chooseAndPlay()"
+    >
+      <i class="pi pi-plus"></i> Importar e reproduzir áudio
+    </button>
+  </header>
+
+  <section class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+    <h2 class="mb-4 text-lg font-semibold">Fila de reprodução</h2>
+    @if (player.queue().length) {
+      <div class="divide-y divide-zinc-800">
+        @for (track of player.queue(); track track.path) {
+          <button
+            class="flex w-full items-center gap-4 py-3 text-left hover:bg-zinc-800/50"
+            (click)="player.playPath(track.path)"
+          >
+            <i class="pi pi-play text-emerald-400"></i>
+            <span class="min-w-0 flex-1 truncate font-medium">{{ track.title }}</span>
+            <span class="text-sm text-zinc-500">{{ track.artist || 'Artista desconhecido' }}</span>
+            <span class="text-xs text-zinc-500">{{ player.formatTime(track.duration_ms) }}</span>
+          </button>
+        }
+      </div>
+    } @else {
+      <p class="text-sm text-zinc-500">Importe um MP3 ou outro arquivo de áudio para começar.</p>
+    }
+  </section>
+
+  <section class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+    <h2 class="mb-4 text-lg font-semibold">Biblioteca de áudio</h2>
+    @if (player.library().length) {
+      <div class="divide-y divide-zinc-800">
+        @for (track of player.library(); track track.path) {
+          <button
+            class="flex w-full items-center gap-4 py-3 text-left hover:bg-zinc-800/50"
+            (click)="player.playPath(track.path)"
+          >
+            <i class="pi pi-play text-emerald-400"></i>
+            <span class="min-w-0 flex-1 truncate font-medium">{{ track.title }}</span>
+            <span class="text-sm text-zinc-500">{{ track.artist || 'Artista desconhecido' }}</span>
+            <span class="text-xs text-zinc-500">{{ player.formatTime(track.duration_ms) }}</span>
+          </button>
+        }
+      </div>
+    } @else {
+      <p class="text-sm text-zinc-500">Nenhuma faixa importada ainda.</p>
+    }
+  </section>
+
+  <section class="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+    <div class="mb-4 flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-semibold">Histórico de imersão</h2>
+        <p class="text-sm text-zinc-500">Tempo efetivamente reproduzido por sessão.</p>
+      </div>
+      <button
+        class="text-sm text-emerald-400 hover:text-emerald-300"
+        (click)="player.loadHistory()"
+      >
+        Atualizar
+      </button>
+    </div>
+    @if (player.history().length) {
+      <div class="divide-y divide-zinc-800">
+        @for (entry of player.history(); track entry.id) {
+          <div class="flex flex-wrap items-center gap-2 py-3">
+            <div class="min-w-0 flex-1">
+              <div class="truncate font-medium">{{ entry.title }}</div>
+              <div class="text-xs text-zinc-500">
+                {{ entry.artist || 'Artista desconhecido' }} ·
+                {{ entry.updated_at | date: 'medium' }}
+              </div>
+            </div>
+            <span class="rounded-full bg-emerald-500/10 px-3 py-1 text-sm text-emerald-300">{{
+              player.formatTime(entry.listened_ms)
+            }}</span>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="text-sm text-zinc-500">As sessões de áudio aparecerão aqui conforme você escuta.</p>
+    }
+  </section>
+</main>

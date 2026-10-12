@@ -25,6 +25,7 @@ Mastering Japanese through immersion traditionally requires stitching together a
 - **Manga Reader with Zero-Copy Neural OCR:** Open archive packages (`.cbz`, `.zip`, `.cbr`, `.rar`) directly from memory without extracting directories to disk. Box speech bubbles on the page to trigger local vision-to-text inference powered by MangaOCR on ONNX Runtime (`ort`).
 - **Video Player with FFmpeg Extraction:** Stream `.mkv` and `.mp4` video locally with sub-millisecond hover dictionary lookups on embedded subtitle streams. Automatically slice native audio clips and extract context screenshots via FFmpeg to generate rich multimedia flashcards with a single click.
 - **NHK Web Easy Offline Reader:** Cache articles and native audio clips into local SQLite storage for distraction-free reading with integrated morphological hover breakdown.
+- **Passive Immersion Audio Tracker & Global Player:** A persistent player continues across route changes, reads local MP3 metadata and album art, saves an audio library, and records listened milliseconds per session in SQLite.
 
 ### Relational SRS & Gamification
 

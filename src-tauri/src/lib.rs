@@ -33,9 +33,12 @@ pub fn run() {
             let conn = db::initialize_database(app.handle())
                 .map_err(|e| Box::<dyn std::error::Error>::from(e.to_string()))?;
 
-            app.manage(AppState {
-                db: Arc::new(Mutex::new(conn)),
-            });
+            let db = Arc::new(Mutex::new(conn));
+            let audio_runtime = Arc::new(commands::audio::AudioRuntime::new(db.clone()));
+            commands::audio::start_listening_tracker(audio_runtime.clone());
+
+            app.manage(AppState { db });
+            app.manage(audio_runtime);
 
             // Create grouped system tray actions
             let start_pomodoro_i = MenuItem::with_id(
@@ -216,7 +219,15 @@ pub fn run() {
             commands::image_occlusion::answer_image_occlusion_card,
             commands::interleaving::get_interleaved_review_queue,
             commands::interleaving::answer_grammar_review,
-            commands::search::global_search
+            commands::search::global_search,
+            commands::audio::play_audio,
+            commands::audio::pause_audio,
+            commands::audio::resume_audio,
+            commands::audio::set_volume,
+            commands::audio::seek_to,
+            commands::audio::get_audio_player_snapshot,
+            commands::audio::get_passive_listening_history,
+            commands::audio::get_audio_library
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");

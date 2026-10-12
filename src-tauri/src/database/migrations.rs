@@ -100,6 +100,28 @@ SELECT 'news:' || id, 'news', title, COALESCE(body_text, ''), ''
 FROM nhk_news_cache;
 "#;
 
+const PASSIVE_AUDIO_MIGRATION: &str = r#"
+CREATE TABLE IF NOT EXISTS passive_listening_log (
+    id TEXT PRIMARY KEY,
+    track_path TEXT NOT NULL,
+    title TEXT NOT NULL,
+    artist TEXT NOT NULL DEFAULT '',
+    listened_ms INTEGER NOT NULL DEFAULT 0,
+    started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_passive_listening_updated_at ON passive_listening_log(updated_at);
+CREATE TABLE IF NOT EXISTS audio_library (
+    path TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    artist TEXT NOT NULL DEFAULT '',
+    album TEXT NOT NULL DEFAULT '',
+    cover_data_url TEXT,
+    duration_ms INTEGER NOT NULL DEFAULT 0,
+    imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+"#;
+
 pub static MIGRATIONS: &[Migration] = &[
     Migration {
         version: 1,
@@ -112,6 +134,10 @@ pub static MIGRATIONS: &[Migration] = &[
     Migration {
         version: 3,
         sql: OMNISEARCH_MIGRATION,
+    },
+    Migration {
+        version: 4,
+        sql: PASSIVE_AUDIO_MIGRATION,
     },
 ];
 

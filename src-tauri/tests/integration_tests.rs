@@ -34,6 +34,8 @@ fn test_schema_migrations_apply_from_zero_to_latest() {
         ("table", "cards"),
         ("table", "study_sessions"),
         ("table", "image_occlusion_cards"),
+        ("table", "passive_listening_log"),
+        ("table", "audio_library"),
         ("view", "flashcards"),
     ] {
         let exists: i64 = connection

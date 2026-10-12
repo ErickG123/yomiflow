@@ -12,6 +12,7 @@ import { ProcessingOverlayComponent } from '../components/processing-overlay/pro
 import { CommandPaletteComponent } from '../../features/command-palette/command-palette.component'
 import { CommandPaletteService } from '../../core/services/command-palette.service'
 import { DictionaryTooltipComponent } from '../../features/dictionary/components/dictionary-tooltip/dictionary-tooltip.component'
+import { GlobalPlayerComponent } from '../../shared/components/global-player/global-player.component'
 
 @Component({
   selector: 'app-main-layout',
@@ -24,6 +25,7 @@ import { DictionaryTooltipComponent } from '../../features/dictionary/components
     ProcessingOverlayComponent,
     CommandPaletteComponent,
     DictionaryTooltipComponent,
+    GlobalPlayerComponent,
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',

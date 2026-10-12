@@ -95,6 +95,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'audio-vault',
+        loadComponent: () =>
+          import('./features/audio-vault/audio-vault.component').then(
+            (module) => module.AudioVaultComponent,
+          ),
+      },
+      {
         path: 'notebook',
         loadComponent: () =>
           import('./features/notebook/components/notebook-editor/notebook-editor.component').then(
