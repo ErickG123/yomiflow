@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core'
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { TranslocoDirective } from '@ngneat/transloco'
 import { NewsService } from '../../services/news.service'
@@ -15,11 +8,12 @@ import { DictionaryEntry } from '../../../dictionary/models/dictionary.model'
 import { NotebookService } from '../../../notebook/services/notebook.service'
 import { PitchAccentComponent } from '../../../../shared/components/pitch-accent/pitch-accent.component'
 import { DeckService } from '../../../decks/services/deck.service'
+import { HoverDictionaryDirective } from '../../../../shared/directives/hover-dictionary.directive'
 
 @Component({
   selector: 'app-web-reader',
   standalone: true,
-  imports: [CommonModule, TranslocoDirective, PitchAccentComponent],
+  imports: [CommonModule, TranslocoDirective, PitchAccentComponent, HoverDictionaryDirective],
   templateUrl: './web-reader.component.html',
   styleUrl: './web-reader.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,7 +49,8 @@ export class WebReaderComponent implements OnInit {
   tokenizeSentence(sentence: string): TokenSpan[] {
     const tokens: TokenSpan[] = []
     // Match Japanese sequences (Kanji, Hiragana, Katakana) or other segments
-    const regex = /([\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ー]+|[^\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ー]+)/gu
+    const regex =
+      /([\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ー]+|[^\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ー]+)/gu
     let match: RegExpExecArray | null
     while ((match = regex.exec(sentence)) !== null) {
       const text = match[0]
@@ -104,12 +99,12 @@ export class WebReaderComponent implements OnInit {
           entry.kanji,
           entry.reading,
           entry.meaning,
-          this.selectedDeckId()
+          this.selectedDeckId(),
         )
       }
       this.showToast('Palavra adicionada ao SRS!')
       this.activeWordResults.update((list) =>
-        list.map((item) => (item === entry ? { ...item, in_srs: true } : item))
+        list.map((item) => (item === entry ? { ...item, in_srs: true } : item)),
       )
     } catch (err) {
       console.error('Erro ao adicionar palavra ao SRS:', err)

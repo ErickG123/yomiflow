@@ -1,0 +1,25 @@
+@if (dictionary.isVisible()) {
+  <aside
+    role="tooltip"
+    class="fixed z-[100] w-72 rounded-xl border border-zinc-700 bg-zinc-900 p-3 shadow-2xl pointer-events-none animate-fadeIn"
+    [style.left.px]="left()"
+    [style.top.px]="top()"
+  >
+    <div class="mb-1 text-xs font-semibold uppercase tracking-wide text-indigo-300">
+      {{ dictionary.word() }}
+    </div>
+    @if (dictionary.isLoading()) {
+      <p class="text-xs text-zinc-400">A procurar definição…</p>
+    } @else if (dictionary.entry(); as entry) {
+      <p class="text-xs text-zinc-200">{{ entry.meaning }}</p>
+      <p class="mt-1 text-[11px] text-zinc-500">
+        {{ entry.kanji || entry.reading }}
+        @if (entry.kanji) {
+          <span> · {{ entry.reading }}</span>
+        }
+      </p>
+    } @else {
+      <p class="text-xs text-zinc-400">Nenhuma definição encontrada.</p>
+    }
+  </aside>
+}

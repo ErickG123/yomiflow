@@ -200,7 +200,10 @@
           <!-- Interactive Japanese Text -->
           <div class="space-y-4 pt-2">
             @for (paragraph of tokenizedParagraphs(); track $index) {
-              <p class="text-base leading-loose text-zinc-200 font-normal tracking-wide">
+              <p
+                appHoverDictionary
+                class="text-base leading-loose text-zinc-200 font-normal tracking-wide"
+              >
                 @for (token of paragraph; track $index) {
                   @if (token.isWord) {
                     <span

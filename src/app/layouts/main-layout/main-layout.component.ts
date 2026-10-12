@@ -11,6 +11,7 @@ import { SettingsModalComponent } from '../components/settings-modal/settings-mo
 import { ProcessingOverlayComponent } from '../components/processing-overlay/processing-overlay.component'
 import { CommandPaletteComponent } from '../../features/command-palette/command-palette.component'
 import { CommandPaletteService } from '../../core/services/command-palette.service'
+import { DictionaryTooltipComponent } from '../../features/dictionary/components/dictionary-tooltip/dictionary-tooltip.component'
 
 @Component({
   selector: 'app-main-layout',
@@ -22,6 +23,7 @@ import { CommandPaletteService } from '../../core/services/command-palette.servi
     SettingsModalComponent,
     ProcessingOverlayComponent,
     CommandPaletteComponent,
+    DictionaryTooltipComponent,
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',

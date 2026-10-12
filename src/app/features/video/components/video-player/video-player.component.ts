@@ -15,11 +15,12 @@ import { AudioService } from '../../../../core/services/audio.service'
 import { tokenizeJapaneseSentence } from '../../../../shared/utils/text-utils'
 import { PitchAccentComponent } from '../../../../shared/components/pitch-accent/pitch-accent.component'
 import { DeckService } from '../../../decks/services/deck.service'
+import { HoverDictionaryDirective } from '../../../../shared/directives/hover-dictionary.directive'
 
 @Component({
   selector: 'app-video-player',
   standalone: true,
-  imports: [TranslocoDirective, PitchAccentComponent],
+  imports: [TranslocoDirective, PitchAccentComponent, HoverDictionaryDirective],
   templateUrl: './video-player.component.html',
   styleUrl: './video-player.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -107,13 +108,15 @@ export class VideoPlayerComponent implements OnInit {
       const audioPath = await this.videoService.cutAudioClip(
         dialogue.start_time,
         dialogue.end_time,
-        filename
+        filename,
       )
 
       // 2. Add entry to SRS targeting selected deck
       await this.dictionaryService.addToSrs(entry.id, this.selectedDeckId())
 
-      alert(`${this.translocoService.translate('video.card_created_success')}\n${this.translocoService.translate('video.audio_saved_at')}: ${audioPath}`)
+      alert(
+        `${this.translocoService.translate('video.card_created_success')}\n${this.translocoService.translate('video.audio_saved_at')}: ${audioPath}`,
+      )
     } catch (err) {
       console.error('Failed to create flashcard with audio:', err)
       alert(`${this.translocoService.translate('video.card_create_error')}: ${err}`)

@@ -90,6 +90,7 @@
         @if (videoService.currentDialogue(); as sub) {
           <div class="absolute bottom-16 inset-x-4 flex justify-center z-40 pointer-events-none">
             <div
+              appHoverDictionary
               class="bg-black/75 backdrop-blur-sm border border-zinc-800/80 rounded-xl px-5 py-2.5 shadow-2xl pointer-events-auto flex flex-wrap items-center justify-center gap-0.5 text-2xl font-serif text-white tracking-wider animate-fadeIn"
             >
               @for (token of tokenize(sub.text); track $index) {
