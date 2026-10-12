@@ -2,37 +2,51 @@ use crate::db::audio as audio_repository;
 use crate::models::audio::{AudioPlayerSnapshot, AudioTrackMetadata};
 use base64::Engine;
 use id3::TagLike;
-use rodio::{Decoder, OutputStream, OutputStreamBuilder, Sink, Source};
+use rodio::{Decoder, OutputStreamBuilder, Sink, Source};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
+use std::sync::mpsc::{self, Receiver, Sender, SyncSender};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use uuid::Uuid;
 
 pub struct AudioRuntime {
-    pub player: Mutex<AudioPlayer>,
-    pub db: Arc<Mutex<rusqlite::Connection>>,
+    commands: Sender<AudioCommand>,
+    db: Arc<Mutex<rusqlite::Connection>>,
 }
 
-#[derive(Default)]
-pub struct AudioPlayer {
-    stream: Option<OutputStream>,
-    sink: Option<Sink>,
-    track: Option<AudioTrackMetadata>,
-    session_id: Option<String>,
-    volume: f32,
+enum AudioCommand {
+    Play {
+        path: PathBuf,
+        track: AudioTrackMetadata,
+        session_id: String,
+        response: SyncSender<Result<(), String>>,
+    },
+    Pause(SyncSender<Result<(), String>>),
+    Resume(SyncSender<Result<(), String>>),
+    SetVolume(f32, SyncSender<Result<(), String>>),
+    Seek(Duration, SyncSender<Result<(), String>>),
+    Snapshot(SyncSender<AudioPlayerSnapshot>),
 }
 
 impl AudioRuntime {
-    pub fn new(db: Arc<Mutex<rusqlite::Connection>>) -> Self {
-        Self {
-            player: Mutex::new(AudioPlayer {
-                volume: 0.75,
-                ..AudioPlayer::default()
-            }),
-            db,
-        }
+    pub fn new(db: Arc<Mutex<rusqlite::Connection>>) -> Result<Self, String> {
+        let (commands, receiver) = mpsc::channel();
+        let snapshot = Arc::new(Mutex::new(AudioPlayerSnapshot {
+            track: None,
+            is_playing: false,
+            position_ms: 0,
+            volume: 0.75,
+        }));
+        let thread_snapshot = snapshot.clone();
+        let thread_db = db.clone();
+        std::thread::Builder::new()
+            .name("yomiflow-audio".to_owned())
+            .spawn(move || audio_thread(receiver, thread_db, thread_snapshot))
+            .map_err(|error| error.to_string())?;
+
+        Ok(Self { commands, db })
     }
 }
 
@@ -55,83 +69,174 @@ pub fn play_audio(path: String, runtime: &AudioRuntime) -> Result<AudioTrackMeta
         audio_repository::start_listening_session(&db, &session_id, &metadata)?;
     }
 
-    let mut player = runtime.player.lock().map_err(|error| error.to_string())?;
-    if let Some(sink) = player.sink.take() {
-        sink.stop();
-    }
-    let stream = OutputStreamBuilder::open_default_stream().map_err(|error| error.to_string())?;
-    let sink = Sink::connect_new(stream.mixer());
-    sink.set_volume(player.volume);
-    sink.append(decoder);
-    sink.play();
-    player.stream = Some(stream);
-    player.sink = Some(sink);
-    player.track = Some(metadata.clone());
-    player.session_id = Some(session_id);
+    drop(decoder);
+    let (response, result) = mpsc::sync_channel(0);
+    runtime
+        .commands
+        .send(AudioCommand::Play {
+            path: audio_path.to_path_buf(),
+            track: metadata.clone(),
+            session_id,
+            response,
+        })
+        .map_err(|error| error.to_string())?;
+    result.recv().map_err(|error| error.to_string())??;
     Ok(metadata)
 }
 
 pub fn pause_audio(runtime: &AudioRuntime) -> Result<(), String> {
-    if let Some(sink) = runtime
-        .player
-        .lock()
-        .map_err(|error| error.to_string())?
-        .sink
-        .as_ref()
-    {
-        sink.pause();
-    }
-    Ok(())
+    send_audio_command(runtime, AudioCommand::Pause)
 }
 
 pub fn resume_audio(runtime: &AudioRuntime) -> Result<(), String> {
-    if let Some(sink) = runtime
-        .player
-        .lock()
-        .map_err(|error| error.to_string())?
-        .sink
-        .as_ref()
-    {
-        sink.play();
-    }
-    Ok(())
+    send_audio_command(runtime, AudioCommand::Resume)
 }
 
 pub fn set_volume(volume: f32, runtime: &AudioRuntime) -> Result<(), String> {
     if !volume.is_finite() {
         return Err("Volume must be finite.".to_owned());
     }
-    let mut player = runtime.player.lock().map_err(|error| error.to_string())?;
-    player.volume = volume.clamp(0.0, 1.0);
-    if let Some(sink) = &player.sink {
-        sink.set_volume(player.volume);
-    }
-    Ok(())
+    let (response, result) = mpsc::sync_channel(0);
+    runtime
+        .commands
+        .send(AudioCommand::SetVolume(volume.clamp(0.0, 1.0), response))
+        .map_err(|error| error.to_string())?;
+    result.recv().map_err(|error| error.to_string())?
 }
 
 pub fn seek_to(position_ms: u64, runtime: &AudioRuntime) -> Result<(), String> {
-    if let Some(sink) = runtime
-        .player
-        .lock()
-        .map_err(|error| error.to_string())?
-        .sink
-        .as_ref()
-    {
-        sink.try_seek(Duration::from_millis(position_ms))
-            .map_err(|error| error.to_string())?;
-    }
-    Ok(())
+    let (response, result) = mpsc::sync_channel(0);
+    runtime
+        .commands
+        .send(AudioCommand::Seek(
+            Duration::from_millis(position_ms),
+            response,
+        ))
+        .map_err(|error| error.to_string())?;
+    result.recv().map_err(|error| error.to_string())?
 }
 
 pub fn player_snapshot(runtime: &AudioRuntime) -> Result<AudioPlayerSnapshot, String> {
-    let player = runtime.player.lock().map_err(|error| error.to_string())?;
-    let sink = player.sink.as_ref();
-    Ok(AudioPlayerSnapshot {
-        track: player.track.clone(),
-        is_playing: sink.is_some_and(|sink| !sink.is_paused() && !sink.empty()),
-        position_ms: sink.map_or(0, |sink| sink.get_pos().as_millis() as u64),
-        volume: player.volume,
-    })
+    let (response, result) = mpsc::sync_channel(0);
+    runtime
+        .commands
+        .send(AudioCommand::Snapshot(response))
+        .map_err(|error| error.to_string())?;
+    result.recv().map_err(|error| error.to_string())
+}
+
+fn send_audio_command(
+    runtime: &AudioRuntime,
+    command: impl FnOnce(SyncSender<Result<(), String>>) -> AudioCommand,
+) -> Result<(), String> {
+    let (response, result) = mpsc::sync_channel(0);
+    runtime
+        .commands
+        .send(command(response))
+        .map_err(|error| error.to_string())?;
+    result.recv().map_err(|error| error.to_string())?
+}
+
+fn audio_thread(
+    receiver: Receiver<AudioCommand>,
+    db: Arc<Mutex<rusqlite::Connection>>,
+    snapshot: Arc<Mutex<AudioPlayerSnapshot>>,
+) {
+    // CoreAudio streams are thread-affine and deliberately stay on this worker.
+    let stream = OutputStreamBuilder::open_default_stream().ok();
+    let mut sink: Option<Sink> = None;
+    let mut track: Option<AudioTrackMetadata> = None;
+    let mut session_id: Option<String> = None;
+    let mut volume = 0.75;
+
+    loop {
+        match receiver.recv_timeout(Duration::from_secs(1)) {
+            Ok(AudioCommand::Play {
+                path,
+                track: next_track,
+                session_id: next_session_id,
+                response,
+            }) => {
+                let result = (|| {
+                    let stream = stream
+                        .as_ref()
+                        .ok_or_else(|| "Audio output device is unavailable.".to_owned())?;
+                    let file = File::open(&path).map_err(|error| error.to_string())?;
+                    let decoder = Decoder::try_from(BufReader::new(file))
+                        .map_err(|error| error.to_string())?;
+                    if let Some(previous_sink) = sink.take() {
+                        previous_sink.stop();
+                    }
+                    let next_sink = Sink::connect_new(stream.mixer());
+                    next_sink.set_volume(volume);
+                    next_sink.append(decoder);
+                    next_sink.play();
+                    sink = Some(next_sink);
+                    track = Some(next_track);
+                    session_id = Some(next_session_id);
+                    Ok(())
+                })();
+                let _ = response.send(result);
+            }
+            Ok(AudioCommand::Pause(response)) => {
+                if let Some(sink) = &sink {
+                    sink.pause();
+                }
+                let _ = response.send(Ok(()));
+            }
+            Ok(AudioCommand::Resume(response)) => {
+                if let Some(sink) = &sink {
+                    sink.play();
+                }
+                let _ = response.send(Ok(()));
+            }
+            Ok(AudioCommand::SetVolume(next_volume, response)) => {
+                volume = next_volume;
+                if let Some(sink) = &sink {
+                    sink.set_volume(volume);
+                }
+                let _ = response.send(Ok(()));
+            }
+            Ok(AudioCommand::Seek(position, response)) => {
+                let result = sink.as_ref().map_or(Ok(()), |sink| {
+                    sink.try_seek(position).map_err(|error| error.to_string())
+                });
+                let _ = response.send(result);
+            }
+            Ok(AudioCommand::Snapshot(response)) => {
+                update_snapshot(&snapshot, sink.as_ref(), track.as_ref(), volume);
+                let current = snapshot.lock().map(|state| state.clone());
+                if let Ok(current) = current {
+                    let _ = response.send(current);
+                }
+            }
+            Err(mpsc::RecvTimeoutError::Timeout) => {
+                if let (Some(sink), Some(session_id)) = (&sink, &session_id)
+                    && !sink.is_paused()
+                    && !sink.empty()
+                    && let Ok(connection) = db.lock()
+                {
+                    let _ = audio_repository::increment_listened_time(&connection, session_id);
+                }
+            }
+            Err(mpsc::RecvTimeoutError::Disconnected) => break,
+        }
+        update_snapshot(&snapshot, sink.as_ref(), track.as_ref(), volume);
+    }
+}
+
+fn update_snapshot(
+    snapshot: &Mutex<AudioPlayerSnapshot>,
+    sink: Option<&Sink>,
+    track: Option<&AudioTrackMetadata>,
+    volume: f32,
+) {
+    if let Ok(mut state) = snapshot.lock() {
+        state.track = track.cloned();
+        state.is_playing = sink.is_some_and(|sink| !sink.is_paused() && !sink.empty());
+        state.position_ms = sink.map_or(0, |sink| sink.get_pos().as_millis() as u64);
+        state.volume = volume;
+    }
 }
 
 pub async fn import_audio_folder(
@@ -191,27 +296,6 @@ pub async fn import_audio_folder(
     })
     .await
     .map_err(|error| error.to_string())?
-}
-
-pub fn start_listening_tracker(runtime: Arc<AudioRuntime>) {
-    std::thread::spawn(move || {
-        loop {
-            std::thread::sleep(Duration::from_secs(1));
-            let active_session = runtime.player.lock().ok().and_then(|player| {
-                player
-                    .sink
-                    .as_ref()
-                    .is_some_and(|sink| !sink.is_paused() && !sink.empty())
-                    .then(|| player.session_id.clone())
-                    .flatten()
-            });
-            if let Some(session_id) = active_session
-                && let Ok(connection) = runtime.db.lock()
-            {
-                let _ = audio_repository::increment_listened_time(&connection, &session_id);
-            }
-        }
-    });
 }
 
 fn extract_metadata(path: &Path, duration_ms: u64) -> AudioTrackMetadata {
