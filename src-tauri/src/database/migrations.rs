@@ -225,7 +225,7 @@ fn apply_migration(transaction: &Transaction<'_>, migration: &Migration) -> rusq
         {
             continue;
         }
-        transaction.execute_batch(statement)?;
+        transaction.execute_batch(&statement)?;
     }
     Ok(())
 }
