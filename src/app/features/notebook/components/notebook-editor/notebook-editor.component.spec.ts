@@ -11,9 +11,11 @@ import {
 } from '@angular/core'
 import { MorphologicalToken, NotebookEntry } from '../../models/notebook.model'
 import { Subject } from 'rxjs'
+import { Router } from '@angular/router'
 
 describe('NotebookEditorComponent', () => {
   let component: NotebookEditorComponent
+  let routerMock: { navigate: ReturnType<typeof vi.fn> }
   let notebookServiceMock: {
     entries: ReturnType<typeof signal<NotebookEntry[]>>
     currentEntry: ReturnType<typeof signal<NotebookEntry | null>>
@@ -68,6 +70,7 @@ describe('NotebookEditorComponent', () => {
       decks: signal([]),
       loadDecks: vi.fn().mockResolvedValue([]),
     }
+    routerMock = { navigate: vi.fn().mockResolvedValue(true) }
 
     const applicationRefMock = {
       attachView: vi.fn(),
@@ -77,6 +80,7 @@ describe('NotebookEditorComponent', () => {
     const providers = [
       { provide: NotebookService, useValue: notebookServiceMock },
       { provide: DeckService, useValue: deckServiceMock },
+      { provide: Router, useValue: routerMock },
       { provide: 'ApplicationRef', useValue: applicationRefMock },
     ]
     const parentInjector = {
@@ -157,5 +161,33 @@ describe('NotebookEditorComponent', () => {
     expect(component.showSyntaxTree()).toBe(true)
     component.toggleSyntaxTree()
     expect(component.showSyntaxTree()).toBe(false)
+  })
+
+  it('opens an existing note through a bidirectional link', () => {
+    const linkedEntry: NotebookEntry = {
+      id: 'entry-1',
+      title: 'Japanese Grammar',
+      content_md: 'Notes about grammar',
+      created_at: '2025-01-01',
+      updated_at: '2025-01-01',
+    }
+    notebookServiceMock.entries.set([linkedEntry])
+
+    component.openLinkedNote('japanese grammar')
+
+    expect(component.currentId()).toBe('entry-1')
+    expect(component.title()).toBe('Japanese Grammar')
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/notebook'], {
+      queryParams: { noteId: 'entry-1', search: null },
+    })
+  })
+
+  it('filters notebook entries when the bidirectional target does not exist', () => {
+    component.openLinkedNote('Missing Note')
+
+    expect(component.notebookSearch()).toBe('Missing Note')
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/notebook'], {
+      queryParams: { search: 'Missing Note', noteId: null },
+    })
   })
 })

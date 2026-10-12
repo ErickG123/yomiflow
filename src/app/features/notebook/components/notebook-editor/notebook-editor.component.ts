@@ -13,6 +13,7 @@ import {
   inject,
   signal,
 } from '@angular/core'
+import { ActivatedRoute, Router } from '@angular/router'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { Table } from '@tiptap/extension-table'
@@ -35,6 +36,8 @@ import { SafeHtmlPipe } from '../../../../shared/pipes/safe-html.pipe'
 import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
 import { SyntaxTreeExtension } from '../../extensions/syntax-tree.extension'
 import { SyntaxNodeComponent } from '../syntax-node/syntax-node.component'
+import { BidirectionalLinkExtension } from '../../extensions/bidirectional-link.extension'
+import { notebookTextToEditorHtml } from '../../utils/notebook-link-html'
 
 @Component({
   selector: 'app-notebook-editor',
@@ -47,10 +50,13 @@ import { SyntaxNodeComponent } from '../syntax-node/syntax-node.component'
 export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly notebookService = inject(NotebookService)
   readonly deckService = inject(DeckService)
+  private readonly router = inject(Router)
+  private readonly activatedRoute = inject(ActivatedRoute, { optional: true })
   private readonly translocoService = inject(TranslocoService, { optional: true })
   private readonly injector = inject(EnvironmentInjector)
   private readonly appRef = inject(ApplicationRef)
   private trayNewNoteSubscription: Subscription | null = null
+  private queryParamsSubscription: Subscription | null = null
 
   @ViewChild('editorElement') editorElementRef?: ElementRef<HTMLDivElement>
   editor: Editor | null = null
@@ -58,6 +64,14 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   readonly analysisMode = signal<AnalysisMode>('manual')
   readonly currentId = signal<string>(crypto.randomUUID())
   readonly selectedDeckId = signal<string | null>(null)
+  readonly notebookSearch = signal<string>('')
+  readonly filteredEntries = computed(() => {
+    const query = this.notebookSearch().trim().toLocaleLowerCase()
+    if (!query) return this.notebookService.entries()
+    return this.notebookService
+      .entries()
+      .filter((entry) => `${entry.title} ${entry.content_md}`.toLocaleLowerCase().includes(query))
+  })
   readonly title = signal<string>('Minha Anotação')
   readonly markdownContent = signal<string>('私は学生です。\n毎日日本語を勉強します。')
   readonly tokens = signal<MorphologicalToken[]>([])
@@ -151,11 +165,18 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   readonly selectedText = signal<string>('')
 
   async ngOnInit(): Promise<void> {
+    this.queryParamsSubscription =
+      this.activatedRoute?.queryParamMap.subscribe((params) => {
+        this.notebookSearch.set(params.get('search') ?? '')
+      }) ?? null
     this.trayNewNoteSubscription = this.notebookService.newNoteRequests.subscribe(() => {
       this.notebookService.consumeNewNoteRequest()
       this.createNewNote()
     })
     await Promise.all([this.notebookService.loadEntries(), this.deckService.loadDecks()])
+    const linkedNoteId = this.activatedRoute?.snapshot.queryParamMap.get('noteId')
+    const linkedNote = this.notebookService.entries().find((entry) => entry.id === linkedNoteId)
+    if (linkedNote) this.selectEntry(linkedNote)
     if (this.notebookService.newNoteRequested()) {
       this.notebookService.consumeNewNoteRequest()
       this.createNewNote()
@@ -194,8 +215,11 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
           injector: this.injector,
           appRef: this.appRef,
         }),
+        BidirectionalLinkExtension.configure({
+          onOpenLink: (title) => this.openLinkedNote(title),
+        }),
       ],
-      content: `<p>${this.markdownContent().replace(/\n/g, '</p><p>')}</p>`,
+      content: notebookTextToEditorHtml(this.markdownContent()),
       onSelectionUpdate: ({ editor }) => {
         this.updateBubbleMenu(editor)
       },
@@ -219,6 +243,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
 
   ngOnDestroy(): void {
     this.trayNewNoteSubscription?.unsubscribe()
+    this.queryParamsSubscription?.unsubscribe()
     if (this.toastTimeout) {
       clearTimeout(this.toastTimeout)
     }
@@ -296,6 +321,11 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     this.syntaxTreeData.set(syntaxChunks)
 
     if (!this.editor) return
+    let hasBidirectionalLinks = false
+    this.editor.state.doc.descendants((node) => {
+      if (node.type.name === 'bidirectionalLink') hasBidirectionalLinks = true
+    })
+    if (hasBidirectionalLinks) return
 
     const htmlContent = this.notebookService.formatTokensToHtml(tokens)
     const wrappedHtml = `<p>${htmlContent.replace(/\n/g, '</p><p>')}</p>`
@@ -451,9 +481,31 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     this.selectedDeckId.set(entry.deck_id ?? null)
 
     if (this.editor) {
-      this.editor.commands.setContent(`<p>${entry.content_md.replace(/\n/g, '</p><p>')}</p>`)
+      this.editor.commands.setContent(notebookTextToEditorHtml(entry.content_md))
     }
     void this.triggerAnalysis(entry.content_md)
+  }
+
+  openLinkedNote(title: string): void {
+    const normalizedTitle = title.trim().toLocaleLowerCase()
+    if (!normalizedTitle) return
+
+    const entry = this.notebookService
+      .entries()
+      .find((candidate) => candidate.title.trim().toLocaleLowerCase() === normalizedTitle)
+
+    if (entry) {
+      this.selectEntry(entry)
+      void this.router.navigate(['/notebook'], {
+        queryParams: { noteId: entry.id, search: null },
+      })
+      return
+    }
+
+    this.notebookSearch.set(title)
+    void this.router.navigate(['/notebook'], {
+      queryParams: { search: title, noteId: null },
+    })
   }
 
   createNewNote(): void {
