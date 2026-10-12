@@ -327,7 +327,13 @@
   },
   "decks": {
     "title": "Baralhos de Estudo (Decks)",
+    "target_deck": "Baralho de destino",
+    "all_decks": "Todos os baralhos",
     "modal_title": "Criar Novo Baralho",
+    "edit_modal_title": "Editar Baralho",
+    "edit_deck": "Editar baralho",
+    "update_deck": "Atualizar Baralho",
+    "update_deck_error": "Erro ao atualizar baralho:",
     "deck_name_label": "Nome do Baralho *",
     "deck_name_placeholder": "Ex.: JLPT N3, Vocabulário de Anime...",
     "deck_desc_label": "Descrição (Opcional)",

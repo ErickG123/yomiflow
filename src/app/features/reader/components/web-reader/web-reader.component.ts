@@ -31,7 +31,7 @@ export class WebReaderComponent implements OnInit {
   readonly notebookService = inject(NotebookService)
   readonly deckService = inject(DeckService)
 
-  readonly selectedDeckId = signal<string>('default')
+  readonly selectedDeckId = this.deckService.targetDeckId
   readonly activeWord = signal<string | null>(null)
   readonly activeWordResults = signal<DictionaryEntry[]>([])
   readonly isSearchingWord = signal<boolean>(false)
@@ -82,7 +82,10 @@ export class WebReaderComponent implements OnInit {
     this.isSearchingWord.set(true)
 
     try {
-      const results = await this.dictionaryService.searchDictionary(cleanWord)
+      const results = await this.dictionaryService.searchDictionary(
+        cleanWord,
+        this.selectedDeckId(),
+      )
       this.activeWordResults.set(results)
     } catch (err) {
       console.error('Failed to search word definition:', err)
@@ -90,6 +93,12 @@ export class WebReaderComponent implements OnInit {
     } finally {
       this.isSearchingWord.set(false)
     }
+  }
+
+  onTargetDeckChange(event: Event): void {
+    this.deckService.setTargetDeck((event.target as HTMLSelectElement).value)
+    const word = this.activeWord()
+    if (word) void this.onWordClick(word)
   }
 
   closeHoverDictionary(): void {

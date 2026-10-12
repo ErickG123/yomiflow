@@ -119,7 +119,7 @@
               <span>{{ t('web_reader.target_deck') }}:</span>
               <select
                 [value]="selectedDeckId()"
-                (change)="selectedDeckId.set($any($event.target).value)"
+                (change)="onTargetDeckChange($event)"
                 class="bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1 text-xs text-zinc-200 outline-none"
               >
                 <option value="default">{{ t('web_reader.deck_default') }}</option>

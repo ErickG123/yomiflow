@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DictionaryService } from './dictionary.service'
 import { AppStateService } from '../../../core/services/app-state.service'
-import { EnvironmentInjector, createEnvironmentInjector, runInInjectionContext } from '@angular/core'
+import {
+  EnvironmentInjector,
+  createEnvironmentInjector,
+  runInInjectionContext,
+} from '@angular/core'
 import * as tauriCore from '@tauri-apps/api/core'
 
 vi.mock('@tauri-apps/api/core', () => ({
@@ -20,7 +24,9 @@ describe('DictionaryService', () => {
     } as unknown as AppStateService
 
     const providers = [{ provide: AppStateService, useValue: appStateMock }]
-    const parentInjector = { get: (token: unknown) => providers.find((p) => p.provide === token)?.useValue ?? null } as unknown as EnvironmentInjector
+    const parentInjector = {
+      get: (token: unknown) => providers.find((p) => p.provide === token)?.useValue ?? null,
+    } as unknown as EnvironmentInjector
     const injector = createEnvironmentInjector([], parentInjector)
 
     runInInjectionContext(injector, () => {
@@ -45,9 +51,7 @@ describe('DictionaryService', () => {
   })
 
   it('should update searchResults and kanjiSearchResults when backend returns entries', async () => {
-    const mockDict = [
-      { id: 1, kanji: '猫', reading: 'ねこ', meaning: 'cat', in_srs: false },
-    ]
+    const mockDict = [{ id: 1, kanji: '猫', reading: 'ねこ', meaning: 'cat', in_srs: false }]
     const mockKanji = [
       { character: '猫', onyomi: 'ビョウ', kunyomi: 'ねこ', meaning: 'cat', jlpt_level: 3 },
     ]
@@ -58,7 +62,7 @@ describe('DictionaryService', () => {
       return null
     })
 
-    const result = await service.search('猫')
+    const result = await service.search('猫', 'deck-n3')
 
     expect(result.dictResults).toEqual(mockDict)
     expect(result.kanjiResults).toEqual(mockKanji)
@@ -78,16 +82,20 @@ describe('DictionaryService', () => {
     expect(service.isLoading()).toBe(false)
   })
 
-  it('should record addedCardIds on addToSrs', async () => {
+  it('allows adding the same dictionary entry to more than one deck', async () => {
     vi.mocked(tauriCore.invoke).mockResolvedValue(undefined)
 
-    await service.addToSrs(42)
+    await service.addToSrs(42, 'default')
+    await service.addToSrs(42, 'deck-n3')
 
-    expect(tauriCore.invoke).toHaveBeenCalledWith('add_to_srs', { entryId: 42, deckId: null })
+    expect(tauriCore.invoke).toHaveBeenNthCalledWith(1, 'add_to_srs', {
+      entryId: 42,
+      deckId: 'default',
+    })
+    expect(tauriCore.invoke).toHaveBeenNthCalledWith(2, 'add_to_srs', {
+      entryId: 42,
+      deckId: 'deck-n3',
+    })
     expect(service.addedCardIds()).toContain(42)
-
-    // Should not call invoke again if already added
-    await service.addToSrs(42)
-    expect(tauriCore.invoke).toHaveBeenCalledTimes(1)
   })
 })

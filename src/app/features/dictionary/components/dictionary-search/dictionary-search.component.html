@@ -2,7 +2,9 @@
   <div class="w-full max-w-2xl mx-auto space-y-6">
     <header class="flex items-center justify-between pb-2 border-b border-zinc-900">
       <div>
-        <h1 class="text-3xl font-bold tracking-tight text-zinc-100">{{ 'search.title' | transloco }}</h1>
+        <h1 class="text-3xl font-bold tracking-tight text-zinc-100">
+          {{ 'search.title' | transloco }}
+        </h1>
         <p class="text-sm text-zinc-400">{{ 'search.subtitle' | transloco }}</p>
       </div>
 
@@ -24,7 +26,9 @@
     </header>
 
     <div class="relative">
-      <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500">
+      <span
+        class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500"
+      >
         <i class="pi pi-search text-lg"></i>
       </span>
       <input
@@ -51,13 +55,17 @@
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           @for (kanji of kanjiSearchResults(); track kanji.character) {
-            <article class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col justify-between hover:border-zinc-700 transition-colors shadow-sm space-y-3">
+            <article
+              class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col justify-between hover:border-zinc-700 transition-colors shadow-sm space-y-3"
+            >
               <div class="flex items-start justify-between">
                 <span class="text-4xl font-serif text-zinc-100 leading-none select-none">
                   {{ kanji.character }}
                 </span>
                 @if (kanji.jlpt_level) {
-                  <span class="bg-blue-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded leading-tight">
+                  <span
+                    class="bg-blue-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded leading-tight"
+                  >
                     JLPT N{{ kanji.jlpt_level }}
                   </span>
                 }
@@ -87,22 +95,30 @@
 
     <section class="space-y-4">
       @for (entry of searchResults(); track entry.id) {
-        <article class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between hover:bg-zinc-800/80 transition-colors shadow-sm">
+        <article
+          class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between hover:bg-zinc-800/80 transition-colors shadow-sm"
+        >
           <div class="space-y-1.5">
             <div class="flex items-center gap-2">
               <app-pitch-accent [reading]="entry.reading" [pitch]="entry.pitch"></app-pitch-accent>
 
               @if (entry.rank != null) {
                 @if (entry.rank <= 1500) {
-                  <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                  <span
+                    class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                  >
                     Core (Top 1.5K)
                   </span>
                 } @else if (entry.rank <= 5000) {
-                  <span class="bg-sky-500/10 border border-sky-500/30 text-sky-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                  <span
+                    class="bg-sky-500/10 border border-sky-500/30 text-sky-400 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                  >
                     Comum (Top 5K)
                   </span>
                 } @else {
-                  <span class="bg-zinc-800 border border-zinc-700 text-zinc-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                  <span
+                    class="bg-zinc-800 border border-zinc-700 text-zinc-400 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                  >
                     Rara
                   </span>
                 }
@@ -110,14 +126,18 @@
             </div>
 
             <div class="flex items-center space-x-3">
-              <div class="text-4xl font-serif text-zinc-100">{{ entry.kanji ?? entry.reading }}</div>
+              <div class="text-4xl font-serif text-zinc-100">
+                {{ entry.kanji ?? entry.reading }}
+              </div>
             </div>
             <p class="text-zinc-300 text-base pt-1">{{ entry.meaning }}</p>
 
             @if (entry.tags && entry.tags.length > 0) {
               <div class="flex flex-wrap gap-1.5 pt-2">
                 @for (tag of entry.tags; track tag) {
-                  <span class="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-md border border-zinc-700/50">
+                  <span
+                    class="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-md border border-zinc-700/50"
+                  >
                     {{ tag }}
                   </span>
                 }
@@ -125,11 +145,25 @@
             }
           </div>
 
-          <div class="flex items-center space-x-2">
+          <div class="flex items-center gap-2">
+            <select
+              [value]="selectedDeckId()"
+              (change)="onTargetDeckChange($event)"
+              [attr.aria-label]="'decks.target_deck' | transloco"
+              class="max-w-32 bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-2.5 text-[10px] text-zinc-300 outline-none"
+            >
+              @for (deck of deckService.decks(); track deck.id) {
+                <option [value]="deck.id">{{ deck.name }}</option>
+              }
+            </select>
             <button
               type="button"
               (click)="toggleKanjiBreakdown(entry)"
-              [title]="isExpanded(entry.id) ? ('search.hide_kanjis' | transloco) : ('search.view_kanjis' | transloco)"
+              [title]="
+                isExpanded(entry.id)
+                  ? ('search.hide_kanjis' | transloco)
+                  : ('search.view_kanjis' | transloco)
+              "
               class="p-2.5 rounded-lg text-zinc-400 hover:text-indigo-400 hover:bg-zinc-800 transition-colors cursor-pointer text-xs flex items-center space-x-1"
             >
               @if (loadingKanjiSet()[entry.id]) {
@@ -138,14 +172,20 @@
                 <i class="pi pi-search text-base"></i>
               }
               <span class="hidden sm:inline font-medium">
-                {{ (isExpanded(entry.id) ? 'search.hide_kanjis' : 'search.view_kanjis') | transloco }}
+                {{
+                  (isExpanded(entry.id) ? 'search.hide_kanjis' : 'search.view_kanjis') | transloco
+                }}
               </span>
             </button>
 
             <button
               type="button"
-              [title]="entry.in_srs ? ('search.remove_srs' | transloco) : ('search.add_srs' | transloco)"
-              [attr.aria-label]="entry.in_srs ? ('search.remove_srs' | transloco) : ('search.add_srs' | transloco)"
+              [title]="
+                entry.in_srs ? ('search.remove_srs' | transloco) : ('search.add_srs' | transloco)
+              "
+              [attr.aria-label]="
+                entry.in_srs ? ('search.remove_srs' | transloco) : ('search.add_srs' | transloco)
+              "
               (click)="toggleSrs(entry)"
               class="p-3 rounded-lg transition-colors cursor-pointer"
               [class.text-green-500]="entry.in_srs"
@@ -167,16 +207,24 @@
 
         <!-- Expanded Kanji Dissection Drawer -->
         @if (isExpanded(entry.id)) {
-          <div class="bg-zinc-950 border border-zinc-800/80 rounded-xl p-4 -mt-2 space-y-3 animate-fadeIn">
+          <div
+            class="bg-zinc-950 border border-zinc-800/80 rounded-xl p-4 -mt-2 space-y-3 animate-fadeIn"
+          >
             @if (expandedKanjiMap()[entry.id]; as kanjis) {
               @if (kanjis.length > 0) {
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   @for (k of kanjis; track k.character) {
-                    <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex space-x-3 shadow-sm hover:border-zinc-700 transition-colors">
+                    <div
+                      class="bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex space-x-3 shadow-sm hover:border-zinc-700 transition-colors"
+                    >
                       <div class="flex flex-col items-center justify-center min-w-10 select-none">
-                        <span class="text-3xl font-serif text-indigo-400 leading-none mb-1">{{ k.character }}</span>
+                        <span class="text-3xl font-serif text-indigo-400 leading-none mb-1">{{
+                          k.character
+                        }}</span>
                         @if (k.jlpt_level) {
-                          <span class="bg-blue-600 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded leading-tight">
+                          <span
+                            class="bg-blue-600 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded leading-tight"
+                          >
                             JLPT N{{ k.jlpt_level }}
                           </span>
                         }
@@ -187,12 +235,18 @@
                         </div>
                         @if (k.onyomi) {
                           <div class="text-zinc-400">
-                            <span class="text-zinc-500 font-semibold">{{ 'search.onyomi' | transloco }}</span> {{ k.onyomi }}
+                            <span class="text-zinc-500 font-semibold">{{
+                              'search.onyomi' | transloco
+                            }}</span>
+                            {{ k.onyomi }}
                           </div>
                         }
                         @if (k.kunyomi) {
                           <div class="text-zinc-400">
-                            <span class="text-zinc-500 font-semibold">{{ 'search.kunyomi' | transloco }}</span> {{ k.kunyomi }}
+                            <span class="text-zinc-500 font-semibold">{{
+                              'search.kunyomi' | transloco
+                            }}</span>
+                            {{ k.kunyomi }}
                           </div>
                         }
                       </div>
@@ -217,7 +271,9 @@
     </section>
 
     @if (toastMessage()) {
-      <div class="fixed bottom-6 right-6 z-50 bg-zinc-800 border border-zinc-700 text-zinc-100 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all animate-bounce">
+      <div
+        class="fixed bottom-6 right-6 z-50 bg-zinc-800 border border-zinc-700 text-zinc-100 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all animate-bounce"
+      >
         <i class="pi pi-info-circle text-indigo-400 text-lg"></i>
         <span class="text-sm font-medium">{{ toastMessage() }}</span>
       </div>

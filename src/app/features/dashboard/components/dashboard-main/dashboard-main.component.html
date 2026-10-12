@@ -4,13 +4,28 @@
 >
   <div class="space-y-8">
     <!-- Welcome Header -->
-    <header class="space-y-1">
-      <h1 class="text-3xl font-bold tracking-tight text-zinc-100">
-        {{ t('dashboard.welcome') }}
-      </h1>
-      <p class="text-sm text-zinc-400">
-        {{ t('dashboard.subtitle') }}
-      </p>
+    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="space-y-1">
+        <h1 class="text-3xl font-bold tracking-tight text-zinc-100">
+          {{ t('dashboard.welcome') }}
+        </h1>
+        <p class="text-sm text-zinc-400">
+          {{ t('dashboard.subtitle') }}
+        </p>
+      </div>
+      <label class="flex items-center gap-2 text-xs text-zinc-400">
+        <span>{{ t('decks.target_deck') }}</span>
+        <select
+          [value]="statsDeckId() ?? ''"
+          (change)="onStatsDeckChange($event)"
+          class="bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-2 text-xs text-zinc-200 outline-none"
+        >
+          <option value="">{{ t('decks.all_decks') }}</option>
+          @for (deck of deckService.decks(); track deck.id) {
+            <option [value]="deck.id">{{ deck.name }}</option>
+          }
+        </select>
+      </label>
     </header>
 
     <!-- Stats Grid -->

@@ -6,6 +6,7 @@ use tauri::State;
 
 #[tauri::command]
 pub fn get_interleaved_review_queue(
+    deck_id: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<Vec<InterleavedReviewCard>, String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
@@ -16,12 +17,13 @@ pub fn get_interleaved_review_queue(
             "SELECT c.id, c.deck_id, d.kanji, d.reading, d.meaning, c.state, d.pitch
          FROM cards c JOIN decks deck ON deck.id = c.deck_id
          JOIN dictionary_entries d ON c.entry_id = d.id
-         WHERE c.due_date <= strftime('%s', 'now') OR c.state = 0
+         WHERE (c.due_date <= strftime('%s', 'now') OR c.state = 0)
+           AND (?1 IS NULL OR c.deck_id = ?1)
          ORDER BY c.due_date LIMIT 100",
         )
         .map_err(|e| e.to_string())?;
     let rows = vocabulary
-        .query_map([], |row| {
+        .query_map(params![deck_id], |row| {
             Ok(InterleavedReviewCard::Vocabulary {
                 card_id: row.get(0)?,
                 deck_id: row.get(1)?,
@@ -43,12 +45,13 @@ pub fn get_interleaved_review_queue(
         .prepare(
             "SELECT image.id, image.deck_id FROM image_occlusion_cards image
          JOIN decks deck ON deck.id = image.deck_id
-         WHERE image.state = 0 OR image.due_date <= strftime('%s', 'now')
+         WHERE (image.state = 0 OR image.due_date <= strftime('%s', 'now'))
+           AND (?1 IS NULL OR image.deck_id = ?1)
          ORDER BY image.due_date LIMIT 100",
         )
         .map_err(|e| e.to_string())?;
     let rows = images
-        .query_map([], |row| {
+        .query_map(params![deck_id], |row| {
             Ok(InterleavedReviewCard::ImageOcclusion {
                 card_id: row.get(0)?,
                 deck_id: row.get(1)?,
@@ -65,10 +68,11 @@ pub fn get_interleaved_review_queue(
         "SELECT note.id, note.deck_id, COALESCE(note.title, ''), COALESCE(note.content_md, '')
          FROM notebook_entries note JOIN decks deck ON deck.id = note.deck_id
          WHERE note.srs_stage > 0 AND (note.next_review_date IS NULL OR note.next_review_date <= strftime('%s', 'now'))
+           AND (?1 IS NULL OR note.deck_id = ?1)
          ORDER BY note.next_review_date LIMIT 100",
     ).map_err(|e| e.to_string())?;
     let rows = grammar
-        .query_map([], |row| {
+        .query_map(params![deck_id], |row| {
             Ok(InterleavedReviewCard::Grammar {
                 card_id: row.get(0)?,
                 deck_id: row.get(1)?,
@@ -105,10 +109,12 @@ pub fn get_interleaved_review_queue(
             })
         })
         .map_err(|e| e.to_string())?;
-    queue.extend(
-        rows.collect::<Result<Vec<_>, _>>()
-            .map_err(|e| e.to_string())?,
-    );
+    if deck_id.is_none() {
+        queue.extend(
+            rows.collect::<Result<Vec<_>, _>>()
+                .map_err(|e| e.to_string())?,
+        );
+    }
 
     let seed = SystemTime::now()
         .duration_since(UNIX_EPOCH)

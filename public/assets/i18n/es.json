@@ -326,7 +326,13 @@
   },
   "decks": {
     "title": "Mazos de Estudio (Decks)",
+    "target_deck": "Mazo de destino",
+    "all_decks": "Todos los mazos",
     "modal_title": "Crear Nuevo Mazo",
+    "edit_modal_title": "Editar Mazo",
+    "edit_deck": "Editar mazo",
+    "update_deck": "Actualizar Mazo",
+    "update_deck_error": "Error al actualizar el mazo:",
     "deck_name_label": "Nombre del Mazo *",
     "deck_name_placeholder": "Ej.: JLPT N3, Vocabulario de Anime...",
     "deck_desc_label": "Descripción (Opcional)",

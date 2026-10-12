@@ -13,7 +13,7 @@ import {
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { DomSanitizer } from '@angular/platform-browser'
-import { TranslocoDirective } from '@ngneat/transloco'
+import { TranslocoDirective, TranslocoPipe } from '@ngneat/transloco'
 import { EpubReaderService } from '../../services/epub-reader.service'
 import { DictionaryService } from '../../../dictionary/services/dictionary.service'
 import { DictionaryEntry } from '../../../dictionary/models/dictionary.model'
@@ -26,7 +26,7 @@ import ePub from 'epubjs'
 @Component({
   selector: 'app-epub-reader',
   standalone: true,
-  imports: [CommonModule, TranslocoDirective, PitchAccentComponent],
+  imports: [CommonModule, TranslocoDirective, TranslocoPipe, PitchAccentComponent],
   templateUrl: './epub-reader.component.html',
   styleUrl: './epub-reader.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,7 +50,7 @@ export class EpubReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly activeWordResults = signal<DictionaryEntry[]>([])
   readonly isSearchingWord = signal<boolean>(false)
   readonly toastMessage = signal<string | null>(null)
-  readonly selectedDeckId = signal<string>('default')
+  readonly selectedDeckId = this.deckService.targetDeckId
 
   ngOnInit(): void {
     void this.deckService.loadDecks()
@@ -207,7 +207,10 @@ export class EpubReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.activeWord.set(cleanWord)
     this.isSearchingWord.set(true)
     try {
-      const results = await this.dictionaryService.searchDictionary(cleanWord)
+      const results = await this.dictionaryService.searchDictionary(
+        cleanWord,
+        this.selectedDeckId(),
+      )
       this.activeWordResults.set(results)
     } catch (err) {
       console.error('Error looking up word in EPUB:', err)

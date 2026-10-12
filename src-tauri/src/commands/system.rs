@@ -3,23 +3,32 @@ use crate::models::DashboardStats;
 use tauri::{Emitter, State, Window};
 
 #[tauri::command]
-pub fn get_dashboard_stats(state: State<'_, AppState>) -> Result<DashboardStats, String> {
+pub fn get_dashboard_stats(
+    deck_id: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<DashboardStats, String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
 
     let total_cards: i32 = conn
-        .query_row("SELECT COUNT(*) FROM cards", [], |row| row.get(0))
+        .query_row(
+            "SELECT COUNT(*) FROM cards WHERE (?1 IS NULL OR deck_id = ?1)",
+            rusqlite::params![deck_id],
+            |row| row.get(0),
+        )
         .map_err(|e| e.to_string())?;
 
     let new_cards: i32 = conn
-        .query_row("SELECT COUNT(*) FROM cards WHERE state = 0", [], |row| {
-            row.get(0)
-        })
+        .query_row(
+            "SELECT COUNT(*) FROM cards WHERE state = 0 AND (?1 IS NULL OR deck_id = ?1)",
+            rusqlite::params![deck_id],
+            |row| row.get(0),
+        )
         .map_err(|e| e.to_string())?;
 
     let due_today: i32 = conn
         .query_row(
-            "SELECT COUNT(*) FROM cards WHERE state > 0 AND due_date <= strftime('%s', 'now')",
-            [],
+            "SELECT COUNT(*) FROM cards WHERE state > 0 AND due_date <= strftime('%s', 'now') AND (?1 IS NULL OR deck_id = ?1)",
+            rusqlite::params![deck_id],
             |row| row.get(0),
         )
         .map_err(|e| e.to_string())?;

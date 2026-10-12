@@ -5,7 +5,13 @@ import { ReaderService } from '../../services/reader.service'
 import { DictionaryService } from '../../../dictionary/services/dictionary.service'
 import { AudioService } from '../../../../core/services/audio.service'
 import { AiModelService } from '../../services/ai-model.service'
-import { EnvironmentInjector, createEnvironmentInjector, runInInjectionContext, signal } from '@angular/core'
+import { DeckService } from '../../../decks/services/deck.service'
+import {
+  EnvironmentInjector,
+  createEnvironmentInjector,
+  runInInjectionContext,
+  signal,
+} from '@angular/core'
 
 describe('MangaReaderComponent', () => {
   let component: MangaReaderComponent
@@ -34,6 +40,12 @@ describe('MangaReaderComponent', () => {
     downloadProgress: ReturnType<typeof signal<number>>
     isModelReady: ReturnType<typeof signal<boolean>>
     ensureModelExists: ReturnType<typeof vi.fn>
+  }
+  const deckServiceMock = {
+    decks: signal([{ id: 'default', name: 'Default', description: '' }]),
+    targetDeckId: signal('default'),
+    setTargetDeck: vi.fn(),
+    loadDecks: vi.fn().mockResolvedValue([]),
   }
 
   beforeEach(() => {
@@ -80,9 +92,12 @@ describe('MangaReaderComponent', () => {
       { provide: DictionaryService, useValue: dictionaryServiceMock },
       { provide: AudioService, useValue: audioServiceMock },
       { provide: AiModelService, useValue: aiServiceMock },
+      { provide: DeckService, useValue: deckServiceMock },
     ]
 
-    const parentInjector = { get: (token: unknown) => providers.find((p) => p.provide === token)?.useValue ?? null } as unknown as EnvironmentInjector
+    const parentInjector = {
+      get: (token: unknown) => providers.find((p) => p.provide === token)?.useValue ?? null,
+    } as unknown as EnvironmentInjector
     const injector = createEnvironmentInjector([], parentInjector)
 
     runInInjectionContext(injector, () => {

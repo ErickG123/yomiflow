@@ -10,12 +10,16 @@ export class DeckService {
   readonly tags = signal<Tag[]>([])
   readonly isLoading = signal<boolean>(false)
   readonly activeDeckId = signal<string | null>(null)
+  readonly targetDeckId = signal<string>('default')
 
   async loadDecks(): Promise<DeckWithCounts[]> {
     this.isLoading.set(true)
     try {
       const data = await invoke<DeckWithCounts[]>('get_decks')
       this.decks.set(data)
+      if (!data.some((deck) => deck.id === this.targetDeckId())) {
+        this.targetDeckId.set(data[0]?.id ?? 'default')
+      }
       return data
     } catch (error) {
       console.error('Failed to load decks:', error)
@@ -24,6 +28,10 @@ export class DeckService {
     } finally {
       this.isLoading.set(false)
     }
+  }
+
+  setTargetDeck(id: string): void {
+    this.targetDeckId.set(id || 'default')
   }
 
   async loadTags(): Promise<Tag[]> {

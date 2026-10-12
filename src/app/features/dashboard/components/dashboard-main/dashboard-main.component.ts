@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common'
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core'
 import { Router, RouterLink } from '@angular/router'
 import { TranslocoDirective } from '@ngneat/transloco'
 import { DashboardService } from '../../services/dashboard.service'
@@ -26,6 +26,7 @@ export class DashboardMainComponent implements OnInit {
   readonly streakStats = this.dashboardService.streakStats
   readonly isLoading = this.dashboardService.isLoading
   readonly kanaProficiency = this.kanaService.proficiency
+  readonly statsDeckId = signal<string | null>(null)
 
   // Generates the past 16 weeks (112 days) of heatmap squares
   readonly calendarDays = computed<HeatmapDay[]>(() => {
@@ -56,7 +57,7 @@ export class DashboardMainComponent implements OnInit {
   })
 
   ngOnInit(): void {
-    this.dashboardService.getStats()
+    this.dashboardService.getStats(this.statsDeckId())
     this.dashboardService.getHeatmap()
     this.dashboardService.getStreaks()
     void this.deckService.loadDecks()
@@ -66,8 +67,16 @@ export class DashboardMainComponent implements OnInit {
   startStudy(): void {
     const { due_today, new_cards } = this.stats()
     if (due_today > 0 || new_cards > 0) {
-      this.router.navigate(['/study'])
+      void this.router.navigate(['/study'], {
+        queryParams: { deckId: this.statsDeckId() },
+      })
     }
+  }
+
+  onStatsDeckChange(event: Event): void {
+    const deckId = (event.target as HTMLSelectElement).value
+    this.statsDeckId.set(deckId || null)
+    void this.dashboardService.getStats(this.statsDeckId())
   }
 
   studyDeck(deckId: string): void {
@@ -76,4 +85,3 @@ export class DashboardMainComponent implements OnInit {
     })
   }
 }
-

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { Router } from '@angular/router'
 import { TranslocoDirective, TranslocoPipe, TranslocoService } from '@ngneat/transloco'
 import { DeckService } from '../../services/deck.service'
+import { DeckWithCounts } from '../../models/deck.model'
 
 @Component({
   selector: 'app-deck-list',
@@ -20,15 +21,36 @@ export class DeckListComponent implements OnInit {
   readonly newDeckName = signal<string>('')
   readonly newDeckDescription = signal<string>('')
   readonly isSubmitting = signal<boolean>(false)
+  readonly editingDeck = signal<DeckWithCounts | null>(null)
 
   async ngOnInit(): Promise<void> {
     await this.deckService.loadDecks()
   }
 
   toggleCreateModal(): void {
-    this.isCreateModalOpen.update((v) => !v)
+    if (!this.isCreateModalOpen()) {
+      this.openCreateModal()
+      return
+    }
+    this.isCreateModalOpen.set(false)
+    this.editingDeck.set(null)
     this.newDeckName.set('')
     this.newDeckDescription.set('')
+  }
+
+  openCreateModal(): void {
+    this.editingDeck.set(null)
+    this.newDeckName.set('')
+    this.newDeckDescription.set('')
+    this.isCreateModalOpen.set(true)
+  }
+
+  editDeck(deck: DeckWithCounts, event: Event): void {
+    event.stopPropagation()
+    this.editingDeck.set(deck)
+    this.newDeckName.set(deck.name)
+    this.newDeckDescription.set(deck.description ?? '')
+    this.isCreateModalOpen.set(true)
   }
 
   onNameInput(event: Event): void {
@@ -41,20 +63,24 @@ export class DeckListComponent implements OnInit {
     this.newDeckDescription.set(target.value)
   }
 
-  async createDeck(): Promise<void> {
+  async saveDeck(): Promise<void> {
     const name = this.newDeckName().trim()
     if (!name) return
 
     this.isSubmitting.set(true)
     try {
-      await this.deckService.createDeck(name, this.newDeckDescription().trim())
-      this.isCreateModalOpen.set(false)
-      this.newDeckName.set('')
-      this.newDeckDescription.set('')
+      const description = this.newDeckDescription().trim()
+      const editingDeck = this.editingDeck()
+      if (editingDeck) {
+        await this.deckService.updateDeck(editingDeck.id, name, description)
+      } else {
+        await this.deckService.createDeck(name, description)
+      }
+      this.toggleCreateModal()
     } catch (err) {
       console.error('Failed to create deck:', err)
-      const errPrefix =
-        this.translocoService?.translate('decks.create_error') ?? 'Erro ao criar baralho:'
+      const errorKey = this.editingDeck() ? 'decks.update_deck_error' : 'decks.create_error'
+      const errPrefix = this.translocoService?.translate(errorKey) ?? 'Erro ao salvar baralho:'
       alert(`${errPrefix} ${err}`)
     } finally {
       this.isSubmitting.set(false)

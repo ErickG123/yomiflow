@@ -326,7 +326,13 @@
   },
   "decks": {
     "title": "Study Decks",
+    "target_deck": "Target deck",
+    "all_decks": "All decks",
     "modal_title": "Create New Deck",
+    "edit_modal_title": "Edit Deck",
+    "edit_deck": "Edit deck",
+    "update_deck": "Update Deck",
+    "update_deck_error": "Failed to update deck:",
     "deck_name_label": "Deck Name *",
     "deck_name_placeholder": "e.g. JLPT N3, Anime Vocabulary...",
     "deck_desc_label": "Description (Optional)",

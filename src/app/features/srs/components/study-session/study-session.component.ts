@@ -1,7 +1,17 @@
-import { ChangeDetectionStrategy, Component, HostListener, computed, effect, inject, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  HostListener,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
-import { RouterLink } from '@angular/router'
+import { ActivatedRoute, RouterLink } from '@angular/router'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { TranslocoPipe } from '@ngneat/transloco'
 import { invoke } from '@tauri-apps/api/core'
 import { AudioService } from '../../../../core/services/audio.service'
@@ -14,13 +24,23 @@ import { InterleavedCard, KanaInterleavedCard } from '../../models/interleaved-c
 @Component({
   selector: 'app-study-session',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TranslocoPipe, KanjiPadComponent, PitchAccentComponent, KanjiBreakdownComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    TranslocoPipe,
+    KanjiPadComponent,
+    PitchAccentComponent,
+    KanjiBreakdownComponent,
+  ],
   templateUrl: './study-session.component.html',
   styleUrl: './study-session.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StudySessionComponent {
   readonly audioService = inject(AudioService)
+  private readonly route = inject(ActivatedRoute)
+  private readonly destroyRef = inject(DestroyRef)
   readonly queue = signal<InterleavedCard[]>([])
   readonly currentCard = computed(() => this.queue()[0] ?? null)
   readonly isLoading = signal(true)
@@ -45,13 +65,15 @@ export class StudySessionComponent {
         this.imageCard.set(null)
       }
     })
-    void this.loadQueue()
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      void this.loadQueue(params.get('deckId'))
+    })
   }
 
-  async loadQueue(): Promise<void> {
+  async loadQueue(deckId: string | null = null): Promise<void> {
     this.isLoading.set(true)
     try {
-      this.queue.set(await invoke<InterleavedCard[]>('get_interleaved_review_queue'))
+      this.queue.set(await invoke<InterleavedCard[]>('get_interleaved_review_queue', { deckId }))
     } catch (error) {
       this.answerError.set(String(error))
       this.queue.set([])
@@ -67,7 +89,8 @@ export class StudySessionComponent {
     try {
       const card = await invoke<ImageOcclusionCard>('get_image_occlusion_card', { cardId })
       const current = this.currentCard()
-      if (current?.cardType === 'image_occlusion' && current.cardId === cardId) this.imageCard.set(card)
+      if (current?.cardType === 'image_occlusion' && current.cardId === cardId)
+        this.imageCard.set(card)
     } catch (error) {
       this.answerError.set(String(error))
     }
@@ -118,7 +141,9 @@ export class StudySessionComponent {
   }
 
   revealMask(index: number): void {
-    this.revealedMasks.update((indexes) => indexes.includes(index) ? indexes : [...indexes, index])
+    this.revealedMasks.update((indexes) =>
+      indexes.includes(index) ? indexes : [...indexes, index],
+    )
   }
 
   advance(): void {
@@ -156,10 +181,17 @@ export class StudySessionComponent {
     if (card.cardType === 'vocabulary' && ['r', 'R', 'p', 'P'].includes(event.key)) {
       event.preventDefault()
       this.speakCurrentWord()
-    } else if (event.code === 'Space' && (card.cardType === 'vocabulary' || card.cardType === 'grammar')) {
+    } else if (
+      event.code === 'Space' &&
+      (card.cardType === 'vocabulary' || card.cardType === 'grammar')
+    ) {
       event.preventDefault()
       this.flipCard()
-    } else if (this.isFlipped() || (card.cardType === 'image_occlusion' && this.revealedMasks().length === (this.imageCard()?.masks.length ?? -1))) {
+    } else if (
+      this.isFlipped() ||
+      (card.cardType === 'image_occlusion' &&
+        this.revealedMasks().length === (this.imageCard()?.masks.length ?? -1))
+    ) {
       const rating = Number(event.key)
       if (rating >= 1 && rating <= 4) this.rateCard(rating)
     }

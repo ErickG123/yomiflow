@@ -34,6 +34,18 @@
       </div>
 
       <div class="flex items-center gap-3">
+        <label class="flex items-center gap-2 text-xs text-zinc-400">
+          <span>{{ 'decks.target_deck' | transloco }}</span>
+          <select
+            [value]="selectedDeckId()"
+            (change)="deckService.setTargetDeck($any($event.target).value)"
+            class="max-w-36 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1.5 text-xs text-zinc-200"
+          >
+            @for (deck of deckService.decks(); track deck.id) {
+              <option [value]="deck.id">{{ deck.name }}</option>
+            }
+          </select>
+        </label>
         <!-- Furigana Toggle Button -->
         <button
           type="button"

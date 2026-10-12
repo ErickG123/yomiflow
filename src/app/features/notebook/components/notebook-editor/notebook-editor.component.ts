@@ -72,7 +72,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
 
   readonly analysisMode = signal<AnalysisMode>('manual')
   readonly currentId = signal<string>(crypto.randomUUID())
-  readonly selectedDeckId = signal<string | null>(null)
+  readonly selectedDeckId = signal<string | null>(this.deckService.targetDeckId())
   readonly notebookSearch = signal<string>('')
   readonly filteredEntries = computed(() => {
     const query = this.notebookSearch().trim().toLocaleLowerCase()
@@ -489,6 +489,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   onDeckChange(event: Event): void {
     const val = (event.target as HTMLSelectElement).value
     this.selectedDeckId.set(val ? val : null)
+    if (val) this.deckService.setTargetDeck(val)
   }
 
   private scheduleGrammarLint(text: string): void {
@@ -600,7 +601,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
       this.translocoService?.translate('notebook.default_new_note') ?? 'Nova Anotação'
     this.title.set(defaultTitle)
     this.markdownContent.set('')
-    this.selectedDeckId.set(null)
+    this.selectedDeckId.set(this.deckService.targetDeckId())
 
     if (this.editor) {
       this.editor.commands.setContent('<p></p>')

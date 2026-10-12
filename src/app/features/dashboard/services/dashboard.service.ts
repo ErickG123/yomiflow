@@ -23,10 +23,10 @@ export class DashboardService {
 
   readonly isLoading = signal<boolean>(false)
 
-  async getStats(): Promise<DashboardStats> {
+  async getStats(deckId?: string | null): Promise<DashboardStats> {
     this.isLoading.set(true)
     try {
-      const data = await invoke<DashboardStats>('get_dashboard_stats')
+      const data = await invoke<DashboardStats>('get_dashboard_stats', { deckId: deckId ?? null })
       this.stats.set(data)
       return data
     } catch (error) {
@@ -59,4 +59,3 @@ export class DashboardService {
     }
   }
 }
-

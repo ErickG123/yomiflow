@@ -16,15 +16,18 @@ export class DictionaryService {
   readonly addedCardIds = signal<number[]>([])
   readonly isImporting = signal<boolean>(false)
 
-  async searchDictionary(query: string): Promise<DictionaryEntry[]> {
-    return invoke<DictionaryEntry[]>('search_dictionary', { query })
+  async searchDictionary(query: string, deckId?: string | null): Promise<DictionaryEntry[]> {
+    return invoke<DictionaryEntry[]>('search_dictionary', { query, deckId: deckId ?? null })
   }
 
   async searchKanjis(query: string): Promise<KanjiEntry[]> {
     return invoke<KanjiEntry[]>('search_kanjis', { query })
   }
 
-  async search(query: string): Promise<{ dictResults: DictionaryEntry[]; kanjiResults: KanjiEntry[] }> {
+  async search(
+    query: string,
+    deckId?: string | null,
+  ): Promise<{ dictResults: DictionaryEntry[]; kanjiResults: KanjiEntry[] }> {
     const trimmed = query.trim()
     if (!trimmed) {
       this.searchResults.set([])
@@ -35,7 +38,7 @@ export class DictionaryService {
     this.isLoading.set(true)
     try {
       const [dictResults, kanjiResults] = await Promise.all([
-        this.searchDictionary(trimmed).catch((err) => {
+        this.searchDictionary(trimmed, deckId).catch((err) => {
           console.error('Failed to search dictionary:', err)
           return [] as DictionaryEntry[]
         }),
@@ -54,15 +57,11 @@ export class DictionaryService {
   }
 
   async addToSrs(entryId: number, deckId?: string | null): Promise<void> {
-    if (this.addedCardIds().includes(entryId)) {
-      return
-    }
-
     try {
       await invoke('add_to_srs', { entryId, deckId: deckId || null })
       this.addedCardIds.update((current) => [...current, entryId])
       this.searchResults.update((entries) =>
-        entries.map((entry) => (entry.id === entryId ? { ...entry, in_srs: true } : entry))
+        entries.map((entry) => (entry.id === entryId ? { ...entry, in_srs: true } : entry)),
       )
     } catch (error) {
       console.error('Failed to add card to SRS:', error)
@@ -74,7 +73,7 @@ export class DictionaryService {
     kanji: string | null,
     reading: string,
     meaning: string,
-    deckId?: string | null
+    deckId?: string | null,
   ): Promise<number> {
     try {
       const entryId = await invoke<number>('add_custom_word_to_srs', {
@@ -91,12 +90,12 @@ export class DictionaryService {
     }
   }
 
-  async removeFromSrs(entryId: number): Promise<void> {
+  async removeFromSrs(entryId: number, deckId?: string | null): Promise<void> {
     try {
-      await invoke('remove_from_srs', { entryId })
+      await invoke('remove_from_srs', { entryId, deckId: deckId ?? null })
       this.addedCardIds.update((current) => current.filter((id) => id !== entryId))
       this.searchResults.update((entries) =>
-        entries.map((entry) => (entry.id === entryId ? { ...entry, in_srs: false } : entry))
+        entries.map((entry) => (entry.id === entryId ? { ...entry, in_srs: false } : entry)),
       )
     } catch (error) {
       console.error('Failed to remove card from SRS:', error)
@@ -141,7 +140,7 @@ export class DictionaryService {
             `• Termos: ${res.terms_imported}\n` +
             `• Kanjis: ${res.kanjis_imported}\n` +
             `• Tags: ${res.tags_imported}\n` +
-            `• Total: ${res.total_imported} registros adicionados.`
+            `• Total: ${res.total_imported} registros adicionados.`,
         )
       } finally {
         this.appState.isProcessing.set(false)
@@ -176,7 +175,9 @@ export class DictionaryService {
       this.appState.progressMessage.set('A iniciar importação de Kanjis JLPT...')
       try {
         const count = await invoke<number>('import_jlpt_kanjis', { path })
-        alert(`Importação de Kanjis concluída com sucesso!\n\n• ${count} Kanjis foram importados para o banco de dados.`)
+        alert(
+          `Importação de Kanjis concluída com sucesso!\n\n• ${count} Kanjis foram importados para o banco de dados.`,
+        )
       } finally {
         this.appState.isProcessing.set(false)
       }
@@ -210,7 +211,9 @@ export class DictionaryService {
       this.appState.progressMessage.set('A importar traçados SVG do KanjiVG...')
       try {
         const count = await invoke<number>('import_kanjivg_folder', { folderPath })
-        alert(`Importação do KanjiVG concluída com sucesso!\n\n• ${count} traçados de Kanjis foram importados.`)
+        alert(
+          `Importação do KanjiVG concluída com sucesso!\n\n• ${count} traçados de Kanjis foram importados.`,
+        )
       } finally {
         this.appState.isProcessing.set(false)
       }

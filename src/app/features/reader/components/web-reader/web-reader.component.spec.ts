@@ -4,7 +4,12 @@ import { NewsService } from '../../services/news.service'
 import { DictionaryService } from '../../../dictionary/services/dictionary.service'
 import { NotebookService } from '../../../notebook/services/notebook.service'
 import { DeckService } from '../../../decks/services/deck.service'
-import { signal, EnvironmentInjector, createEnvironmentInjector, runInInjectionContext } from '@angular/core'
+import {
+  signal,
+  EnvironmentInjector,
+  createEnvironmentInjector,
+  runInInjectionContext,
+} from '@angular/core'
 import { NhkNewsItem } from '../../models/news.model'
 
 describe('WebReaderComponent', () => {
@@ -13,7 +18,8 @@ describe('WebReaderComponent', () => {
   const mockNewsItem: NhkNewsItem = {
     id: 'news-1',
     title: '日本の桜が咲きました',
-    title_with_ruby: '<ruby>日本<rt>にほん</rt></ruby>の<ruby>桜<rt>さくら</rt></ruby>が<ruby>咲<rt>さ</rt></ruby>きました',
+    title_with_ruby:
+      '<ruby>日本<rt>にほん</rt></ruby>の<ruby>桜<rt>さくら</rt></ruby>が<ruby>咲<rt>さ</rt></ruby>きました',
     body: '日本の桜がとてもきれいに咲きました。\nたくさんの人が花見をします。',
     body_html: '<p>日本の桜がとてもきれいに咲きました。</p><p>たくさんの人が花見をします。</p>',
     image_url: 'https://example.com/sakura.jpg',
@@ -46,6 +52,8 @@ describe('WebReaderComponent', () => {
 
   let mockDeckService: {
     decks: ReturnType<typeof signal<{ id: string; name: string; description: string }[]>>
+    targetDeckId: ReturnType<typeof signal<string>>
+    setTargetDeck: ReturnType<typeof vi.fn>
     loadDecks: ReturnType<typeof vi.fn>
   }
 
@@ -85,6 +93,8 @@ describe('WebReaderComponent', () => {
 
     mockDeckService = {
       decks: signal([{ id: 'default', name: 'Default', description: '' }]),
+      targetDeckId: signal('default'),
+      setTargetDeck: vi.fn(),
       loadDecks: vi.fn().mockResolvedValue(undefined),
     }
 
@@ -122,7 +132,7 @@ describe('WebReaderComponent', () => {
 
   it('should search word definition on word click', async () => {
     await component.onWordClick('桜')
-    expect(mockDictionaryService.searchDictionary).toHaveBeenCalledWith('桜')
+    expect(mockDictionaryService.searchDictionary).toHaveBeenCalledWith('桜', 'default')
     expect(component.activeWord()).toBe('桜')
     expect(component.activeWordResults().length).toBe(1)
   })

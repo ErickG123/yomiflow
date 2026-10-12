@@ -37,7 +37,7 @@ export class MangaReaderComponent implements OnInit {
   readonly aiService = inject(AiModelService)
   readonly deckService = inject(DeckService)
 
-  readonly selectedDeckId = signal<string>('default')
+  readonly selectedDeckId = this.deckService.targetDeckId
   readonly currentCbzPath = this.readerService.currentCbzPath
   readonly pages = this.readerService.pages
   readonly currentIndex = this.readerService.currentIndex
@@ -223,7 +223,7 @@ export class MangaReaderComponent implements OnInit {
         0,
         0,
         cropCanvas.width,
-        cropCanvas.height
+        cropCanvas.height,
       )
 
       const croppedBase64 = cropCanvas.toDataURL('image/png')
@@ -322,7 +322,7 @@ export class MangaReaderComponent implements OnInit {
         this.extractedText.set(sanitized)
         this.isDrawerOpen.set(true)
         // Query the dictionary immediately with extracted text
-        await this.dictionaryService.search(sanitized)
+        await this.dictionaryService.search(sanitized, this.selectedDeckId())
       } else {
         alert('Nenhum texto em japonês reconhecido no recorte.')
       }
@@ -336,7 +336,7 @@ export class MangaReaderComponent implements OnInit {
 
   async toggleSrs(entry: DictionaryEntry): Promise<void> {
     if (entry.in_srs) {
-      await this.dictionaryService.removeFromSrs(entry.id)
+      await this.dictionaryService.removeFromSrs(entry.id, this.selectedDeckId())
     } else {
       await this.dictionaryService.addToSrs(entry.id, this.selectedDeckId())
     }
@@ -344,7 +344,9 @@ export class MangaReaderComponent implements OnInit {
 
   onDeckChange(event: Event): void {
     const target = event.target as HTMLSelectElement
-    this.selectedDeckId.set(target.value)
+    this.deckService.setTargetDeck(target.value)
+    const text = this.extractedText()
+    if (text) void this.dictionaryService.search(text, this.selectedDeckId())
   }
 
   @HostListener('window:keydown', ['$event'])

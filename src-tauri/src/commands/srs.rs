@@ -29,6 +29,17 @@ pub fn add_to_srs_in_conn(
 
     let target_deck = deck_id.unwrap_or_else(|| "default".to_string());
 
+    let already_in_deck: bool = conn
+        .query_row(
+            "SELECT EXISTS(SELECT 1 FROM cards WHERE entry_id = ?1 AND deck_id = ?2)",
+            params![entry_id, target_deck],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+    if already_in_deck {
+        return Ok(());
+    }
+
     conn.execute(
         "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
@@ -49,17 +60,21 @@ pub fn add_to_srs_in_conn(
 }
 
 #[tauri::command]
-pub fn remove_from_srs(entry_id: i64, state: State<'_, AppState>) -> Result<(), String> {
+pub fn remove_from_srs(
+    entry_id: i64,
+    deck_id: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
     let mut conn = state.db.lock().map_err(|e| e.to_string())?;
     let tx = conn.transaction().map_err(|e| e.to_string())?;
 
     // Find card_id associated with this entry_id
     let card_ids = {
         let mut stmt = tx
-            .prepare("SELECT id FROM cards WHERE entry_id = ?1")
+            .prepare("SELECT id FROM cards WHERE entry_id = ?1 AND (?2 IS NULL OR deck_id = ?2)")
             .map_err(|e| e.to_string())?;
 
-        stmt.query_map(params![entry_id], |row| row.get::<_, String>(0))
+        stmt.query_map(params![entry_id, deck_id], |row| row.get::<_, String>(0))
             .map_err(|e| e.to_string())?
             .collect::<Result<Vec<String>, rusqlite::Error>>()
             .map_err(|e| e.to_string())?
@@ -78,8 +93,11 @@ pub fn remove_from_srs(entry_id: i64, state: State<'_, AppState>) -> Result<(), 
     }
 
     // Delete cards
-    tx.execute("DELETE FROM cards WHERE entry_id = ?1", params![entry_id])
-        .map_err(|e| e.to_string())?;
+    tx.execute(
+        "DELETE FROM cards WHERE entry_id = ?1 AND (?2 IS NULL OR deck_id = ?2)",
+        params![entry_id, deck_id],
+    )
+    .map_err(|e| e.to_string())?;
 
     tx.commit().map_err(|e| e.to_string())?;
 
@@ -88,65 +106,35 @@ pub fn remove_from_srs(entry_id: i64, state: State<'_, AppState>) -> Result<(), 
 
 #[tauri::command]
 pub fn get_due_cards(
-    deck_id: Option<String>,
+    deck_id: String,
     state: State<'_, AppState>,
 ) -> Result<Vec<ReviewCard>, String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare(
+            "SELECT c.id, d.kanji, d.reading, d.meaning, c.state, d.pitch
+             FROM cards c
+             JOIN dictionary_entries d ON c.entry_id = d.id
+             WHERE c.deck_id = ?1 AND (c.due_date <= strftime('%s', 'now') OR c.state = 0)
+             ORDER BY c.due_date ASC
+             LIMIT 20",
+        )
+        .map_err(|e| e.to_string())?;
 
-    let cards = match deck_id {
-        Some(d_id) => {
-            let mut stmt = conn
-                .prepare(
-                    "SELECT c.id, d.kanji, d.reading, d.meaning, c.state, d.pitch
-                     FROM cards c
-                     JOIN dictionary_entries d ON c.entry_id = d.id
-                     WHERE c.deck_id = ?1 AND (c.due_date <= strftime('%s', 'now') OR c.state = 0)
-                     ORDER BY c.due_date ASC
-                     LIMIT 20",
-                )
-                .map_err(|e| e.to_string())?;
-
-            stmt.query_map(params![d_id], |row| {
-                Ok(ReviewCard {
-                    card_id: row.get(0)?,
-                    kanji: row.get(1)?,
-                    reading: row.get(2)?,
-                    meaning: row.get(3)?,
-                    state: row.get(4)?,
-                    pitch: row.get(5)?,
-                })
+    let cards = stmt
+        .query_map(params![deck_id], |row| {
+            Ok(ReviewCard {
+                card_id: row.get(0)?,
+                kanji: row.get(1)?,
+                reading: row.get(2)?,
+                meaning: row.get(3)?,
+                state: row.get(4)?,
+                pitch: row.get(5)?,
             })
-            .map_err(|e| e.to_string())?
-            .collect::<Result<Vec<ReviewCard>, rusqlite::Error>>()
-            .map_err(|e| e.to_string())?
-        }
-        None => {
-            let mut stmt = conn
-                .prepare(
-                    "SELECT c.id, d.kanji, d.reading, d.meaning, c.state, d.pitch
-                     FROM cards c
-                     JOIN dictionary_entries d ON c.entry_id = d.id
-                     WHERE c.due_date <= strftime('%s', 'now') OR c.state = 0
-                     ORDER BY c.due_date ASC
-                     LIMIT 20",
-                )
-                .map_err(|e| e.to_string())?;
-
-            stmt.query_map([], |row| {
-                Ok(ReviewCard {
-                    card_id: row.get(0)?,
-                    kanji: row.get(1)?,
-                    reading: row.get(2)?,
-                    meaning: row.get(3)?,
-                    state: row.get(4)?,
-                    pitch: row.get(5)?,
-                })
-            })
-            .map_err(|e| e.to_string())?
-            .collect::<Result<Vec<ReviewCard>, rusqlite::Error>>()
-            .map_err(|e| e.to_string())?
-        }
-    };
+        })
+        .map_err(|e| e.to_string())?
+        .collect::<Result<Vec<ReviewCard>, rusqlite::Error>>()
+        .map_err(|e| e.to_string())?;
 
     Ok(cards)
 }
@@ -566,6 +554,39 @@ pub fn migrate_sm2_to_fsrs_in_conn(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn add_to_srs_is_idempotent_per_deck_and_allows_multiple_decks() {
+        let conn = rusqlite::Connection::open_in_memory().unwrap();
+        crate::db::create_tables_and_seed(&conn).unwrap();
+        conn.execute(
+            "INSERT INTO decks (id, name, description) VALUES (?1, ?2, ?3)",
+            params!["deck-extra", "Extra", "Extra deck"],
+        )
+        .unwrap();
+
+        add_to_srs_in_conn(&conn, 1, Some("default".to_string())).unwrap();
+        add_to_srs_in_conn(&conn, 1, Some("deck-extra".to_string())).unwrap();
+        add_to_srs_in_conn(&conn, 1, Some("deck-extra".to_string())).unwrap();
+
+        let total: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM cards WHERE entry_id = ?1",
+                params![1],
+                |row| row.get(0),
+            )
+            .unwrap();
+        let extra_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM cards WHERE entry_id = ?1 AND deck_id = ?2",
+                params![1, "deck-extra"],
+                |row| row.get(0),
+            )
+            .unwrap();
+
+        assert_eq!(total, 2);
+        assert_eq!(extra_count, 1);
+    }
 
     #[test]
     fn test_deck_isolation_in_memory() {

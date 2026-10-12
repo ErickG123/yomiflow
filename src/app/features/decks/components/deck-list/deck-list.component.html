@@ -13,7 +13,7 @@
 
     <button
       type="button"
-      (click)="toggleCreateModal()"
+      (click)="openCreateModal()"
       class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2 px-3.5 rounded-lg transition-colors flex items-center space-x-1.5 cursor-pointer shadow-xs active:scale-95"
     >
       <i class="pi pi-plus text-xs"></i>
@@ -40,16 +40,26 @@
               >
                 {{ deck.name }}
               </h3>
-              @if (deck.id !== 'default') {
+              <div class="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
-                  (click)="deleteDeck(deck.id, $event)"
-                  [title]="t('decks.delete_deck')"
-                  class="text-zinc-600 hover:text-red-400 p-1 rounded transition-colors cursor-pointer"
+                  (click)="editDeck(deck, $event)"
+                  [title]="t('decks.edit_deck')"
+                  class="text-zinc-600 hover:text-indigo-400 p-1 rounded transition-colors cursor-pointer"
                 >
-                  <i class="pi pi-trash text-xs"></i>
+                  <i class="pi pi-pencil text-xs"></i>
                 </button>
-              }
+                @if (deck.id !== 'default') {
+                  <button
+                    type="button"
+                    (click)="deleteDeck(deck.id, $event)"
+                    [title]="t('decks.delete_deck')"
+                    class="text-zinc-600 hover:text-red-400 p-1 rounded transition-colors cursor-pointer"
+                  >
+                    <i class="pi pi-trash text-xs"></i>
+                  </button>
+                }
+              </div>
             </div>
 
             <p class="text-xs text-zinc-400 line-clamp-2 min-h-8">
@@ -110,7 +120,9 @@
         <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
           <h3 class="font-bold text-base text-zinc-100 flex items-center space-x-2">
             <i class="pi pi-folder-plus text-indigo-400"></i>
-            <span>{{ 'decks.modal_title' | transloco }}</span>
+            <span>{{
+              (editingDeck() ? 'decks.edit_modal_title' : 'decks.modal_title') | transloco
+            }}</span>
           </h3>
           <button
             type="button"
@@ -167,11 +179,11 @@
           </button>
           <button
             type="button"
-            (click)="createDeck()"
+            (click)="saveDeck()"
             [disabled]="!newDeckName().trim() || isSubmitting()"
             class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer transition-colors shadow-xs"
           >
-            {{ t('decks.save_deck') }}
+            {{ (editingDeck() ? 'decks.update_deck' : 'decks.save_deck') | transloco }}
           </button>
         </div>
       </div>

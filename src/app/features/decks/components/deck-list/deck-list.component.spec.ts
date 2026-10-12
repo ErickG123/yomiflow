@@ -2,7 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DeckListComponent } from './deck-list.component'
 import { DeckService } from '../../services/deck.service'
 import { Router } from '@angular/router'
-import { EnvironmentInjector, createEnvironmentInjector, runInInjectionContext, signal } from '@angular/core'
+import {
+  EnvironmentInjector,
+  createEnvironmentInjector,
+  runInInjectionContext,
+  signal,
+} from '@angular/core'
 import { DeckWithCounts } from '../../models/deck.model'
 
 describe('DeckListComponent', () => {
@@ -35,8 +40,11 @@ describe('DeckListComponent', () => {
       decks: mockDecksSignal,
       isLoading: signal(false),
       activeDeckId: signal(null),
+      targetDeckId: signal('default'),
+      setTargetDeck: vi.fn(),
       loadDecks: vi.fn().mockResolvedValue(mockDecksSignal()),
       createDeck: vi.fn().mockResolvedValue({ id: 'new-id', name: 'Novo Deck' }),
+      updateDeck: vi.fn().mockResolvedValue(undefined),
       deleteDeck: vi.fn().mockResolvedValue(undefined),
     }
 
@@ -79,5 +87,20 @@ describe('DeckListComponent', () => {
     expect(routerMock.navigate).toHaveBeenCalledWith(['/study'], {
       queryParams: { deckId: 'deck-n3' },
     })
+  })
+
+  it('opens the edit modal with the selected deck values and saves through updateDeck', async () => {
+    const deck = mockDecksSignal()[1]
+    component.editDeck(deck, new Event('click'))
+
+    expect(component.isCreateModalOpen()).toBe(true)
+    expect(component.newDeckName()).toBe(deck.name)
+    expect(component.newDeckDescription()).toBe(deck.description)
+
+    component.newDeckName.set('JLPT N2')
+    await component.saveDeck()
+
+    expect(deckServiceMock.updateDeck).toHaveBeenCalledWith(deck.id, 'JLPT N2', deck.description)
+    expect(component.isCreateModalOpen()).toBe(false)
   })
 })

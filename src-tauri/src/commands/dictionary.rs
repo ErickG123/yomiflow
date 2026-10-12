@@ -158,6 +158,7 @@ fn urlencoding_simple(s: &str) -> String {
 #[tauri::command]
 pub async fn search_dictionary(
     query: String,
+    deck_id: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<Vec<DictionaryEntry>, String> {
     let local_entries = {
@@ -166,12 +167,14 @@ pub async fn search_dictionary(
 
         let mut stmt = conn
             .prepare(
-                "SELECT d.id, d.kanji, d.reading, d.meaning, 
-                        CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END as in_srs,
+                "SELECT d.id, d.kanji, d.reading, d.meaning,
+                        CASE WHEN EXISTS (
+                            SELECT 1 FROM cards c WHERE c.entry_id = d.id
+                            AND (?2 IS NULL OR c.deck_id = ?2)
+                        ) THEN 1 ELSE 0 END as in_srs,
                         wf.rank,
                         d.pitch
                  FROM dictionary_entries d
-                 LEFT JOIN cards c ON d.id = c.entry_id
                  LEFT JOIN word_frequencies wf ON (wf.term = d.kanji OR wf.term = d.reading)
                  WHERE d.kanji LIKE ?1 OR d.reading LIKE ?1 OR d.meaning LIKE ?1 
                  ORDER BY CASE WHEN wf.rank IS NOT NULL THEN 0 ELSE 1 END, wf.rank ASC, d.id ASC
@@ -179,7 +182,7 @@ pub async fn search_dictionary(
             )
             .map_err(|e| e.to_string())?;
 
-        stmt.query_map(params![search_pattern], |row| {
+        stmt.query_map(params![search_pattern, deck_id], |row| {
             Ok(DictionaryEntry {
                 id: row.get(0)?,
                 kanji: row.get(1)?,
@@ -335,8 +338,8 @@ pub fn add_custom_word_to_srs(
     // Check if card is already in SRS
     let card_exists: bool = conn
         .query_row(
-            "SELECT 1 FROM cards WHERE entry_id = ?1 LIMIT 1",
-            params![entry_id],
+            "SELECT 1 FROM cards WHERE entry_id = ?1 AND deck_id = ?2 LIMIT 1",
+            params![entry_id, target_deck],
             |_| Ok(true),
         )
         .unwrap_or(false);

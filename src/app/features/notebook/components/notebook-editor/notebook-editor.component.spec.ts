@@ -31,6 +31,8 @@ describe('NotebookEditorComponent', () => {
   }
   let deckServiceMock: {
     decks: ReturnType<typeof signal<DeckWithCounts[]>>
+    targetDeckId: ReturnType<typeof signal<string>>
+    setTargetDeck: ReturnType<typeof vi.fn>
     loadDecks: ReturnType<typeof vi.fn>
   }
 
@@ -68,6 +70,8 @@ describe('NotebookEditorComponent', () => {
 
     deckServiceMock = {
       decks: signal([]),
+      targetDeckId: signal('default'),
+      setTargetDeck: vi.fn(),
       loadDecks: vi.fn().mockResolvedValue([]),
     }
     routerMock = { navigate: vi.fn().mockResolvedValue(true) }
@@ -117,7 +121,7 @@ describe('NotebookEditorComponent', () => {
       component.currentId(),
       'Capítulo 1: Introdução',
       '# Lição 1\nこれはペンです。',
-      null,
+      'default',
       null,
       0,
     )
