@@ -181,6 +181,7 @@ pub fn run() {
             commands::drive_sync::backup_database_to_drive,
             commands::nlp::analyze_japanese_text,
             commands::nlp::generate_furigana,
+            commands::nlp::lint_japanese_text,
             commands::nlp::analyze_text_readability,
             commands::nlp::generate_syntax_tree,
             commands::nlp::inject_furigana_epub,

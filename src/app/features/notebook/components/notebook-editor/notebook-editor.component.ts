@@ -37,6 +37,12 @@ import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
 import { SyntaxTreeExtension } from '../../extensions/syntax-tree.extension'
 import { SyntaxNodeComponent } from '../syntax-node/syntax-node.component'
 import { BidirectionalLinkExtension } from '../../extensions/bidirectional-link.extension'
+import {
+  getGrammarLintText,
+  GrammarLinterExtension,
+  setGrammarLintDecorations,
+} from '../../extensions/grammar-linter.extension'
+import { LintDecoration, LintTooltipState } from '../../models/notebook.model'
 import { notebookTextToEditorHtml } from '../../utils/notebook-link-html'
 
 @Component({
@@ -57,6 +63,9 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   private readonly appRef = inject(ApplicationRef)
   private trayNewNoteSubscription: Subscription | null = null
   private queryParamsSubscription: Subscription | null = null
+  private grammarLintTimeout: ReturnType<typeof setTimeout> | null = null
+  private grammarLintRequestId = 0
+  private lintTooltipTimeout: ReturnType<typeof setTimeout> | null = null
 
   @ViewChild('editorElement') editorElementRef?: ElementRef<HTMLDivElement>
   editor: Editor | null = null
@@ -163,6 +172,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   readonly showBubbleMenu = signal<boolean>(false)
   readonly bubbleMenuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 })
   readonly selectedText = signal<string>('')
+  readonly activeLintTooltip = signal<LintTooltipState | null>(null)
 
   async ngOnInit(): Promise<void> {
     this.queryParamsSubscription =
@@ -218,6 +228,9 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
         BidirectionalLinkExtension.configure({
           onOpenLink: (title) => this.openLinkedNote(title),
         }),
+        GrammarLinterExtension.configure({
+          onHover: (lint, coordinates) => this.onGrammarLintHover(lint, coordinates),
+        }),
       ],
       content: notebookTextToEditorHtml(this.markdownContent()),
       onSelectionUpdate: ({ editor }) => {
@@ -233,12 +246,14 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
 
         const text = editor.getText()
         this.markdownContent.set(text)
+        this.scheduleGrammarLint(getGrammarLintText(editor))
 
         if (this.analysisMode() === 'auto') {
           this.textChange$.next(text)
         }
       },
     })
+    if (this.editor) this.scheduleGrammarLint(getGrammarLintText(this.editor))
   }
 
   ngOnDestroy(): void {
@@ -248,6 +263,8 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
       clearTimeout(this.toastTimeout)
     }
     this.textSubscription?.unsubscribe()
+    if (this.grammarLintTimeout) clearTimeout(this.grammarLintTimeout)
+    if (this.lintTooltipTimeout) clearTimeout(this.lintTooltipTimeout)
     this.editor?.destroy()
   }
 
@@ -474,6 +491,73 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     this.selectedDeckId.set(val ? val : null)
   }
 
+  private scheduleGrammarLint(text: string): void {
+    if (this.grammarLintTimeout) clearTimeout(this.grammarLintTimeout)
+    const requestId = ++this.grammarLintRequestId
+    this.activeLintTooltip.set(null)
+    if (!text.trim()) {
+      if (this.editor) setGrammarLintDecorations(this.editor, [])
+      return
+    }
+
+    this.grammarLintTimeout = setTimeout(() => {
+      void this.notebookService.lintJapaneseText(text).then((suggestions) => {
+        if (
+          requestId === this.grammarLintRequestId &&
+          this.editor &&
+          getGrammarLintText(this.editor) === text
+        ) {
+          setGrammarLintDecorations(this.editor, suggestions)
+        }
+      })
+    }, 500)
+  }
+
+  private onGrammarLintHover(
+    lint: LintDecoration | null,
+    coordinates: { x: number; y: number },
+  ): void {
+    if (this.lintTooltipTimeout) clearTimeout(this.lintTooltipTimeout)
+    if (!lint) {
+      this.lintTooltipTimeout = setTimeout(() => this.activeLintTooltip.set(null), 180)
+      return
+    }
+    this.activeLintTooltip.set({
+      ...lint,
+      clientX: coordinates.x,
+      clientY: coordinates.y,
+    })
+  }
+
+  cancelLintTooltipDismiss(): void {
+    if (this.lintTooltipTimeout) clearTimeout(this.lintTooltipTimeout)
+    this.lintTooltipTimeout = null
+  }
+
+  dismissLintTooltip(): void {
+    if (this.lintTooltipTimeout) clearTimeout(this.lintTooltipTimeout)
+    this.lintTooltipTimeout = setTimeout(() => this.activeLintTooltip.set(null), 180)
+  }
+
+  lintTooltipLeft(clientX: number): number {
+    return Math.max(8, Math.min(clientX + 12, window.innerWidth - 300))
+  }
+
+  lintTooltipTop(clientY: number): number {
+    return Math.max(8, Math.min(clientY + 12, window.innerHeight - 150))
+  }
+
+  applyLintSuggestion(): void {
+    const lint = this.activeLintTooltip()
+    if (!lint || !this.editor) return
+    this.editor
+      .chain()
+      .focus()
+      .insertContentAt({ from: lint.from, to: lint.to }, lint.suggestion.suggestion)
+      .run()
+    this.activeLintTooltip.set(null)
+  }
+
   selectEntry(entry: NotebookEntry): void {
     this.currentId.set(entry.id)
     this.title.set(entry.title)
@@ -482,6 +566,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
 
     if (this.editor) {
       this.editor.commands.setContent(notebookTextToEditorHtml(entry.content_md))
+      this.scheduleGrammarLint(getGrammarLintText(this.editor))
     }
     void this.triggerAnalysis(entry.content_md)
   }

@@ -432,17 +432,16 @@ Migration tests use only `Connection::open_in_memory()` and never touch the prod
    cargo test --test integration_tests test_global_search_triggers_track_cards_notes_and_news
    ```
 
-### Cenário K: Global FTS5 OmniSearch
+### Cenário L: Linter Gramatical do Caderno
 
-**Objetivo:** Confirmar que Ctrl+K pesquisa cartões SRS, notas do Caderno e notícias NHK em cache, e que as mudanças nas tabelas de origem mantêm o índice atualizado.
+**Objetivo:** Verificar que a análise funciona offline, sublinha apenas a partícula e permite aplicar a correção sem bloquear a digitação.
 
-1. Na aplicação, pressione `Ctrl+K` e pesquise uma palavra presente em um cartão, uma anotação e uma notícia em cache. Os resultados devem aparecer agrupados em **Cartões**, **Anotações** e **Notícias**; os trechos devem realçar a ocorrência pesquisada.
-2. Use as setas e `Enter`, ou clique num resultado. Uma anotação deve abrir o Caderno com a nota selecionada; um cartão deve abrir o Dicionário já pesquisado pelo termo; uma notícia deve abrir o leitor Web.
-3. Salve uma nota com uma palavra única e confirme que ela aparece na busca. Edite a nota removendo a palavra: a ocorrência antiga deve desaparecer e o novo conteúdo deve ser pesquisável. Apague-a e confirme que não há resultado residual.
-4. Repita a verificação de atualização e remoção com um cartão SRS e uma notícia NHK em cache.
-5. Rode o teste isolado de integração. Ele parte de SQLite `:memory:`, verifica os triggers de inserção, atualização e remoção, e valida os marcadores `<mark>` retornados pelo `snippet()` do FTS5:
+1. Abra uma nota do Caderno e digite 日本語を分かります.
+2. Continue digitando rapidamente por menos de meio segundo. A interface deve permanecer fluida; a análise só deve ser enviada após a pausa de debounce.
+3. Confirme que を recebe sublinhado ondulado laranja. Passe o rato sobre ela: o tooltip deve explicar que verbos de potencial geralmente usam が e oferecer o botão para substituir を por が.
+4. Clique em aplicar. O texto deve passar a 日本語が分かります e o sublinhado antigo deve desaparecer após nova análise.
+5. Digite a forma corrigida novamente e confirme que não há sugestão. Repita com uma palavra potencial como 読める, precedida de を.
+6. Rode a verificação isolada da regra Rust e os testes do plugin TipTap:
 
-   ```bash
-   cd src-tauri
-   cargo test --test integration_tests test_global_search_triggers_track_cards_notes_and_news
-   ```
+   cargo test grammar_linter_suggests_ga_for_wakaru_potential_usage
+   npm run test:ci -- --run src/app/features/notebook/extensions/grammar-linter.extension.spec.ts

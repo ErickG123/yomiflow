@@ -1,5 +1,5 @@
 use crate::AppState;
-use crate::models::{BunsetsuChunk, MorphologicalToken, NotebookEntry};
+use crate::models::{BunsetsuChunk, LintSuggestion, MorphologicalToken, NotebookEntry};
 use crate::models::{ReadabilityAnalysis, UnknownWordOccurrence};
 use rusqlite::params;
 use std::collections::HashMap;
@@ -13,6 +13,11 @@ pub fn analyze_japanese_text(text: String) -> Result<Vec<MorphologicalToken>, St
 #[tauri::command]
 pub fn generate_furigana(text: String) -> Result<String, String> {
     crate::domain::nlp::generate_furigana(&text)
+}
+
+#[tauri::command]
+pub fn lint_japanese_text(text: String) -> Result<Vec<LintSuggestion>, String> {
+    crate::domain::nlp::lint_japanese_text(&text)
 }
 
 #[tauri::command]

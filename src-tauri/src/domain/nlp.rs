@@ -1,3 +1,4 @@
+use crate::models::LintSuggestion;
 use crate::models::{BunsetsuChunk, MorphologicalToken};
 use lindera::dictionary::load_dictionary;
 use lindera::mode::Mode;
@@ -148,6 +149,95 @@ pub fn extract_lexical_tokens(text: &str) -> Result<Vec<crate::models::LexicalTo
     })
 }
 
+/// Detects common particle errors using Lindera's lexical form and token offsets.
+/// Returned positions count UTF-16 code units to match ProseMirror's document positions.
+pub fn lint_japanese_text(text: &str) -> Result<Vec<LintSuggestion>, String> {
+    if text.trim().is_empty() {
+        return Ok(Vec::new());
+    }
+    if text.len() > MAX_JAPANESE_TEXT_BYTES {
+        return Err(format!(
+            "Payload de texto excede o limite m\u{00e1}ximo permitido de {} bytes",
+            MAX_JAPANESE_TEXT_BYTES
+        ));
+    }
+
+    get_or_create_segmenter(|segmenter| {
+        let mut tokens = segmenter.segment(Cow::Borrowed(text)).map_err(|error| {
+            format!("Erro durante an\u{00e1}lise morfol\u{00f3}gica Lindera: {error}")
+        })?;
+        let mut positioned_tokens = Vec::with_capacity(tokens.len());
+        let mut cursor = 0;
+        for token in tokens.iter_mut() {
+            let surface = token.surface.to_string();
+            let Some(relative_start) = text[cursor..].find(&surface) else {
+                continue;
+            };
+            let start_byte = cursor + relative_start;
+            let end_byte = start_byte + surface.len();
+            cursor = end_byte;
+            let details = token.details();
+            positioned_tokens.push((surface, start_byte, end_byte, details.to_vec()));
+        }
+
+        let mut suggestions = Vec::new();
+        for index in 0..positioned_tokens.len() {
+            let (particle, start_byte, end_byte, details) = &positioned_tokens[index];
+            if particle != "\u{3092}"
+                || !details
+                    .first()
+                    .is_some_and(|pos| pos.starts_with("\u{52a9}\u{8a5e}"))
+            {
+                continue;
+            }
+
+            let has_potential_verb = positioned_tokens[index + 1..]
+                .iter()
+                .take(4)
+                .find(|(surface, _, _, token_details)| {
+                    token_details
+                        .first()
+                        .is_some_and(|pos| pos.starts_with("\u{52d5}\u{8a5e}"))
+                        || surface == "\u{307e}\u{3059}"
+                })
+                .is_some_and(|(surface, _, _, token_details)| {
+                    let lemma = token_details.get(6).copied().unwrap_or(surface.as_str());
+                    is_potential_verb(lemma) || is_potential_verb(surface)
+                });
+
+            if has_potential_verb {
+                suggestions.push(LintSuggestion {
+                    index_start: text[..*start_byte].encode_utf16().count(),
+                    index_end: text[..*end_byte].encode_utf16().count(),
+                    original: particle.clone(),
+                    suggestion: "\u{304c}".to_string(),
+                    reason: "Verbos de potencial geralmente levam \u{304c}".to_string(),
+                });
+            }
+        }
+
+        Ok(suggestions)
+    })
+}
+
+fn is_potential_verb(word: &str) -> bool {
+    matches!(
+        word,
+        "\u{5206}\u{304b}\u{308b}"
+            | "\u{8aad}\u{3081}\u{308b}"
+            | "\u{898b}\u{3048}\u{308b}"
+            | "\u{805e}\u{3053}\u{3048}\u{308b}"
+            | "\u{3067}\u{304d}\u{308b}"
+            | "\u{66f8}\u{3051}\u{308b}"
+            | "\u{8a71}\u{305b}\u{308b}"
+            | "\u{98df}\u{3079}\u{3089}\u{308c}\u{308b}"
+            | "\u{98f2}\u{3081}\u{308b}"
+            | "\u{4f7f}\u{3048}\u{308b}"
+            | "\u{884c}\u{3051}\u{308b}"
+            | "\u{6765}\u{3089}\u{308c}\u{308b}"
+            | "\u{5fd8}\u{308c}\u{3089}\u{308c}\u{308b}"
+    )
+}
 pub fn katakana_to_hiragana(katakana: &str) -> String {
     let mut hiragana = String::new();
     for c in katakana.chars() {
@@ -433,6 +523,28 @@ mod tests {
         assert!(err.unwrap_err().contains("excede o limite"));
     }
 
+    #[test]
+    fn test_grammar_linter_suggests_ga_for_wakaru_potential_usage() {
+        let sentence = "\u{65e5}\u{672c}\u{8a9e}\u{3092}\u{5206}\u{304b}\u{308a}\u{307e}\u{3059}";
+        let suggestions = lint_japanese_text(sentence).unwrap();
+        assert_eq!(suggestions.len(), 1);
+        assert_eq!(suggestions[0].index_start, 3);
+        assert_eq!(suggestions[0].index_end, 4);
+        assert_eq!(suggestions[0].original, "\u{3092}");
+        assert_eq!(suggestions[0].suggestion, "\u{304c}");
+        assert!(
+            suggestions[0]
+                .reason
+                .starts_with("Verbos de potencial geralmente levam ")
+        );
+
+        let with_emoji = lint_japanese_text(&format!("\u{1f600}{sentence}")).unwrap();
+        assert_eq!(with_emoji[0].index_start, 5);
+        assert_eq!(with_emoji[0].index_end, 6);
+        let correct_sentence =
+            "\u{65e5}\u{672c}\u{8a9e}\u{304c}\u{5206}\u{304b}\u{308a}\u{307e}\u{3059}";
+        assert!(lint_japanese_text(correct_sentence).unwrap().is_empty());
+    }
     #[test]
     fn test_domain_nlp_pos_tagging_and_readings() {
         let tokens = segment_and_tag_japanese("私は学生です").unwrap();

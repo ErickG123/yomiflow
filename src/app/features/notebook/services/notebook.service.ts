@@ -1,7 +1,12 @@
 import { Injectable, signal } from '@angular/core'
 import { invoke } from '@tauri-apps/api/core'
 import { Subject } from 'rxjs'
-import { BunsetsuChunk, MorphologicalToken, NotebookEntry } from '../models/notebook.model'
+import {
+  BunsetsuChunk,
+  LintSuggestion,
+  MorphologicalToken,
+  NotebookEntry,
+} from '../models/notebook.model'
 
 @Injectable({
   providedIn: 'root',
@@ -45,6 +50,16 @@ export class NotebookService {
       return await invoke<BunsetsuChunk[]>('generate_syntax_tree', { text })
     } catch (err) {
       console.error('Erro ao gerar árvore sintática:', err)
+      return []
+    }
+  }
+
+  async lintJapaneseText(text: string): Promise<LintSuggestion[]> {
+    if (!text.trim()) return []
+    try {
+      return await invoke<LintSuggestion[]>('lint_japanese_text', { text })
+    } catch (err) {
+      console.warn('Falha ao verificar gramática japonesa:', err)
       return []
     }
   }

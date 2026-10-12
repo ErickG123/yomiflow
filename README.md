@@ -57,6 +57,7 @@ Mastering Japanese through immersion traditionally requires stitching together a
 
 - **Notion-Style TipTap Rich-Text:** Clean block and markdown editor with slash command capabilities, split-screen viewing, and autosaving.
 - **Real-Time Morphological NLP (Lindera):** Integrated Lindera tokenizer with IPADIC dictionary running on Rust. Parses Japanese text in real time to categorize and syntax-highlight parts of speech (verbs, particles, nouns, adjectives, and auxiliaries) with debounced IPC updates.
+- **Offline Grammar Linter:** A debounced Lindera check spots common particle mistakes such as `日本語を分かります`, marks the affected text in TipTap, and offers a one-click `が` correction with an explanation.
 - **Morphological Readability Analyzer (Offline MorphMan):** Analyze pasted Japanese text locally with Lindera lemmas crossed against vocabulary cards and FSRS retention in SQLite. A comprehension percentage, average retention metric, and inline unknown-word highlights help estimate how much of a passage is familiar before reading.
 - **Strict Content Sanitization:** Comprehensive XSS mitigation utilizing Angular `DomSanitizer` in conjunction with HTML security contexts.
 

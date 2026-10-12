@@ -146,3 +146,8 @@ cargo check --manifest-path src-tauri/Cargo.toml
   npm run build
   ```
 
+
+
+## Real-time grammar linting
+
+The TipTap editor runs the offline Lindera grammar heuristic through `lint_japanese_text` after a 500 ms debounce. Suggestions use UTF-16 code-unit offsets for ProseMirror decorations. The plugin marks the particle, shows an explanation on hover/click, and replaces only that range when the user accepts the correction. See `.agents/context_grammar_linter.md` for rule and mapping details.

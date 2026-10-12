@@ -34,4 +34,21 @@ export interface BunsetsuChunk {
 
 export type SyntaxChunk = BunsetsuChunk
 
+export interface LintSuggestion {
+  index_start: number
+  index_end: number
+  original: string
+  suggestion: string
+  reason: string
+}
 
+export interface LintDecoration {
+  suggestion: LintSuggestion
+  from: number
+  to: number
+}
+
+export interface LintTooltipState extends LintDecoration {
+  clientX: number
+  clientY: number
+}

@@ -49,6 +49,15 @@ pub struct NotebookEntry {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub struct LintSuggestion {
+    pub index_start: usize,
+    pub index_end: usize,
+    pub original: String,
+    pub suggestion: String,
+    pub reason: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct BunsetsuChunk {
     pub id: usize,
     pub text: String,
