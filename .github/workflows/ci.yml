@@ -26,6 +26,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Use the repository npm version
         run: npm install --global npm@11.5.2
