@@ -1,4 +1,4 @@
-import { Component, OnDestroy, inject } from '@angular/core'
+import { Component, HostListener, OnDestroy, inject } from '@angular/core'
 import { Router, RouterOutlet } from '@angular/router'
 import { listen } from '@tauri-apps/api/event'
 import { TrayAction } from '../../core/models/tray-action.model'
@@ -9,6 +9,8 @@ import { SidebarComponent } from '../components/sidebar/sidebar.component'
 import { TopbarComponent } from '../components/topbar/topbar.component'
 import { SettingsModalComponent } from '../components/settings-modal/settings-modal.component'
 import { ProcessingOverlayComponent } from '../components/processing-overlay/processing-overlay.component'
+import { CommandPaletteComponent } from '../../features/command-palette/command-palette.component'
+import { CommandPaletteService } from '../../core/services/command-palette.service'
 
 @Component({
   selector: 'app-main-layout',
@@ -19,6 +21,7 @@ import { ProcessingOverlayComponent } from '../components/processing-overlay/pro
     TopbarComponent,
     SettingsModalComponent,
     ProcessingOverlayComponent,
+    CommandPaletteComponent,
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
@@ -28,6 +31,7 @@ export class MainLayoutComponent implements OnDestroy {
   private readonly zenMode = inject(ZenModeService)
   private readonly notebook = inject(NotebookService)
   private readonly pomodoro = inject(PomodoroControlService)
+  private readonly commandPalette = inject(CommandPaletteService)
   private unlistenTrayAction?: () => void
 
   constructor() {
@@ -38,6 +42,12 @@ export class MainLayoutComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.unlistenTrayAction?.()
+  }
+
+  @HostListener('window:keydown.control.k', ['$event'])
+  onCommandPaletteShortcut(event: Event): void {
+    event.preventDefault()
+    this.commandPalette.toggle()
   }
 
   private handleTrayAction(action: TrayAction): void {

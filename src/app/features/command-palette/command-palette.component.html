@@ -1,0 +1,63 @@
+@if (palette.isOpen()) {
+  <div
+    class="fixed inset-0 z-50 backdrop-blur-sm bg-black/50 flex justify-center items-start pt-32 px-4"
+    (click)="close()"
+    (keydown)="handleKeydown($event)"
+  >
+    <section
+      role="dialog"
+      aria-modal="true"
+      aria-label="Command palette"
+      class="w-full max-w-xl overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-center gap-3 border-b border-zinc-800 px-5">
+        <i class="pi pi-search text-zinc-500" aria-hidden="true"></i>
+        <input
+          autofocus
+          type="text"
+          [value]="query()"
+          (input)="onQueryChange($event)"
+          placeholder="Pesquisar comandos..."
+          aria-label="Pesquisar comandos"
+          class="h-14 min-w-0 flex-1 bg-transparent text-sm text-zinc-100 outline-none placeholder:text-zinc-500"
+        />
+        <kbd class="rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] text-zinc-500"
+          >ESC</kbd
+        >
+      </div>
+
+      <ul class="max-h-[55vh] overflow-y-auto p-2" role="listbox" aria-label="Comandos">
+        @for (command of filteredCommands(); track command.id; let index = $index) {
+          <li role="option" [attr.aria-selected]="selectedIndex() === index">
+            <button
+              type="button"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors"
+              [class.bg-indigo-600]="selectedIndex() === index"
+              [class.text-white]="selectedIndex() === index"
+              [class.text-zinc-300]="selectedIndex() !== index"
+              [class.hover:bg-zinc-800]="selectedIndex() !== index"
+              (mouseenter)="selectedIndex.set(index)"
+              (click)="execute(command)"
+            >
+              <i class="pi pi-arrow-right text-xs opacity-70" aria-hidden="true"></i>
+              <span>{{ command.label }}</span>
+              @if (index === 0 && !query()) {
+                <span class="ml-auto text-[10px] opacity-60">Sugestão</span>
+              }
+            </button>
+          </li>
+        } @empty {
+          <li class="px-3 py-8 text-center text-sm text-zinc-500">Nenhum comando encontrado.</li>
+        }
+      </ul>
+      <footer
+        class="flex items-center gap-4 border-t border-zinc-800 px-4 py-2 text-[10px] text-zinc-500"
+      >
+        <span><kbd class="text-zinc-300">↑</kbd> <kbd class="text-zinc-300">↓</kbd> navegar</span>
+        <span><kbd class="text-zinc-300">↵</kbd> executar</span>
+        <span><kbd class="text-zinc-300">esc</kbd> fechar</span>
+      </footer>
+    </section>
+  </div>
+}
