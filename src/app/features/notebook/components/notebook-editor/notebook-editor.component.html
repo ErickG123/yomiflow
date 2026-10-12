@@ -47,20 +47,33 @@
 
       <div class="space-y-1.5 overflow-y-auto max-h-[calc(100vh-17rem)] pr-1">
         @for (entry of filteredEntries(); track entry.id) {
-          <button
-            type="button"
-            (click)="selectEntry(entry)"
-            class="w-full text-left p-2.5 rounded-xl text-xs transition-colors cursor-pointer border"
-            [class.bg-zinc-800]="currentId() === entry.id"
-            [class.border-zinc-700]="currentId() === entry.id"
-            [class.text-white]="currentId() === entry.id"
-            [class.bg-zinc-950]="currentId() !== entry.id"
-            [class.border-zinc-850]="currentId() !== entry.id"
-            [class.text-zinc-400]="currentId() !== entry.id"
-          >
-            <div class="font-semibold truncate">{{ entry.title || t('notebook.untitled') }}</div>
-            <div class="text-[10px] text-zinc-500 mt-1 truncate">{{ entry.content_md }}</div>
-          </button>
+          <div class="flex items-stretch gap-1">
+            <button
+              type="button"
+              (click)="selectEntry(entry)"
+              class="min-w-0 flex-1 rounded-xl border p-2.5 text-left text-xs transition-colors cursor-pointer"
+              [class.bg-zinc-800]="currentId() === entry.id"
+              [class.border-zinc-700]="currentId() === entry.id"
+              [class.text-white]="currentId() === entry.id"
+              [class.bg-zinc-950]="currentId() !== entry.id"
+              [class.border-zinc-850]="currentId() !== entry.id"
+              [class.text-zinc-400]="currentId() !== entry.id"
+            >
+              <div class="truncate font-semibold">{{ entry.title || t('notebook.untitled') }}</div>
+              <div class="mt-1 truncate text-[10px] text-zinc-500">
+                {{ notePreview(entry.content_md) }}
+              </div>
+            </button>
+            <button
+              type="button"
+              class="w-9 shrink-0 rounded-xl border border-zinc-800 text-zinc-500 transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
+              title="Excluir nota"
+              [attr.aria-label]="'Excluir ' + (entry.title || t('notebook.untitled'))"
+              (click)="deleteNote(entry); $event.stopPropagation()"
+            >
+              <i class="pi pi-trash text-xs" aria-hidden="true"></i>
+            </button>
+          </div>
         } @empty {
           <div class="text-xs text-zinc-600 text-center py-6 italic">
             {{ t('notebook.empty_state') }}
@@ -302,6 +315,41 @@
               />
             </svg>
           </button>
+
+          <div class="flex items-center gap-1 border-l border-zinc-800 pl-2">
+            <button
+              type="button"
+              (click)="addTableRow()"
+              class="rounded-md px-2 py-1.5 text-[10px] text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+              title="Adicionar linha à tabela"
+            >
+              + Linha
+            </button>
+            <button
+              type="button"
+              (click)="removeTableRow()"
+              class="rounded-md px-2 py-1.5 text-[10px] text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+              title="Remover linha da tabela"
+            >
+              − Linha
+            </button>
+            <button
+              type="button"
+              (click)="addTableColumn()"
+              class="rounded-md px-2 py-1.5 text-[10px] text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+              title="Adicionar coluna à tabela"
+            >
+              + Coluna
+            </button>
+            <button
+              type="button"
+              (click)="removeTableColumn()"
+              class="rounded-md px-2 py-1.5 text-[10px] text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+              title="Remover coluna da tabela"
+            >
+              − Coluna
+            </button>
+          </div>
         </div>
 
         <!-- Mode & Analysis Controls -->

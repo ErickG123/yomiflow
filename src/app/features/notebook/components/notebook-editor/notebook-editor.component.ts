@@ -42,7 +42,11 @@ import {
   setGrammarLintDecorations,
 } from '../../extensions/grammar-linter.extension'
 import { LintDecoration, LintTooltipState } from '../../models/notebook.model'
-import { notebookTextToEditorHtml } from '../../utils/notebook-link-html'
+import {
+  notebookContentToEditorHtml,
+  notebookContentToPlainText,
+  notebookTextToEditorHtml,
+} from '../../utils/notebook-link-html'
 
 @Component({
   selector: 'app-notebook-editor',
@@ -179,9 +183,6 @@ export class NotebookEditorComponent implements OnInit, OnDestroy {
   private readonly textChange$ = new Subject<string>()
   private textSubscription: Subscription | null = null
 
-  // Guard flag to prevent infinite loops when setContent updates TipTap
-  private isApplyingGrammarHighlight = false
-
   // Selection Bubble Menu state
   readonly showBubbleMenu = signal<boolean>(false)
   readonly bubbleMenuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 })
@@ -250,10 +251,6 @@ export class NotebookEditorComponent implements OnInit, OnDestroy {
         this.updateBubbleMenu(editor)
       },
       onUpdate: ({ editor }) => {
-        if (this.isApplyingGrammarHighlight) {
-          return
-        }
-
         this.checkSlashCommand(editor)
         this.updateBubbleMenu(editor)
 
@@ -311,6 +308,22 @@ export class NotebookEditorComponent implements OnInit, OnDestroy {
     this.editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
   }
 
+  addTableRow(): void {
+    this.editor?.chain().focus().addRowAfter().run()
+  }
+
+  removeTableRow(): void {
+    this.editor?.chain().focus().deleteRow().run()
+  }
+
+  addTableColumn(): void {
+    this.editor?.chain().focus().addColumnAfter().run()
+  }
+
+  removeTableColumn(): void {
+    this.editor?.chain().focus().deleteColumn().run()
+  }
+
   setAnalysisMode(mode: AnalysisMode): void {
     this.analysisMode.set(mode)
     if (mode === 'auto') {
@@ -334,8 +347,8 @@ export class NotebookEditorComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Performs morphological analysis and syntax tree generation via Rust backend,
-   * updating TipTap with Tailwind color spans while preserving exact cursor coordinates.
+   * Runs morphology without replacing the editor document, preserving rich text,
+   * table structure, and the user's current selection.
    */
   async performMorphologicalAnalysis(text: string): Promise<void> {
     if (!text || !text.trim()) {
@@ -350,36 +363,6 @@ export class NotebookEditorComponent implements OnInit, OnDestroy {
     ])
     this.tokens.set(tokens)
     this.syntaxTreeData.set(syntaxChunks)
-
-    if (!this.editor) return
-    let hasBidirectionalLinks = false
-    this.editor.state.doc.descendants((node) => {
-      if (node.type.name === 'bidirectionalLink') hasBidirectionalLinks = true
-    })
-    if (hasBidirectionalLinks) return
-
-    const htmlContent = this.notebookService.formatTokensToHtml(tokens)
-    const wrappedHtml = `<p>${htmlContent.replace(/\n/g, '</p><p>')}</p>`
-
-    // Preserve cursor / selection anchor and head positions
-    const { from, to } = this.editor.state.selection
-
-    this.isApplyingGrammarHighlight = true
-    try {
-      this.editor.commands.setContent(wrappedHtml, {
-        emitUpdate: false,
-      })
-      this.editorHtml.set(this.editor.getHTML())
-
-      // Safely restore selection within the newly rendered document bounds
-      const docSize = this.editor.state.doc.content.size
-      const safeFrom = Math.min(from, docSize)
-      const safeTo = Math.min(to, docSize)
-
-      this.editor.commands.setTextSelection({ from: safeFrom, to: safeTo })
-    } finally {
-      this.isApplyingGrammarHighlight = false
-    }
   }
 
   checkSlashCommand(editor: Editor): void {
@@ -577,15 +560,21 @@ export class NotebookEditorComponent implements OnInit, OnDestroy {
   selectEntry(entry: NotebookEntry): void {
     this.currentId.set(entry.id)
     this.title.set(entry.title)
-    this.markdownContent.set(entry.content_md)
-    this.editorHtml.set(notebookTextToEditorHtml(entry.content_md))
+    const editorHtml = notebookContentToEditorHtml(entry.content_md)
+    const plainText = notebookContentToPlainText(entry.content_md)
+    this.markdownContent.set(plainText)
+    this.editorHtml.set(editorHtml)
     this.selectedDeckId.set(entry.deck_id ?? null)
 
     if (this.editor) {
-      this.editor.commands.setContent(notebookTextToEditorHtml(entry.content_md))
+      this.editor.commands.setContent(editorHtml, { emitUpdate: false })
       this.scheduleGrammarLint(getGrammarLintText(this.editor))
     }
-    void this.triggerAnalysis(entry.content_md)
+    void this.triggerAnalysis(plainText)
+  }
+
+  notePreview(content: string): string {
+    return notebookContentToPlainText(content)
   }
 
   openLinkedNote(title: string): void {
@@ -628,7 +617,8 @@ export class NotebookEditorComponent implements OnInit, OnDestroy {
 
   async saveNote(): Promise<void> {
     try {
-      const currentText = this.editor?.getText() || this.markdownContent()
+      const currentText = this.editor?.getText() ?? this.markdownContent()
+      const currentHtml = this.editor?.getHTML() ?? this.editorHtml()
       let currentTitle = this.title().trim()
 
       const defaultNew =
@@ -656,7 +646,7 @@ export class NotebookEditorComponent implements OnInit, OnDestroy {
       await this.notebookService.saveEntry(
         this.currentId(),
         currentTitle || untitled,
-        currentText,
+        currentHtml,
         this.selectedDeckId(),
         null,
         0,
@@ -671,7 +661,7 @@ export class NotebookEditorComponent implements OnInit, OnDestroy {
       this.notebookService.upsertEntry({
         id: this.currentId(),
         title: currentTitle || untitled,
-        content_md: currentText,
+        content_md: currentHtml,
         created_at: existingEntry?.created_at ?? now,
         updated_at: now,
         deck_id: this.selectedDeckId(),
@@ -688,6 +678,29 @@ export class NotebookEditorComponent implements OnInit, OnDestroy {
         this.translocoService?.translate('notebook.save_error') ??
         'Erro ao guardar nota. Tente novamente.'
       this.showToast(errorMsg)
+    }
+  }
+
+  async deleteNote(entry: NotebookEntry): Promise<void> {
+    try {
+      await this.notebookService.deleteEntry(entry.id)
+      if (this.currentId() === entry.id) {
+        this.currentId.set(crypto.randomUUID())
+        this.title.set(
+          this.translocoService?.translate('notebook.default_new_note') ?? 'Nova Anotação',
+        )
+        this.markdownContent.set('')
+        this.editorHtml.set('<p></p>')
+        this.selectedDeckId.set(this.deckService.targetDeckId())
+        this.editor?.commands.setContent('<p></p>', { emitUpdate: false })
+        this.tokens.set([])
+        this.syntaxTreeData.set([])
+        this.activeLintTooltip.set(null)
+      }
+      this.showToast('Nota excluída.')
+    } catch (error) {
+      console.error('Falha ao excluir nota:', error)
+      this.showToast('Não foi possível excluir a nota.')
     }
   }
 

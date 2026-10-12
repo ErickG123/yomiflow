@@ -12,6 +12,7 @@ import {
 import { MorphologicalToken, NotebookEntry } from '../../models/notebook.model'
 import { Subject } from 'rxjs'
 import { Router } from '@angular/router'
+import { Editor } from '@tiptap/core'
 
 describe('NotebookEditorComponent', () => {
   let component: NotebookEditorComponent
@@ -27,6 +28,7 @@ describe('NotebookEditorComponent', () => {
     generateSyntaxTree: ReturnType<typeof vi.fn>
     loadEntries: ReturnType<typeof vi.fn>
     saveEntry: ReturnType<typeof vi.fn>
+    deleteEntry: ReturnType<typeof vi.fn>
     upsertEntry: ReturnType<typeof vi.fn>
     formatTokensToHtml: ReturnType<typeof vi.fn>
   }
@@ -62,6 +64,9 @@ describe('NotebookEditorComponent', () => {
       ]),
       loadEntries: vi.fn().mockResolvedValue([]),
       saveEntry: vi.fn().mockResolvedValue(undefined),
+      deleteEntry: vi.fn().mockImplementation(async (id: string) => {
+        notebookServiceMock.entries.update((entries) => entries.filter((entry) => entry.id !== id))
+      }),
       upsertEntry: vi.fn((entry: NotebookEntry) => {
         notebookServiceMock.entries.update((entries) => [
           entry,
@@ -121,19 +126,44 @@ describe('NotebookEditorComponent', () => {
   it('should extract markdown content and save notebook entry via service', async () => {
     component.title.set('Capítulo 1: Introdução')
     component.markdownContent.set('# Lição 1\nこれはペンです。')
+    const formattedHtml = '<h1><strong>これは</strong>ペンです。</h1>'
+    component.editor = {
+      getText: () => '# Lição 1\nこれはペンです。',
+      getHTML: () => formattedHtml,
+    } as unknown as Editor
 
     await component.saveNote()
 
     expect(notebookServiceMock.saveEntry).toHaveBeenCalledWith(
       component.currentId(),
       'Capítulo 1: Introdução',
-      '# Lição 1\nこれはペンです。',
+      formattedHtml,
       'default',
       null,
       0,
     )
     expect(notebookServiceMock.upsertEntry).toHaveBeenCalledOnce()
     expect(notebookServiceMock.entries()[0]?.id).toBe(component.currentId())
+    expect(notebookServiceMock.entries()[0]?.content_md).toBe(formattedHtml)
+  })
+
+  it('deletes a note and resets the editor when it was selected', async () => {
+    const note: NotebookEntry = {
+      id: 'note-to-delete',
+      title: 'Temporary note',
+      content_md: '<p>Temporary</p>',
+      created_at: '2025-01-01',
+      updated_at: '2025-01-01',
+    }
+    notebookServiceMock.entries.set([note])
+    component.currentId.set(note.id)
+
+    await component.deleteNote(note)
+
+    expect(notebookServiceMock.deleteEntry).toHaveBeenCalledWith(note.id)
+    expect(notebookServiceMock.entries()).toEqual([])
+    expect(component.currentId()).not.toBe(note.id)
+    expect(component.markdownContent()).toBe('')
   })
 
   it('should reset editor and state when creating a new note', () => {

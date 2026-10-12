@@ -20,3 +20,18 @@ export function notebookTextToEditorHtml(text: string): string {
     })
     .join('')
 }
+
+const HTML_CONTENT_PATTERN =
+  /<(?:p|h[1-6]|ul|ol|li|table|thead|tbody|tr|th|td|blockquote|div|span|br|strong|em|s|code)\b/i
+
+export function notebookContentToEditorHtml(content: string): string {
+  return HTML_CONTENT_PATTERN.test(content) ? content : notebookTextToEditorHtml(content)
+}
+
+export function notebookContentToPlainText(content: string): string {
+  if (!HTML_CONTENT_PATTERN.test(content)) return content
+
+  const parsed = new DOMParser().parseFromString(content, 'text/html')
+  parsed.querySelectorAll('script, style').forEach((node) => node.remove())
+  return parsed.body.textContent ?? ''
+}

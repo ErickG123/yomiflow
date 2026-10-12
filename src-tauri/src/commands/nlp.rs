@@ -231,6 +231,14 @@ pub fn get_notebook_entries(state: State<'_, AppState>) -> Result<Vec<NotebookEn
     get_notebook_entries_from_connection(&conn).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+pub fn delete_notebook_entry(id: String, state: State<'_, AppState>) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|error| error.to_string())?;
+    conn.execute("DELETE FROM notebook_entries WHERE id = ?1", [id])
+        .map_err(|error| error.to_string())?;
+    Ok(())
+}
+
 fn get_notebook_entries_from_connection(
     conn: &rusqlite::Connection,
 ) -> rusqlite::Result<Vec<NotebookEntry>> {

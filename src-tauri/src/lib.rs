@@ -190,6 +190,7 @@ pub fn run() {
             commands::nlp::inject_furigana_epub,
             commands::nlp::save_notebook_entry,
             commands::nlp::get_notebook_entries,
+            commands::nlp::delete_notebook_entry,
             commands::nlp::link_notebook_to_deck,
             commands::srs::get_decks,
             commands::srs::create_deck,

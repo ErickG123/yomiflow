@@ -85,7 +85,7 @@ export class NotebookService {
   async saveEntry(
     id: string,
     title: string,
-    contentMd: string,
+    contentHtml: string,
     deckId?: string | null,
     nextReviewDate?: number | null,
     srsStage?: number | null,
@@ -94,13 +94,24 @@ export class NotebookService {
       await invoke('save_notebook_entry', {
         id,
         title,
-        contentMd,
+        contentMd: contentHtml,
         deckId: deckId ?? null,
         nextReviewDate: nextReviewDate ?? null,
         srsStage: srsStage ?? 0,
       })
     } catch (err) {
       console.error('Erro ao guardar nota do caderno:', err)
+      throw err
+    }
+  }
+
+  async deleteEntry(id: string): Promise<void> {
+    try {
+      await invoke('delete_notebook_entry', { id })
+      this.entries.update((entries) => entries.filter((entry) => entry.id !== id))
+      if (this.currentEntry()?.id === id) this.currentEntry.set(null)
+    } catch (err) {
+      console.error('Erro ao excluir nota do caderno:', err)
       throw err
     }
   }
