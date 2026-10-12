@@ -166,7 +166,52 @@ pub fn katakana_to_hiragana(katakana: &str) -> String {
 
 fn contains_kanji(text: &str) -> bool {
     text.chars()
-        .any(|c| (0x4E00..=0x9FAF).contains(&(c as u32)))
+        .any(|c| matches!(c as u32, 0x3400..=0x4DBF | 0x4E00..=0x9FFF | 0xF900..=0xFAFF | 0x20000..=0x3134F))
+}
+
+fn escape_html_text(text: &str) -> String {
+    let mut escaped = String::with_capacity(text.len());
+    for character in text.chars() {
+        match character {
+            '&' => escaped.push_str("&amp;"),
+            '<' => escaped.push_str("&lt;"),
+            '>' => escaped.push_str("&gt;"),
+            '"' => escaped.push_str("&quot;"),
+            '\'' => escaped.push_str("&#39;"),
+            _ => escaped.push(character),
+        }
+    }
+    escaped
+}
+
+/// Generates HTML ruby annotations from Lindera readings. All token text is escaped
+/// because the Angular caller intentionally trusts this generated HTML.
+pub fn generate_furigana(text: &str) -> Result<String, String> {
+    if text.trim().is_empty() {
+        return Ok(escape_html_text(text));
+    }
+
+    let tokens = segment_and_tag_japanese(text)?;
+    let mut output = String::with_capacity(text.len());
+    for token in tokens {
+        let surface = escape_html_text(&token.surface);
+        let Some(reading) = token.reading.filter(|reading| !reading.trim().is_empty()) else {
+            output.push_str(&surface);
+            continue;
+        };
+
+        let reading = katakana_to_hiragana(&reading);
+        if contains_kanji(&token.surface) && reading != token.surface {
+            output.push_str("<ruby>");
+            output.push_str(&surface);
+            output.push_str("<rt>");
+            output.push_str(&escape_html_text(&reading));
+            output.push_str("</rt></ruby>");
+        } else {
+            output.push_str(&surface);
+        }
+    }
+    Ok(output)
 }
 
 /// Injects <ruby>SURFACE<rt>HIRAGANA</rt></ruby> dynamically into HTML/text,
@@ -418,6 +463,25 @@ mod tests {
         assert_eq!(katakana_to_hiragana("サクラ"), "さくら");
         assert_eq!(katakana_to_hiragana("ニホン"), "にほん");
         assert_eq!(katakana_to_hiragana("漢字"), "漢字");
+    }
+
+    #[test]
+    fn test_generate_furigana_for_kanji_and_kana() {
+        let result = generate_furigana("私は学生です").unwrap();
+        assert_eq!(
+            result,
+            "<ruby>私<rt>わたし</rt></ruby>は<ruby>学生<rt>がくせい</rt></ruby>です"
+        );
+
+        assert_eq!(
+            generate_furigana("ひらがなカタカナ").unwrap(),
+            "ひらがなカタカナ"
+        );
+    }
+
+    #[test]
+    fn test_generate_furigana_escapes_untrusted_html() {
+        assert_eq!(generate_furigana("<script>").unwrap(), "&lt;script&gt;");
     }
 
     #[test]

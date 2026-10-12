@@ -11,6 +11,11 @@ pub fn analyze_japanese_text(text: String) -> Result<Vec<MorphologicalToken>, St
 }
 
 #[tauri::command]
+pub fn generate_furigana(text: String) -> Result<String, String> {
+    crate::domain::nlp::generate_furigana(&text)
+}
+
+#[tauri::command]
 pub fn analyze_text_readability(
     text: String,
     state: State<'_, AppState>,

@@ -9,11 +9,18 @@ import { NotebookService } from '../../../notebook/services/notebook.service'
 import { PitchAccentComponent } from '../../../../shared/components/pitch-accent/pitch-accent.component'
 import { DeckService } from '../../../decks/services/deck.service'
 import { HoverDictionaryDirective } from '../../../../shared/directives/hover-dictionary.directive'
+import { FuriganaPipe } from '../../../../shared/pipes/furigana.pipe'
 
 @Component({
   selector: 'app-web-reader',
   standalone: true,
-  imports: [CommonModule, TranslocoDirective, PitchAccentComponent, HoverDictionaryDirective],
+  imports: [
+    CommonModule,
+    TranslocoDirective,
+    PitchAccentComponent,
+    HoverDictionaryDirective,
+    FuriganaPipe,
+  ],
   templateUrl: './web-reader.component.html',
   styleUrl: './web-reader.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

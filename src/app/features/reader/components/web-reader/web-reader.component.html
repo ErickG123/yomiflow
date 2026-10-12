@@ -211,8 +211,8 @@
                       class="cursor-pointer hover:bg-indigo-600/30 hover:text-indigo-200 rounded px-1 transition-colors border-b border-dashed border-zinc-700 hover:border-indigo-400"
                       [class.bg-indigo-600/20]="activeWord() === token.text"
                       [title]="t('web_reader.click_to_lookup')"
-                      >{{ token.text }}</span
-                    >
+                      [innerHTML]="token.text | furigana | async"
+                    ></span>
                   } @else {
                     <span>{{ token.text }}</span>
                   }
