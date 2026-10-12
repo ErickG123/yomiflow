@@ -53,7 +53,11 @@ jobs:
           {
             echo "changelog<<$delimiter"
             printf '%s\n' "$GENERATED_CHANGELOG"
-            maintenance_commits="$(git log "${PREVIOUS_TAG}..HEAD" --format='- %s' --extended-regexp --grep='^chore(\([^)]*\))?:')"
+            if git rev-parse --verify --quiet "${PREVIOUS_TAG}^{commit}" >/dev/null; then
+              maintenance_commits="$(git log "${PREVIOUS_TAG}..HEAD" --format='- %s' --extended-regexp --grep='^chore(\([^)]*\))?:')"
+            else
+              maintenance_commits=""
+            fi
             if [ -n "$maintenance_commits" ]; then
               printf '\n### Maintenance\n\n%s\n' "$maintenance_commits"
             fi
