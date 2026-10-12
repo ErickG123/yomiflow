@@ -67,8 +67,10 @@
             <button
               type="button"
               class="w-9 shrink-0 rounded-xl border border-zinc-800 text-zinc-500 transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
-              title="Excluir nota"
-              [attr.aria-label]="'Excluir ' + (entry.title || t('notebook.untitled'))"
+              [title]="t('notebook.delete_note')"
+              [attr.aria-label]="
+                t('notebook.delete_note') + ' ' + (entry.title || t('notebook.untitled'))
+              "
               (click)="deleteNote(entry); $event.stopPropagation()"
             >
               <i class="pi pi-trash text-xs" aria-hidden="true"></i>
@@ -175,7 +177,7 @@
             [class.text-white]="editor?.isActive('heading', { level: 1 })"
             [title]="t('notebook.toolbar.h1')"
           >
-            H1
+            {{ t('notebook.toolbar.h1_short') }}
           </button>
           <!-- H2 -->
           <button
@@ -186,7 +188,7 @@
             [class.text-white]="editor?.isActive('heading', { level: 2 })"
             [title]="t('notebook.toolbar.h2')"
           >
-            H2
+            {{ t('notebook.toolbar.h2_short') }}
           </button>
           <!-- H3 -->
           <button
@@ -197,7 +199,7 @@
             [class.text-white]="editor?.isActive('heading', { level: 3 })"
             [title]="t('notebook.toolbar.h3')"
           >
-            H3
+            {{ t('notebook.toolbar.h3_short') }}
           </button>
 
           <div class="h-4 w-px bg-zinc-800 mx-1"></div>
@@ -321,33 +323,33 @@
               type="button"
               (click)="addTableRow()"
               class="rounded-md px-2 py-1.5 text-[10px] text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
-              title="Adicionar linha à tabela"
+              [title]="t('notebook.add_table_row')"
             >
-              + Linha
+              + {{ t('notebook.add_row') }}
             </button>
             <button
               type="button"
               (click)="removeTableRow()"
               class="rounded-md px-2 py-1.5 text-[10px] text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
-              title="Remover linha da tabela"
+              [title]="t('notebook.remove_table_row')"
             >
-              − Linha
+              − {{ t('notebook.remove_row') }}
             </button>
             <button
               type="button"
               (click)="addTableColumn()"
               class="rounded-md px-2 py-1.5 text-[10px] text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
-              title="Adicionar coluna à tabela"
+              [title]="t('notebook.add_table_column')"
             >
-              + Coluna
+              + {{ t('notebook.add_column') }}
             </button>
             <button
               type="button"
               (click)="removeTableColumn()"
               class="rounded-md px-2 py-1.5 text-[10px] text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
-              title="Remover coluna da tabela"
+              [title]="t('notebook.remove_table_column')"
             >
-              − Coluna
+              − {{ t('notebook.remove_column') }}
             </button>
           </div>
         </div>
@@ -446,10 +448,10 @@
                 type="button"
                 (click)="insertSyntaxTree(selectedText())"
                 class="px-2.5 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 hover:text-white transition-all text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
-                title="Gerar Árvore de Dependência Sintática para o trecho selecionado"
+                [title]="t('notebook.syntax_tree_action_title')"
               >
                 <i class="pi pi-sitemap text-xs"></i>
-                <span>Árvore Sintática</span>
+                <span>{{ t('notebook.syntax_tree_action') }}</span>
               </button>
             </div>
           }

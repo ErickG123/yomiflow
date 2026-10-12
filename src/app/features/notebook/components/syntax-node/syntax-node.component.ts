@@ -17,11 +17,12 @@ import {
 import { CommonModule } from '@angular/common'
 import { BunsetsuChunk } from '../../models/notebook.model'
 import { SyntaxArc } from '../../models/syntax-tree.model'
+import { TranslocoPipe } from '@ngneat/transloco'
 
 @Component({
   selector: 'app-syntax-node',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslocoPipe],
   templateUrl: './syntax-node.component.html',
   styleUrl: './syntax-node.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

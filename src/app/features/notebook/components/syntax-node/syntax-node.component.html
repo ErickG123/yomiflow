@@ -1,13 +1,22 @@
-<div class="syntax-tree-card my-4 p-5 rounded-2xl bg-zinc-950/90 border border-zinc-800 shadow-xl overflow-hidden relative">
+<div
+  class="syntax-tree-card my-4 p-5 rounded-2xl bg-zinc-950/90 border border-zinc-800 shadow-xl overflow-hidden relative"
+>
   <!-- Header / Badge -->
   <div class="flex items-center justify-between pb-3 border-b border-zinc-850 mb-3 text-xs">
     <div class="flex items-center gap-2 font-semibold text-zinc-300">
       <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13 10V3L4 14h7v7l9-11h-7z"
+        />
       </svg>
-      <span>Árvore de Dependência Sintática (Bunsetsu)</span>
+      <span>{{ 'notebook.syntax_tree_title' | transloco }}</span>
     </div>
-    <span class="text-[10px] text-zinc-500 font-mono">{{ chunks().length }} blocos</span>
+    <span class="text-[10px] text-zinc-500 font-mono">{{
+      'notebook.syntax_chunks' | transloco: { count: chunks().length }
+    }}</span>
   </div>
 
   <!-- Visualization Canvas Container -->
@@ -74,7 +83,9 @@
           </div>
 
           <!-- Secondary Metadata / Tag -->
-          <span class="text-[10px] text-zinc-400 font-mono tracking-tight bg-zinc-900/80 px-2 py-0.5 rounded-md border border-zinc-800">
+          <span
+            class="text-[10px] text-zinc-400 font-mono tracking-tight bg-zinc-900/80 px-2 py-0.5 rounded-md border border-zinc-800"
+          >
             {{ formatPosLabel(chunk.pos) }}
           </span>
         </div>

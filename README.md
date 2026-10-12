@@ -14,7 +14,7 @@
 
 Mastering Japanese through immersion traditionally requires stitching together a fragmented web of separate, cloud-reliant tools: browser pop-up dictionaries, external flashcard programs, cloud sync subscriptions, third-party note editors, and fragile media integrations. When internet access drops or remote APIs shift, the learning workflow breaks.
 
-**YomiFlow** unifies the entire Japanese acquisition lifecycle into a single high-performance, offline-first desktop environment. It seamlessly fuses static and dynamic media consumption (Manga and Video) with knowledge production and retention (Linguistic Notebook and Relational Spaced Repetition). Operating 100% locally with zero cloud dependencies, YomiFlow ensures your private study data, annotations, media corpus, and flashcard history remain strictly yours.
+**YomiFlow** unifies the entire Japanese acquisition lifecycle into a single high-performance, offline-first desktop environment. It seamlessly fuses static and dynamic media consumption (Manga and Video) with knowledge production and retention (Linguistic Notebook and Relational Spaced Repetition). YomiFlow runs locally and remains useful offline; optional, user-initiated Google Drive backups let you keep a copy under your own account. Your study data, annotations, media corpus, and flashcard history remain under your control.
 
 ---
 
@@ -25,6 +25,7 @@ Mastering Japanese through immersion traditionally requires stitching together a
 - **Manga Reader with Zero-Copy Neural OCR:** Open archive packages (`.cbz`, `.zip`, `.cbr`, `.rar`) directly from memory without extracting directories to disk. Box speech bubbles on the page to trigger local vision-to-text inference powered by MangaOCR on ONNX Runtime (`ort`).
 - **Video Player with FFmpeg Extraction:** Stream `.mkv` and `.mp4` video locally with sub-millisecond hover dictionary lookups on embedded subtitle streams. Automatically slice native audio clips and extract context screenshots via FFmpeg to generate rich multimedia flashcards with a single click.
 - **NHK Web Easy Offline Reader:** Cache articles and native audio clips into local SQLite storage for distraction-free reading with integrated morphological hover breakdown.
+- **Global Command Palette:** Search commands and indexed app content from the Ctrl+K palette, with translated commands and FTS5 results for cards, notes, and cached news.
 - **Passive Immersion Audio Tracker & Global Player:** A persistent player continues across route changes, reads local MP3 metadata and album art, saves an audio library, and records listened milliseconds per session in SQLite.
 
 ### Relational SRS & Gamification
@@ -58,6 +59,7 @@ Mastering Japanese through immersion traditionally requires stitching together a
 
 - **Notion-Style TipTap Rich-Text:** Clean block and markdown editor with slash command capabilities, split-screen viewing, and autosaving.
 - **Real-Time Morphological NLP (Lindera):** Integrated Lindera tokenizer with IPADIC dictionary running on Rust. Parses Japanese text in real time to categorize and syntax-highlight parts of speech (verbs, particles, nouns, adjectives, and auxiliaries) with debounced IPC updates.
+- **Grammar Linter and Furigana:** Offline Lindera heuristics annotate common particle errors in TipTap and offer corrections; a Ruby renderer adds readings to kanji in supported reader content.
 - **Offline Grammar Linter:** A debounced Lindera check spots common particle mistakes such as `日本語を分かります`, marks the affected text in TipTap, and offers a one-click `が` correction with an explanation.
 - **Morphological Readability Analyzer (Offline MorphMan):** Analyze pasted Japanese text locally with Lindera lemmas crossed against vocabulary cards and FSRS retention in SQLite. A comprehension percentage, average retention metric, and inline unknown-word highlights help estimate how much of a passage is familiar before reading.
 - **Strict Content Sanitization:** Comprehensive XSS mitigation utilizing Angular `DomSanitizer` in conjunction with HTML security contexts.

@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core'
 import { DatePipe } from '@angular/common'
 import { GlobalAudioPlayerService } from '../../core/services/global-audio-player.service'
-import { TranslocoPipe } from '@ngneat/transloco'
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco'
 import { AudioTrackMetadata } from '../../core/models/audio.model'
 
 @Component({
@@ -12,6 +12,7 @@ import { AudioTrackMetadata } from '../../core/models/audio.model'
 })
 export class AudioVaultComponent implements OnInit {
   readonly player = inject(GlobalAudioPlayerService)
+  private readonly transloco = inject(TranslocoService)
   readonly importNotice = signal<string | null>(null)
   readonly pendingFolderTracks = signal<AudioTrackMetadata[]>([])
 
@@ -27,13 +28,17 @@ export class AudioVaultComponent implements OnInit {
       const tracks = await this.player.chooseFolderAndImport()
       if (tracks === null) return
       if (!tracks.length) {
-        this.importNotice.set('A pasta selecionada não contém ficheiros de áudio suportados.')
+        this.importNotice.set(this.transloco.translate('audioVault.noSupportedFiles'))
         return
       }
       this.pendingFolderTracks.set(tracks)
-      this.importNotice.set(`${tracks.length} faixas importadas para a biblioteca.`)
+      this.importNotice.set(
+        this.transloco.translate('audioVault.importedFolder', { count: tracks.length }),
+      )
     } catch (error) {
-      this.importNotice.set(`Não foi possível importar a pasta: ${String(error)}`)
+      this.importNotice.set(
+        this.transloco.translate('audioVault.folderImportError', { error: String(error) }),
+      )
     }
   }
 
