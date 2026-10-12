@@ -1,6 +1,7 @@
 use app_lib::commands::srs::{
     add_to_srs_in_conn, answer_card_in_conn, create_deck_in_conn, delete_deck_in_conn,
 };
+use app_lib::database::migrations::{latest_migration_version, run_migrations};
 use app_lib::{db, domain::nlp::generate_syntax_tree};
 use rusqlite::{Connection, params};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -9,6 +10,50 @@ fn setup_test_db() -> Connection {
     let connection = Connection::open_in_memory().expect("open isolated in-memory database");
     db::create_tables_and_seed(&connection).expect("create test schema and run seeds");
     connection
+}
+
+#[test]
+fn test_schema_migrations_apply_from_zero_to_latest() {
+    let connection = Connection::open_in_memory().expect("open empty in-memory database");
+
+    run_migrations(&connection).expect("apply every schema migration");
+
+    let current_version: u32 = connection
+        .query_row("SELECT MAX(version) FROM schema_migrations", [], |row| {
+            row.get(0)
+        })
+        .expect("read final migration version");
+    assert_eq!(current_version, latest_migration_version());
+
+    for object in [
+        ("table", "decks"),
+        ("table", "dictionary_entries"),
+        ("table", "cards"),
+        ("table", "study_sessions"),
+        ("table", "image_occlusion_cards"),
+        ("view", "flashcards"),
+    ] {
+        let exists: i64 = connection
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type = ?1 AND name = ?2",
+                [object.0, object.1],
+                |row| row.get(0),
+            )
+            .expect("query migrated schema object");
+        assert_eq!(
+            exists, 1,
+            "{} {} should exist after migration",
+            object.0, object.1
+        );
+    }
+
+    run_migrations(&connection).expect("re-running migrations is idempotent");
+    let version_after_second_run: u32 = connection
+        .query_row("SELECT MAX(version) FROM schema_migrations", [], |row| {
+            row.get(0)
+        })
+        .expect("read migration version after second run");
+    assert_eq!(version_after_second_run, current_version);
 }
 
 #[test]

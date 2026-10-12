@@ -1,4 +1,5 @@
 pub mod commands;
+pub mod database;
 pub mod db;
 pub mod domain;
 pub mod importer;
