@@ -1,25 +1,35 @@
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core'
 import { Router } from '@angular/router'
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco'
+import { Subscription } from 'rxjs'
 import { CommandPaletteCommand } from '../../core/models/command-palette.model'
 import { SearchResult } from '../../core/models/search-result.model'
 import { CommandPaletteService } from '../../core/services/command-palette.service'
 import { GlobalSearchService } from '../../core/services/global-search.service'
 import { NotebookService } from '../notebook/services/notebook.service'
 import { PomodoroControlService } from '../pomodoro/services/pomodoro-control.service'
+import { LayoutStateService } from '../../layouts/services/layout-state.service'
 
 @Component({
   selector: 'app-command-palette',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './command-palette.component.html',
 })
 export class CommandPaletteComponent implements OnDestroy {
   private readonly router = inject(Router)
+  private readonly transloco = inject(TranslocoService)
   private readonly notebook = inject(NotebookService)
   private readonly pomodoro = inject(PomodoroControlService)
+  private readonly layoutState = inject(LayoutStateService)
   readonly palette = inject(CommandPaletteService)
   readonly globalSearch = inject(GlobalSearchService)
   readonly query = signal('')
   readonly selectedIndex = signal(0)
+  private readonly languageRevision = signal(0)
+  private readonly languageSubscription: Subscription = this.transloco.langChanges$.subscribe(() =>
+    this.languageRevision.update((revision) => revision + 1),
+  )
   private searchTimeout: ReturnType<typeof setTimeout> | null = null
 
   readonly searchResults = computed(() => {
@@ -42,54 +52,68 @@ export class CommandPaletteComponent implements OnDestroy {
   )
   readonly resultGroups = computed(() =>
     [
-      { sourceType: 'card', label: 'Cartões', results: this.cardResults() },
-      { sourceType: 'note', label: 'Anotações', results: this.noteResults() },
-      { sourceType: 'news', label: 'Notícias', results: this.newsResults() },
+      { sourceType: 'card', labelKey: 'palette.groups.cards', results: this.cardResults() },
+      { sourceType: 'note', labelKey: 'palette.groups.notes', results: this.noteResults() },
+      { sourceType: 'news', labelKey: 'palette.groups.news', results: this.newsResults() },
     ].filter((group) => group.results.length > 0),
   )
 
   readonly commands: CommandPaletteCommand[] = [
     {
       id: 'dashboard',
-      label: 'Ir para Dashboard',
-      keywords: ['início', 'home'],
+      nameKey: 'palette.commands.dashboard',
+      keywordsKey: 'palette.terms.dashboard',
       action: 'dashboard',
     },
     {
       id: 'new-note',
-      label: 'Nova Nota',
-      keywords: ['anotação', 'caderno', 'nota'],
+      nameKey: 'palette.commands.newNote',
+      keywordsKey: 'palette.terms.newNote',
       action: 'new-note',
     },
-    { id: 'pomodoro', label: 'Iniciar Pomodoro', keywords: ['foco', 'timer'], action: 'pomodoro' },
+    {
+      id: 'pomodoro',
+      nameKey: 'palette.commands.pomodoro',
+      keywordsKey: 'palette.terms.pomodoro',
+      action: 'pomodoro',
+    },
     {
       id: 'notebook',
-      label: 'Ir para Caderno',
-      keywords: ['notas', 'notebook'],
+      nameKey: 'palette.commands.notebook',
+      keywordsKey: 'palette.terms.notebook',
       action: 'notebook',
     },
     {
       id: 'study',
-      label: 'Abrir Revisões SRS',
-      keywords: ['estudo', 'revisão', 'flashcards'],
+      nameKey: 'palette.commands.study',
+      keywordsKey: 'palette.terms.study',
       action: 'study',
     },
     {
       id: 'dictionary',
-      label: 'Abrir Dicionário',
-      keywords: ['buscar', 'palavras'],
+      nameKey: 'palette.commands.dictionary',
+      keywordsKey: 'palette.terms.dictionary',
       action: 'dictionary',
+    },
+    {
+      id: 'settings',
+      nameKey: 'palette.commands.settings',
+      keywordsKey: 'palette.terms.settings',
+      action: 'settings',
     },
   ]
 
   readonly filteredCommands = computed(() => {
-    const query = this.query().trim().toLocaleLowerCase()
+    this.languageRevision()
+    const query = this.query().trim().toLocaleLowerCase(this.transloco.getActiveLang())
     if (!query) return this.commands
-    return this.commands.filter((command) =>
-      [command.label, ...command.keywords].some((value) =>
-        value.toLocaleLowerCase().includes(query),
-      ),
-    )
+    return this.commands.filter((command) => {
+      const translatedName = this.transloco.translate(command.nameKey)
+      const translatedTerms = this.transloco.translate(command.keywordsKey)
+      return [translatedName, ...translatedTerms.split('|')].some((value) =>
+        value.trim().toLocaleLowerCase(this.transloco.getActiveLang()).includes(query),
+      )
+    })
   })
 
   onQueryChange(event: Event): void {
@@ -161,6 +185,9 @@ export class CommandPaletteComponent implements OnDestroy {
       case 'dictionary':
         void this.router.navigate(['/dictionary'])
         break
+      case 'settings':
+        this.layoutState.isSettingsOpen.set(true)
+        break
     }
   }
 
@@ -186,6 +213,7 @@ export class CommandPaletteComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.languageSubscription.unsubscribe()
     if (this.searchTimeout) clearTimeout(this.searchTimeout)
     this.globalSearch.clear()
   }

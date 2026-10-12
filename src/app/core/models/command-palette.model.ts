@@ -1,9 +1,9 @@
 export type CommandPaletteAction =
-  'dashboard' | 'new-note' | 'pomodoro' | 'notebook' | 'study' | 'dictionary'
+  'dashboard' | 'new-note' | 'pomodoro' | 'notebook' | 'study' | 'dictionary' | 'settings'
 
 export interface CommandPaletteCommand {
   id: string
-  label: string
-  keywords: string[]
+  nameKey: string
+  keywordsKey: string
   action: CommandPaletteAction
 }

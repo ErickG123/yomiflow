@@ -601,6 +601,37 @@
     "progress": "Progresso da faixa",
     "volume": "Volume",
     "openVault": "Abrir Cofre de Áudio"
+  },
+  "palette": {
+    "ariaLabel": "Paleta de comandos",
+    "listLabel": "Comandos e resultados",
+    "searchPlaceholder": "Pesquisar comandos e conteúdo...",
+    "commands": {
+      "dashboard": "Ir para o Painel",
+      "newNote": "Nova Nota",
+      "pomodoro": "Iniciar Pomodoro",
+      "notebook": "Ir para o Caderno",
+      "study": "Abrir Revisões SRS",
+      "dictionary": "Abrir Dicionário",
+      "settings": "Abrir Configurações"
+    },
+    "terms": {
+      "dashboard": "painel|início|inicio|home",
+      "newNote": "nota|anotação|anotacao|caderno|criar nota",
+      "pomodoro": "foco|temporizador|timer|pausa",
+      "notebook": "notas|caderno|diário|diario",
+      "study": "estudo|revisão|revisao|flashcards|srs",
+      "dictionary": "buscar|pesquisar|palavras|dicionário|dicionario",
+      "settings": "configurações|configuracoes|preferências|preferencias"
+    },
+    "groups": { "cards": "Cartões", "notes": "Anotações", "news": "Notícias" },
+    "noCommands": "Nenhum comando encontrado.",
+    "actions": "Ações",
+    "searching": "Pesquisando em todo o YomiFlow...",
+    "noResults": "Nenhum resultado encontrado.",
+    "navigate": "navegar",
+    "execute": "executar",
+    "close": "fechar"
   }
 }
 

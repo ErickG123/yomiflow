@@ -600,6 +600,37 @@
     "progress": "Track progress",
     "volume": "Volume",
     "openVault": "Open Audio Vault"
+  },
+  "palette": {
+    "ariaLabel": "Command palette",
+    "listLabel": "Commands and results",
+    "searchPlaceholder": "Search commands and content...",
+    "commands": {
+      "dashboard": "Go to Dashboard",
+      "newNote": "New Note",
+      "pomodoro": "Start Pomodoro",
+      "notebook": "Go to Notebook",
+      "study": "Open SRS Reviews",
+      "dictionary": "Open Dictionary",
+      "settings": "Open Settings"
+    },
+    "terms": {
+      "dashboard": "dashboard|home|start",
+      "newNote": "note|notebook|create note",
+      "pomodoro": "focus|timer|break",
+      "notebook": "notes|notebook|journal",
+      "study": "study|review|flashcards|srs",
+      "dictionary": "search|words|dictionary",
+      "settings": "settings|preferences|configuration"
+    },
+    "groups": { "cards": "Cards", "notes": "Notes", "news": "News" },
+    "noCommands": "No commands found.",
+    "actions": "Actions",
+    "searching": "Searching YomiFlow...",
+    "noResults": "No results found.",
+    "navigate": "navigate",
+    "execute": "run",
+    "close": "close"
   }
 }
 
