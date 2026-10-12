@@ -19,6 +19,7 @@
     "kana": "Kana Dojo",
     "reader": "Manga",
     "video": "Vídeo",
+    "audio_vault": "Bóveda de audio",
     "web": "Web",
     "epub": "Light Novel",
     "notebook": "Cuaderno",
@@ -563,6 +564,31 @@
     "badges_subtitle": "Hitos alcanzados en tu viaje de inmersión y dominio",
     "unlocked": "Desbloqueado",
     "locked": "Bloqueado"
+  },
+  "audioVault": {
+    "eyebrow": "Inmersión",
+    "title": "Bóveda de audio",
+    "subtitle": "Tus pistas locales y el tiempo de escucha pasiva, guardados en este dispositivo.",
+    "import": "Importar y reproducir audio",
+    "queue": "Cola de reproducción",
+    "emptyQueue": "Importa un MP3 u otro archivo de audio para empezar.",
+    "library": "Biblioteca de audio",
+    "emptyLibrary": "Todavía no hay pistas importadas.",
+    "history": "Historial de inmersión",
+    "historyDescription": "Tiempo reproducido realmente por sesión.",
+    "refresh": "Actualizar",
+    "emptyHistory": "Las sesiones de audio aparecerán aquí mientras escuchas.",
+    "unknownArtist": "Artista desconocido",
+    "albumCover": "Portada del álbum",
+    "idleTitle": "Bóveda de audio",
+    "idleSubtitle": "Inmersión pasiva",
+    "localTracking": "Seguimiento local activo",
+    "previous": "Pista anterior",
+    "next": "Pista siguiente",
+    "togglePlayback": "Reproducir o pausar",
+    "progress": "Progreso de la pista",
+    "volume": "Volumen",
+    "openVault": "Abrir Bóveda de audio"
   }
 }
 

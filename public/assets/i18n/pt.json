@@ -20,6 +20,7 @@
     "kana": "Kana Dojo",
     "reader": "Mangá",
     "video": "Vídeo",
+    "audio_vault": "Cofre de Áudio",
     "web": "Web",
     "epub": "Light Novel",
     "notebook": "Caderno",
@@ -564,6 +565,31 @@
     "badges_subtitle": "Marcos alcançados na sua jornada de imersão e maestria",
     "unlocked": "Desbloqueado",
     "locked": "Bloqueado"
+  },
+  "audioVault": {
+    "eyebrow": "Imersão",
+    "title": "Cofre de Áudio",
+    "subtitle": "Suas faixas locais e o tempo de escuta passiva, salvos neste dispositivo.",
+    "import": "Importar e reproduzir áudio",
+    "queue": "Fila de reprodução",
+    "emptyQueue": "Importe um MP3 ou outro arquivo de áudio para começar.",
+    "library": "Biblioteca de áudio",
+    "emptyLibrary": "Nenhuma faixa importada ainda.",
+    "history": "Histórico de imersão",
+    "historyDescription": "Tempo efetivamente reproduzido por sessão.",
+    "refresh": "Atualizar",
+    "emptyHistory": "As sessões de áudio aparecerão aqui conforme você escuta.",
+    "unknownArtist": "Artista desconhecido",
+    "albumCover": "Capa do álbum",
+    "idleTitle": "Cofre de Áudio",
+    "idleSubtitle": "Imersão passiva",
+    "localTracking": "Rastreamento local ativo",
+    "previous": "Faixa anterior",
+    "next": "Próxima faixa",
+    "togglePlayback": "Reproduzir ou pausar",
+    "progress": "Progresso da faixa",
+    "volume": "Volume",
+    "openVault": "Abrir Cofre de Áudio"
   }
 }
 

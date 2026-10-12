@@ -225,7 +225,7 @@ fn apply_migration(transaction: &Transaction<'_>, migration: &Migration) -> rusq
         {
             continue;
         }
-        transaction.execute_batch(&format!("{statement};"))?;
+        transaction.execute_batch(statement)?;
     }
     Ok(())
 }
@@ -280,15 +280,11 @@ fn column_exists(
     table: &str,
     column: &str,
 ) -> rusqlite::Result<bool> {
-    // Table/column names are sourced only from the checked-in migration definitions.
-    let mut statement = transaction.prepare(&format!("PRAGMA table_info({table})"))?;
-    let columns = statement.query_map([], |row| row.get::<_, String>(1))?;
-    for existing_column in columns {
-        if existing_column? == column {
-            return Ok(true);
-        }
-    }
-    Ok(false)
+    transaction.query_row(
+        "SELECT EXISTS(SELECT 1 FROM pragma_table_info(?1) WHERE name = ?2)",
+        [table, column],
+        |row| row.get(0),
+    )
 }
 
 #[cfg(test)]

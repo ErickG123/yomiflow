@@ -114,7 +114,7 @@ pub fn get_interleaved_review_queue(
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_nanos() as u64;
-    Ok(interleave_by_type(queue, seed))
+    Ok(crate::domain::interleaving::interleave_by_type(queue, seed))
 }
 
 #[tauri::command]
@@ -154,49 +154,4 @@ pub fn answer_grammar_review(
     conn.execute("UPDATE notebook_entries SET srs_stage = ?1, next_review_date = ?2, updated_at = ?3 WHERE id = ?4",
         params![next_stage, now + delay, now.to_string(), card_id]).map_err(|e| e.to_string())?;
     Ok(())
-}
-
-fn interleave_by_type(
-    items: Vec<InterleavedReviewCard>,
-    mut state: u64,
-) -> Vec<InterleavedReviewCard> {
-    if state == 0 {
-        state = 0x9E37_79B9_7F4A_7C15;
-    }
-    let mut groups: [Vec<InterleavedReviewCard>; 4] = std::array::from_fn(|_| Vec::new());
-    for item in items {
-        let group = match item {
-            InterleavedReviewCard::Vocabulary { .. } => 0,
-            InterleavedReviewCard::ImageOcclusion { .. } => 1,
-            InterleavedReviewCard::Grammar { .. } => 2,
-            InterleavedReviewCard::Kana { .. } => 3,
-        };
-        groups[group].push(item);
-    }
-    for group in &mut groups {
-        shuffle(group, &mut state);
-    }
-
-    let mut output = Vec::new();
-    let mut cursor = (state as usize) % groups.len();
-    while groups.iter().any(|group| !group.is_empty()) {
-        for offset in 0..groups.len() {
-            let group = (cursor + offset) % groups.len();
-            if !groups[group].is_empty() {
-                output.push(groups[group].pop().expect("group checked as non-empty"));
-                cursor = (group + 1) % groups.len();
-                break;
-            }
-        }
-    }
-    output
-}
-
-fn shuffle<T>(items: &mut [T], state: &mut u64) {
-    for index in (1..items.len()).rev() {
-        *state ^= *state << 13;
-        *state ^= *state >> 7;
-        *state ^= *state << 17;
-        items.swap(index, (*state as usize) % (index + 1));
-    }
 }

@@ -1,5 +1,6 @@
 pub mod kana_seed;
 pub mod queries;
+pub mod search;
 pub mod setup;
 
 pub use kana_seed::*;

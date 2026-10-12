@@ -19,6 +19,7 @@
     "kana": "Kana Dojo",
     "reader": "Manga",
     "video": "Video",
+    "audio_vault": "Audio Vault",
     "web": "Web",
     "epub": "Light Novel",
     "notebook": "Notebook",
@@ -563,6 +564,31 @@
     "badges_subtitle": "Milestones achieved on your journey of immersion and mastery",
     "unlocked": "Unlocked",
     "locked": "Locked"
+  },
+  "audioVault": {
+    "eyebrow": "Immersion",
+    "title": "Audio Vault",
+    "subtitle": "Your local tracks and passive listening time, saved on this device.",
+    "import": "Import and play audio",
+    "queue": "Playback queue",
+    "emptyQueue": "Import an MP3 or another audio file to get started.",
+    "library": "Audio library",
+    "emptyLibrary": "No tracks imported yet.",
+    "history": "Immersion history",
+    "historyDescription": "Time actually played per session.",
+    "refresh": "Refresh",
+    "emptyHistory": "Audio sessions will appear here as you listen.",
+    "unknownArtist": "Unknown artist",
+    "albumCover": "Album cover",
+    "idleTitle": "Audio Vault",
+    "idleSubtitle": "Passive immersion",
+    "localTracking": "Local tracking active",
+    "previous": "Previous track",
+    "next": "Next track",
+    "togglePlayback": "Play or pause",
+    "progress": "Track progress",
+    "volume": "Volume",
+    "openVault": "Open Audio Vault"
   }
 }
 

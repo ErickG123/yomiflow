@@ -7,7 +7,7 @@
       <img
         class="h-12 w-12 rounded object-cover"
         [src]="cover"
-        [alt]="player.track()?.album || 'Album cover'"
+        [alt]="player.track()?.album || ('audioVault.albumCover' | transloco)"
       />
     } @else {
       <div class="flex h-12 w-12 items-center justify-center rounded bg-zinc-800 text-zinc-400">
@@ -16,34 +16,42 @@
     }
     <div class="min-w-0">
       <div class="truncate text-sm font-medium text-zinc-100">
-        {{ player.track()?.title || 'Cofre de Áudio' }}
+        {{ player.track()?.title || ('audioVault.idleTitle' | transloco) }}
       </div>
       <div class="truncate text-xs text-zinc-400">
-        {{ player.track()?.artist || 'Imersão passiva' }}
+        {{ player.track()?.artist || ('audioVault.idleSubtitle' | transloco) }}
       </div>
     </div>
   </div>
 
   <div class="mx-auto flex w-full max-w-xl flex-col items-center gap-1">
     <div class="flex items-center gap-5 text-zinc-300">
-      <button aria-label="Anterior" class="hover:text-white" (click)="player.playNext(-1)">
+      <button
+        [attr.aria-label]="'audioVault.previous' | transloco"
+        class="hover:text-white"
+        (click)="player.playNext(-1)"
+      >
         <i class="pi pi-step-backward"></i>
       </button>
       <button
-        aria-label="Reproduzir ou pausar"
+        [attr.aria-label]="'audioVault.togglePlayback' | transloco"
         class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-950 hover:scale-105"
         (click)="player.togglePlayback()"
       >
         <i [class]="player.isPlaying() ? 'pi pi-pause' : 'pi pi-play'"></i>
       </button>
-      <button aria-label="Próxima" class="hover:text-white" (click)="player.playNext(1)">
+      <button
+        [attr.aria-label]="'audioVault.next' | transloco"
+        class="hover:text-white"
+        (click)="player.playNext(1)"
+      >
         <i class="pi pi-step-forward"></i>
       </button>
     </div>
     <div class="flex w-full items-center gap-2 text-[10px] text-zinc-500">
       <span>{{ player.formatTime(player.positionMs()) }}</span>
       <input
-        aria-label="Progresso da faixa"
+        [attr.aria-label]="'audioVault.progress' | transloco"
         class="h-1 flex-1 accent-emerald-500"
         type="range"
         min="0"
@@ -58,14 +66,14 @@
   <div class="flex items-center justify-end gap-4 text-zinc-400">
     <a
       routerLink="/audio-vault"
-      aria-label="Fila e Cofre de Áudio"
-      title="Fila e Cofre de Áudio"
+      [attr.aria-label]="'audioVault.openVault' | transloco"
+      [title]="'audioVault.openVault' | transloco"
       class="hover:text-white"
       ><i class="pi pi-list"></i
     ></a>
     <i class="pi pi-volume-up text-sm"></i>
     <input
-      aria-label="Volume"
+      [attr.aria-label]="'audioVault.volume' | transloco"
       class="w-24 accent-emerald-500"
       type="range"
       min="0"
@@ -74,6 +82,8 @@
       [ngModel]="player.volume()"
       (ngModelChange)="player.setVolume($event)"
     />
-    <span class="text-[10px]" title="Rastreamento local ativo">● Local</span>
+    <span class="text-[10px]" [title]="'audioVault.localTracking' | transloco"
+      >● {{ 'audioVault.localTracking' | transloco }}</span
+    >
   </div>
 </footer>

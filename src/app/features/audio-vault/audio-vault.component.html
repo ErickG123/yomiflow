@@ -2,23 +2,21 @@
   <header class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
     <div>
       <p class="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-emerald-400">
-        Immersion
+        {{ 'audioVault.eyebrow' | transloco }}
       </p>
-      <h1 class="text-3xl font-bold">Cofre de Áudio</h1>
-      <p class="mt-2 text-zinc-400">
-        Suas faixas locais e tempo de exposição passiva, guardados neste dispositivo.
-      </p>
+      <h1 class="text-3xl font-bold">{{ 'audioVault.title' | transloco }}</h1>
+      <p class="mt-2 text-zinc-400">{{ 'audioVault.subtitle' | transloco }}</p>
     </div>
     <button
       class="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-zinc-950 hover:bg-emerald-400"
       (click)="player.chooseAndPlay()"
     >
-      <i class="pi pi-plus"></i> Importar e reproduzir áudio
+      <i class="pi pi-plus"></i> {{ 'audioVault.import' | transloco }}
     </button>
   </header>
 
   <section class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-    <h2 class="mb-4 text-lg font-semibold">Fila de reprodução</h2>
+    <h2 class="mb-4 text-lg font-semibold">{{ 'audioVault.queue' | transloco }}</h2>
     @if (player.queue().length) {
       <div class="divide-y divide-zinc-800">
         @for (track of player.queue(); track track.path) {
@@ -28,18 +26,20 @@
           >
             <i class="pi pi-play text-emerald-400"></i>
             <span class="min-w-0 flex-1 truncate font-medium">{{ track.title }}</span>
-            <span class="text-sm text-zinc-500">{{ track.artist || 'Artista desconhecido' }}</span>
+            <span class="text-sm text-zinc-500">{{
+              track.artist || ('audioVault.unknownArtist' | transloco)
+            }}</span>
             <span class="text-xs text-zinc-500">{{ player.formatTime(track.duration_ms) }}</span>
           </button>
         }
       </div>
     } @else {
-      <p class="text-sm text-zinc-500">Importe um MP3 ou outro arquivo de áudio para começar.</p>
+      <p class="text-sm text-zinc-500">{{ 'audioVault.emptyQueue' | transloco }}</p>
     }
   </section>
 
   <section class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-    <h2 class="mb-4 text-lg font-semibold">Biblioteca de áudio</h2>
+    <h2 class="mb-4 text-lg font-semibold">{{ 'audioVault.library' | transloco }}</h2>
     @if (player.library().length) {
       <div class="divide-y divide-zinc-800">
         @for (track of player.library(); track track.path) {
@@ -49,27 +49,29 @@
           >
             <i class="pi pi-play text-emerald-400"></i>
             <span class="min-w-0 flex-1 truncate font-medium">{{ track.title }}</span>
-            <span class="text-sm text-zinc-500">{{ track.artist || 'Artista desconhecido' }}</span>
+            <span class="text-sm text-zinc-500">{{
+              track.artist || ('audioVault.unknownArtist' | transloco)
+            }}</span>
             <span class="text-xs text-zinc-500">{{ player.formatTime(track.duration_ms) }}</span>
           </button>
         }
       </div>
     } @else {
-      <p class="text-sm text-zinc-500">Nenhuma faixa importada ainda.</p>
+      <p class="text-sm text-zinc-500">{{ 'audioVault.emptyLibrary' | transloco }}</p>
     }
   </section>
 
   <section class="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
     <div class="mb-4 flex items-center justify-between">
       <div>
-        <h2 class="text-lg font-semibold">Histórico de imersão</h2>
-        <p class="text-sm text-zinc-500">Tempo efetivamente reproduzido por sessão.</p>
+        <h2 class="text-lg font-semibold">{{ 'audioVault.history' | transloco }}</h2>
+        <p class="text-sm text-zinc-500">{{ 'audioVault.historyDescription' | transloco }}</p>
       </div>
       <button
         class="text-sm text-emerald-400 hover:text-emerald-300"
         (click)="player.loadHistory()"
       >
-        Atualizar
+        {{ 'audioVault.refresh' | transloco }}
       </button>
     </div>
     @if (player.history().length) {
@@ -79,7 +81,7 @@
             <div class="min-w-0 flex-1">
               <div class="truncate font-medium">{{ entry.title }}</div>
               <div class="text-xs text-zinc-500">
-                {{ entry.artist || 'Artista desconhecido' }} ·
+                {{ entry.artist || ('audioVault.unknownArtist' | transloco) }} ·
                 {{ entry.updated_at | date: 'medium' }}
               </div>
             </div>
@@ -90,7 +92,7 @@
         }
       </div>
     } @else {
-      <p class="text-sm text-zinc-500">As sessões de áudio aparecerão aqui conforme você escuta.</p>
+      <p class="text-sm text-zinc-500">{{ 'audioVault.emptyHistory' | transloco }}</p>
     }
   </section>
 </main>

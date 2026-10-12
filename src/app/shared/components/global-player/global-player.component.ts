@@ -4,11 +4,12 @@ import { RouterLink } from '@angular/router'
 import { GlobalAudioPlayerService } from '../../../core/services/global-audio-player.service'
 import { LayoutStateService } from '../../../layouts/services/layout-state.service'
 import { ZenModeService } from '../../../core/services/zen-mode.service'
+import { TranslocoPipe } from '@ngneat/transloco'
 
 @Component({
   selector: 'app-global-player',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TranslocoPipe],
   templateUrl: './global-player.component.html',
   styleUrl: './global-player.component.scss',
 })
