@@ -1,54 +1,213 @@
 <main class="min-h-full bg-zinc-950 px-5 py-8 text-zinc-100 md:px-10">
   <div class="mx-auto max-w-6xl space-y-7">
     <header>
-      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">{{ 'readability.eyebrow' | transloco }}</p>
-      <h1 class="mt-2 text-3xl font-semibold tracking-tight">{{ 'readability.title' | transloco }}</h1>
-      <p class="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-400">{{ 'readability.subtitle' | transloco }}</p>
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">
+        {{ 'readability.eyebrow' | transloco }}
+      </p>
+      <h1 class="mt-2 text-3xl font-semibold tracking-tight">
+        {{ 'readability.title' | transloco }}
+      </h1>
+      <p class="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-400">
+        {{ 'readability.subtitle' | transloco }}
+      </p>
     </header>
 
     <section class="analyzer-panel space-y-4">
-      <label for="readability-text" class="block text-sm font-medium text-zinc-200">{{ 'readability.input_label' | transloco }}</label>
-      <textarea id="readability-text" class="readability-input" rows="8" maxlength="50000" [ngModel]="text()" (ngModelChange)="updateText($event)" [placeholder]="'readability.placeholder' | transloco"></textarea>
+      <label for="readability-text" class="block text-sm font-medium text-zinc-200">{{
+        'readability.input_label' | transloco
+      }}</label>
+      <textarea
+        id="readability-text"
+        class="readability-input"
+        rows="8"
+        maxlength="50000"
+        [ngModel]="text()"
+        (ngModelChange)="updateText($event)"
+        [placeholder]="'readability.placeholder' | transloco"
+      ></textarea>
       <div class="flex flex-wrap items-center justify-between gap-3">
         <span class="text-xs text-zinc-500">{{ text().length }} / 50000</span>
-        <button class="analyze-button" type="button" [disabled]="!text().trim() || isAnalyzing()" (click)="analyze()">
-          @if (isAnalyzing()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-chart-pie"></i> }
+        <button
+          class="analyze-button"
+          type="button"
+          [disabled]="!text().trim() || isAnalyzing()"
+          (click)="analyze()"
+        >
+          @if (isAnalyzing()) {
+            <i class="pi pi-spin pi-spinner"></i>
+          } @else {
+            <i class="pi pi-chart-pie"></i>
+          }
           {{ (isAnalyzing() ? 'readability.analyzing' : 'readability.analyze') | transloco }}
         </button>
       </div>
     </section>
 
     @if (errorMessage(); as error) {
-      <div class="rounded-xl border border-rose-900/70 bg-rose-950/30 px-4 py-3 text-sm text-rose-300">{{ error }}</div>
+      <div
+        class="rounded-xl border border-rose-900/70 bg-rose-950/30 px-4 py-3 text-sm text-rose-300"
+      >
+        {{ error }}
+      </div>
     }
 
     @if (analysis(); as result) {
       <section class="grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)]">
         <div class="analyzer-panel flex flex-col items-center justify-center text-center">
-          <div class="readability-chart" role="img" [attr.aria-label]="('readability.chart_label' | transloco) + ': ' + result.comprehensionPercentage + '%'">
+          <div
+            class="readability-chart"
+            role="img"
+            [attr.aria-label]="
+              ('readability.chart_label' | transloco) + ': ' + result.comprehensionPercentage + '%'
+            "
+          >
             <svg viewBox="0 0 100 100" aria-hidden="true">
               <circle class="chart-track" cx="50" cy="50" r="42"></circle>
-              <circle class="chart-progress" cx="50" cy="50" r="42" [attr.stroke-dasharray]="ringDasharray()"></circle>
+              <circle
+                class="chart-progress"
+                cx="50"
+                cy="50"
+                r="42"
+                [attr.stroke-dasharray]="ringDasharray()"
+              ></circle>
             </svg>
-            <div class="chart-value"><strong>{{ result.comprehensionPercentage | number: '1.0-1' }}%</strong><span>{{ 'readability.understood' | transloco }}</span></div>
+            <div class="chart-value">
+              <strong>{{ result.comprehensionPercentage | number: '1.0-1' }}%</strong
+              ><span>{{ 'readability.understood' | transloco }}</span>
+            </div>
           </div>
-          <p class="mt-5 text-sm text-zinc-300">{{ result.knownWords }} / {{ result.totalWords }} {{ 'readability.known_words' | transloco }}</p>
-          <p class="mt-1 text-xs text-zinc-500">{{ 'readability.srs_retention' | transloco }}: {{ result.averageRetentionPercentage | number: '1.0-1' }}%</p>
-          <p class="mt-1 text-xs text-zinc-500">{{ result.unknownWords.length }} {{ 'readability.unknown_count' | transloco }}</p>
+          <p class="mt-5 text-sm text-zinc-300">
+            {{ result.knownWords }} / {{ result.totalWords }}
+            {{ 'readability.known_words' | transloco }}
+          </p>
+          <p class="mt-1 text-xs text-zinc-500">
+            {{ 'readability.srs_retention' | transloco }}:
+            {{ result.averageRetentionPercentage | number: '1.0-1' }}%
+          </p>
+          <p class="mt-1 text-xs text-zinc-500">
+            {{ result.unknownWords.length }} {{ 'readability.unknown_count' | transloco }}
+          </p>
         </div>
 
         <div class="analyzer-panel min-w-0">
           <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 class="font-medium">{{ 'readability.annotated_text' | transloco }}</h2>
-            <span class="legend"><span class="legend-swatch"></span>{{ 'readability.unknown_legend' | transloco }}</span>
+            <div class="flex flex-wrap items-center gap-3">
+              <span class="legend"
+                ><span class="legend-swatch"></span
+                >{{ 'readability.unknown_legend' | transloco }}</span
+              >
+              @if (uniqueUnknownWords().length > 0) {
+                <button
+                  type="button"
+                  class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-500"
+                  (click)="openCardModal()"
+                >
+                  Criar Cartões ({{ uniqueUnknownWords().length }} palavras)
+                </button>
+              }
+            </div>
           </div>
           <p class="annotated-text" lang="ja">
             @for (segment of segments(); track $index) {
-              @if (segment.isUnknown) { <mark class="unknown-word">{{ segment.text }}</mark> } @else { {{ segment.text }} }
+              @if (segment.isUnknown) {
+                <mark class="unknown-word">{{ segment.text }}</mark>
+              } @else {
+                {{ segment.text }}
+              }
             }
           </p>
         </div>
       </section>
     }
   </div>
+
+  @if (isCardModalOpen()) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      (click)="isCardModalOpen.set(false)"
+    >
+      <section
+        class="w-full max-w-lg space-y-5 rounded-2xl border border-zinc-700 bg-zinc-900 p-6 shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="readability-card-title"
+        (click)="$event.stopPropagation()"
+      >
+        <div>
+          <h2 id="readability-card-title" class="text-lg font-semibold text-white">
+            Criar cartões SRS
+          </h2>
+          <p class="mt-1 text-sm text-zinc-400">
+            {{ uniqueUnknownWords().length }} palavras desconhecidas
+          </p>
+        </div>
+        <label class="block space-y-2 text-sm text-zinc-300">
+          <span>Baralho de destino</span>
+          <select
+            class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white"
+            [ngModel]="selectedDeckId()"
+            (ngModelChange)="selectedDeckId.set($event)"
+          >
+            @for (deck of deckService.decks(); track deck.id) {
+              <option [value]="deck.id">{{ deck.name }}</option>
+            }
+          </select>
+        </label>
+        <fieldset class="space-y-3">
+          <legend class="mb-2 text-sm font-medium text-zinc-300">Conteúdo dos cartões</legend>
+          <label
+            class="flex cursor-pointer gap-3 rounded-xl border border-zinc-700 p-3 text-sm text-zinc-200"
+          >
+            <input
+              type="radio"
+              name="card-content"
+              [checked]="!includeContext()"
+              (change)="includeContext.set(false)"
+            />
+            <span
+              ><strong class="block">Palavra isolada</strong
+              ><span class="text-xs text-zinc-400"
+                >Adicionar lema e leitura ao dicionário</span
+              ></span
+            >
+          </label>
+          <label
+            class="flex cursor-pointer gap-3 rounded-xl border border-zinc-700 p-3 text-sm text-zinc-200"
+          >
+            <input
+              type="radio"
+              name="card-content"
+              [checked]="includeContext()"
+              (change)="includeContext.set(true)"
+            />
+            <span
+              ><strong class="block">Frase de contexto</strong
+              ><span class="text-xs text-zinc-400">Criar uma carta com a frase original</span></span
+            >
+          </label>
+        </fieldset>
+        @if (cardError(); as error) {
+          <p class="text-sm text-rose-300">{{ error }}</p>
+        }
+        <div class="flex justify-end gap-3">
+          <button
+            type="button"
+            class="rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800"
+            (click)="isCardModalOpen.set(false)"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            [disabled]="isCreatingCards() || !deckService.decks().length"
+            (click)="createCards()"
+          >
+            {{ isCreatingCards() ? 'Criando…' : 'Adicionar ao SRS' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
 </main>

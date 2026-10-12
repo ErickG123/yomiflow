@@ -97,6 +97,7 @@ pub fn analyze_text_readability(
             unknown_words.push(UnknownWordOccurrence {
                 surface: token.surface.clone(),
                 lemma: token.lemma.clone(),
+                reading: token.reading.clone(),
                 start,
                 end,
                 retention_percentage: 0.0,

@@ -1,6 +1,7 @@
 export interface UnknownWordOccurrence {
   surface: string
   lemma: string
+  reading: string
   start: number
   end: number
   retentionPercentage: number

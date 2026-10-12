@@ -364,3 +364,45 @@ pub fn add_custom_word_to_srs(
 
     Ok(entry_id)
 }
+
+#[tauri::command]
+pub fn add_readability_word_to_srs(
+    surface: String,
+    lemma: String,
+    reading: String,
+    context: String,
+    include_context: bool,
+    deck_id: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let mut conn = state.db.lock().map_err(|error| error.to_string())?;
+    let tx = conn.transaction().map_err(|error| error.to_string())?;
+    let target_deck = crate::commands::srs::resolve_deck_id(&tx, deck_id)?;
+    let (kanji, meaning) = if include_context {
+        (surface.clone(), context)
+    } else {
+        (lemma.clone(), String::new())
+    };
+
+    let existing_id: Option<i64> = tx
+        .query_row(
+            "SELECT id FROM dictionary_entries WHERE kanji = ?1 AND reading = ?2 AND meaning = ?3 LIMIT 1",
+            params![kanji, reading, meaning],
+            |row| row.get(0),
+        )
+        .ok();
+    let entry_id = match existing_id {
+        Some(id) => id,
+        None => {
+            tx.execute(
+                "INSERT INTO dictionary_entries (kanji, reading, meaning) VALUES (?1, ?2, ?3)",
+                params![kanji, reading, meaning],
+            )
+            .map_err(|error| error.to_string())?;
+            tx.last_insert_rowid()
+        }
+    };
+
+    crate::commands::srs::add_to_srs_in_conn(&tx, entry_id, Some(target_deck))?;
+    tx.commit().map_err(|error| error.to_string())
+}

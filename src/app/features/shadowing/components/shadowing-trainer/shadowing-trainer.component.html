@@ -3,7 +3,9 @@
     <!-- Header -->
     <div class="flex items-center justify-between border-b border-zinc-800/80 pb-6">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+        <div
+          class="w-10 h-10 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400"
+        >
           <i class="pi pi-volume-up text-lg"></i>
         </div>
         <div>
@@ -15,8 +17,20 @@
 
     <!-- Error Alert if any -->
     @if (shadowingService.speechError(); as err) {
-      <div class="p-4 rounded-xl bg-amber-950/20 border border-amber-900/40 text-amber-300 text-xs flex items-center gap-2">
-        <i class="pi pi-exclamation-triangle text-amber-400 text-sm shrink-0"></i>
+      <div
+        class="p-4 rounded-xl border text-xs flex items-center gap-2"
+        [class.bg-rose-950/20]="err.includes('conexão com a internet')"
+        [class.border-rose-900/40]="err.includes('conexão com a internet')"
+        [class.text-rose-300]="err.includes('conexão com a internet')"
+        [class.bg-amber-950/20]="!err.includes('conexão com a internet')"
+        [class.border-amber-900/40]="!err.includes('conexão com a internet')"
+        [class.text-amber-300]="!err.includes('conexão com a internet')"
+      >
+        <i
+          class="pi pi-exclamation-triangle text-sm shrink-0"
+          [class.text-rose-400]="err.includes('conexão com a internet')"
+          [class.text-amber-400]="!err.includes('conexão com a internet')"
+        ></i>
         <span>{{ err }}</span>
       </div>
     }
@@ -53,7 +67,9 @@
         </label>
 
         <div class="flex items-center gap-4">
-          <label class="px-4 py-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white transition cursor-pointer flex items-center gap-2">
+          <label
+            class="px-4 py-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white transition cursor-pointer flex items-center gap-2"
+          >
             <i class="pi pi-upload text-xs"></i>
             <span>{{ t('shadowing.import_audio') }}</span>
             <input
@@ -88,7 +104,9 @@
     </div>
 
     <!-- 2. Voice Recording Action Card -->
-    <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-4">
+    <div
+      class="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-4"
+    >
       <div class="space-y-1">
         <h3 class="text-base font-bold text-white">{{ t('shadowing.record_voice') }}</h3>
         <p class="text-xs text-zinc-400 max-w-md">{{ t('shadowing.record_hint') }}</p>
@@ -101,25 +119,43 @@
         [class.bg-rose-600]="shadowingService.isRecording()"
         [class.hover:bg-rose-500]="shadowingService.isRecording()"
         [class.animate-pulse]="shadowingService.isRecording()"
-        [class.bg-indigo-600]="!shadowingService.isRecording()"
-        [class.hover:bg-indigo-500]="!shadowingService.isRecording()"
-        [title]="shadowingService.isRecording() ? t('shadowing.stop_eval') : t('shadowing.start_rec')"
+        [class.bg-rose-700]="!shadowingService.isRecording() && !!shadowingService.speechError()"
+        [class.bg-indigo-600]="!shadowingService.isRecording() && !shadowingService.speechError()"
+        [class.hover:bg-indigo-500]="
+          !shadowingService.isRecording() && !shadowingService.speechError()
+        "
+        [title]="
+          shadowingService.isRecording() ? t('shadowing.stop_eval') : t('shadowing.start_rec')
+        "
       >
         <i
           class="pi text-2xl text-white"
           [class.pi-stop]="shadowingService.isRecording()"
           [class.pi-microphone]="!shadowingService.isRecording()"
+          [class.text-rose-100]="
+            !shadowingService.isRecording() && !!shadowingService.speechError()
+          "
         ></i>
       </button>
 
-      <span class="text-xs font-semibold" [class.text-rose-400]="shadowingService.isRecording()" [class.text-zinc-400]="!shadowingService.isRecording()">
-        {{ shadowingService.isRecording() ? t('shadowing.recording_now') : t('shadowing.click_to_speak') }}
+      <span
+        class="text-xs font-semibold"
+        [class.text-rose-400]="shadowingService.isRecording()"
+        [class.text-zinc-400]="!shadowingService.isRecording()"
+      >
+        {{
+          shadowingService.isRecording()
+            ? t('shadowing.recording_now')
+            : t('shadowing.click_to_speak')
+        }}
       </span>
     </div>
 
     <!-- 3. Comparison & Pronunciation Feedback Card -->
     @if (shadowingService.comparisonResult(); as res) {
-      <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-2xl p-6 space-y-6 animate-fadeIn">
+      <div
+        class="bg-zinc-900/80 border border-zinc-800/80 rounded-2xl p-6 space-y-6 animate-fadeIn"
+      >
         <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
           <h3 class="text-base font-bold text-white flex items-center gap-2">
             <i class="pi pi-chart-bar text-indigo-400 text-sm"></i>
@@ -160,7 +196,8 @@
                   [class.bg-emerald-950/40]="char.isCorrect"
                   [class.text-rose-400]="!char.isCorrect"
                   [class.bg-rose-950/40]="!char.isCorrect"
-                >{{ char.word }}</span>
+                  >{{ char.word }}</span
+                >
               }
             </p>
           </div>

@@ -208,6 +208,7 @@ pub fn run() {
             commands::kana::get_kana_proficiency_stats,
             commands::news::fetch_nhk_easy_news,
             commands::dictionary::add_custom_word_to_srs,
+            commands::dictionary::add_readability_word_to_srs,
             commands::srs::migrate_sm2_to_fsrs,
             commands::reader::save_epub_position,
             commands::reader::get_epub_position,

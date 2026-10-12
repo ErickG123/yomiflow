@@ -40,7 +40,11 @@ export class ShadowingService {
 
       rec.onerror = (event) => {
         console.warn('Speech recognition error:', event.error)
-        this.speechError.set(`Erro no reconhecimento de voz: ${event.error}`)
+        this.speechError.set(
+          event.error === 'network'
+            ? 'O reconhecimento de voz nativo requer conexão com a internet. Verifique sua rede.'
+            : `Erro no reconhecimento de voz: ${event.error}`,
+        )
         this.isRecording.set(false)
       }
 
@@ -68,6 +72,9 @@ export class ShadowingService {
     } catch (err) {
       console.warn('Could not start recognition:', err)
       this.isRecording.set(false)
+      this.speechError.set(
+        'Não foi possível iniciar o reconhecimento de voz. Verifique as permissões do microfone.',
+      )
     }
   }
 
@@ -88,8 +95,14 @@ export class ShadowingService {
   }
 
   calculateAccuracy(expected: string, transcribed: string): ShadowingComparisonResult {
-    const cleanExpected = expected.replace(/[^\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ーa-zA-Z0-9]/gu, '')
-    const cleanTranscribed = transcribed.replace(/[^\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ーa-zA-Z0-9]/gu, '')
+    const cleanExpected = expected.replace(
+      /[^\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ーa-zA-Z0-9]/gu,
+      '',
+    )
+    const cleanTranscribed = transcribed.replace(
+      /[^\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ーa-zA-Z0-9]/gu,
+      '',
+    )
 
     if (!cleanExpected) {
       return {
@@ -103,7 +116,7 @@ export class ShadowingService {
     // Levenshtein distance on characters
     const dist = this.levenshtein(cleanExpected, cleanTranscribed)
     const maxLen = Math.max(cleanExpected.length, cleanTranscribed.length)
-    const accuracy = maxLen === 0 ? 100 : Math.round(Math.max(0, (1 - dist / maxLen)) * 100)
+    const accuracy = maxLen === 0 ? 100 : Math.round(Math.max(0, 1 - dist / maxLen) * 100)
 
     // Segment expected into individual characters/words for visual feedback
     const matchedWords = Array.from(cleanExpected).map((char) => ({
@@ -135,7 +148,7 @@ export class ShadowingService {
           matrix[i][j] = Math.min(
             matrix[i - 1][j - 1] + 1,
             matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1
+            matrix[i - 1][j] + 1,
           )
         }
       }

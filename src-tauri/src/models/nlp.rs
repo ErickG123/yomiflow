@@ -21,6 +21,7 @@ pub struct LexicalToken {
 pub struct UnknownWordOccurrence {
     pub surface: String,
     pub lemma: String,
+    pub reading: String,
     pub start: usize,
     pub end: usize,
     pub retention_percentage: f64,
