@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DictionaryService } from './dictionary.service'
 import { AppStateService } from '../../../core/services/app-state.service'
+import { DeckService } from '../../decks/services/deck.service'
+import { signal } from '@angular/core'
 import {
   EnvironmentInjector,
   createEnvironmentInjector,
@@ -15,6 +17,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 describe('DictionaryService', () => {
   let service: DictionaryService
   let appStateMock: AppStateService
+  let deckServiceMock: { targetDeckId: ReturnType<typeof signal<string>> }
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -22,8 +25,12 @@ describe('DictionaryService', () => {
       isProcessing: { set: vi.fn() },
       progressMessage: { set: vi.fn() },
     } as unknown as AppStateService
+    deckServiceMock = { targetDeckId: signal('default') }
 
-    const providers = [{ provide: AppStateService, useValue: appStateMock }]
+    const providers = [
+      { provide: AppStateService, useValue: appStateMock },
+      { provide: DeckService, useValue: deckServiceMock },
+    ]
     const parentInjector = {
       get: (token: unknown) => providers.find((p) => p.provide === token)?.useValue ?? null,
     } as unknown as EnvironmentInjector
@@ -97,5 +104,17 @@ describe('DictionaryService', () => {
       deckId: 'deck-n3',
     })
     expect(service.addedCardIds()).toContain(42)
+  })
+
+  it('uses the target deck when no deck is explicitly selected', async () => {
+    vi.mocked(tauriCore.invoke).mockResolvedValue(undefined)
+    deckServiceMock.targetDeckId.set('deck-n3')
+
+    await service.addToSrs(12)
+
+    expect(tauriCore.invoke).toHaveBeenCalledWith('add_to_srs', {
+      entryId: 12,
+      deckId: 'deck-n3',
+    })
   })
 })

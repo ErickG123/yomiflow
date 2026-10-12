@@ -21,13 +21,12 @@ pub fn add_to_srs_in_conn(
     entry_id: i64,
     deck_id: Option<String>,
 ) -> Result<(), String> {
+    let target_deck = resolve_deck_id(conn, deck_id)?;
     let card_id = Uuid::new_v4().to_string();
     let current_timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_err(|e| e.to_string())?
         .as_secs() as i64;
-
-    let target_deck = deck_id.unwrap_or_else(|| "default".to_string());
 
     let already_in_deck: bool = conn
         .query_row(
@@ -57,6 +56,26 @@ pub fn add_to_srs_in_conn(
     .map_err(|e| e.to_string())?;
 
     Ok(())
+}
+
+pub(crate) fn resolve_deck_id(
+    conn: &rusqlite::Connection,
+    deck_id: Option<String>,
+) -> Result<String, String> {
+    let target_deck = deck_id.unwrap_or_else(|| "default".to_string());
+    let deck_exists: bool = conn
+        .query_row(
+            "SELECT EXISTS(SELECT 1 FROM decks WHERE id = ?1)",
+            params![target_deck],
+            |row| row.get(0),
+        )
+        .map_err(|error| error.to_string())?;
+
+    if !deck_exists {
+        return Err(format!("Deck '{}' does not exist", target_deck));
+    }
+
+    Ok(target_deck)
 }
 
 #[tauri::command]
@@ -586,6 +605,20 @@ mod tests {
 
         assert_eq!(total, 2);
         assert_eq!(extra_count, 1);
+    }
+
+    #[test]
+    fn add_to_srs_returns_clear_error_for_unknown_deck() {
+        let conn = rusqlite::Connection::open_in_memory().unwrap();
+        crate::db::create_tables_and_seed(&conn).unwrap();
+
+        let error = add_to_srs_in_conn(&conn, 1, Some("missing-deck".to_string())).unwrap_err();
+
+        assert_eq!(error, "Deck 'missing-deck' does not exist");
+        let card_count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM cards", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(card_count, 0);
     }
 
     #[test]

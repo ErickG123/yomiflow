@@ -306,6 +306,7 @@ pub fn add_custom_word_to_srs(
     state: State<'_, AppState>,
 ) -> Result<i64, String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
+    let target_deck = crate::commands::srs::resolve_deck_id(&conn, deck_id)?;
 
     // Check if matching entry already exists
     let existing_id: Option<i64> = conn
@@ -328,7 +329,6 @@ pub fn add_custom_word_to_srs(
         }
     };
 
-    let target_deck = deck_id.unwrap_or_else(|| "default".to_string());
     let card_id = uuid::Uuid::new_v4().to_string();
     let current_timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)

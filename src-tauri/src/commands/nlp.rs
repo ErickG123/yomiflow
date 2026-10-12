@@ -228,9 +228,14 @@ pub fn link_notebook_to_deck(
 pub fn get_notebook_entries(state: State<'_, AppState>) -> Result<Vec<NotebookEntry>, String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
 
+    get_notebook_entries_from_connection(&conn).map_err(|e| e.to_string())
+}
+
+fn get_notebook_entries_from_connection(
+    conn: &rusqlite::Connection,
+) -> rusqlite::Result<Vec<NotebookEntry>> {
     let mut stmt = conn
-        .prepare("SELECT id, title, content_md, created_at, updated_at, deck_id, next_review_date, srs_stage FROM notebook_entries ORDER BY updated_at DESC")
-        .map_err(|e| e.to_string())?;
+        .prepare("SELECT id, title, content_md, CAST(created_at AS TEXT), CAST(updated_at AS TEXT), deck_id, next_review_date, srs_stage FROM notebook_entries ORDER BY updated_at DESC")?;
 
     let entries = stmt
         .query_map([], |row| {
@@ -244,10 +249,8 @@ pub fn get_notebook_entries(state: State<'_, AppState>) -> Result<Vec<NotebookEn
                 next_review_date: row.get(6)?,
                 srs_stage: row.get(7)?,
             })
-        })
-        .map_err(|e| e.to_string())?
-        .collect::<Result<Vec<NotebookEntry>, rusqlite::Error>>()
-        .map_err(|e| e.to_string())?;
+        })?
+        .collect::<Result<Vec<NotebookEntry>, rusqlite::Error>>()?;
 
     Ok(entries)
 }
@@ -255,6 +258,31 @@ pub fn get_notebook_entries(state: State<'_, AppState>) -> Result<Vec<NotebookEn
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn notebook_entry_timestamps_are_returned_as_strings_for_integer_storage() {
+        let conn = rusqlite::Connection::open_in_memory().unwrap();
+        conn.execute_batch(
+            "CREATE TABLE notebook_entries (
+                id TEXT PRIMARY KEY,
+                title TEXT,
+                content_md TEXT,
+                created_at DATETIME,
+                updated_at DATETIME,
+                deck_id TEXT,
+                next_review_date DATETIME,
+                srs_stage INTEGER
+            );
+            INSERT INTO notebook_entries VALUES ('note-1', 'Title', 'Body', 1792065600, 1792065600, NULL, NULL, 0);",
+        )
+        .unwrap();
+
+        let entries = get_notebook_entries_from_connection(&conn).unwrap();
+
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].created_at, "1792065600");
+        assert_eq!(entries[0].updated_at, "1792065600");
+    }
 
     #[test]
     fn test_analyze_empty_and_whitespace_text_no_panic() {

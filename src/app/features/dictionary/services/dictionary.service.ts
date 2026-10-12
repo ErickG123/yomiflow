@@ -3,12 +3,14 @@ import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
 import { DictionaryEntry, ImportResult, KanjiEntry } from '../models/dictionary.model'
 import { AppStateService } from '../../../core/services/app-state.service'
+import { DeckService } from '../../decks/services/deck.service'
 
 @Injectable({
   providedIn: 'root',
 })
 export class DictionaryService {
   private readonly appState = inject(AppStateService)
+  private readonly deckService = inject(DeckService)
 
   readonly searchResults = signal<DictionaryEntry[]>([])
   readonly kanjiSearchResults = signal<KanjiEntry[]>([])
@@ -58,7 +60,7 @@ export class DictionaryService {
 
   async addToSrs(entryId: number, deckId?: string | null): Promise<void> {
     try {
-      await invoke('add_to_srs', { entryId, deckId: deckId || null })
+      await invoke('add_to_srs', { entryId, deckId: this.resolveDeckId(deckId) })
       this.addedCardIds.update((current) => [...current, entryId])
       this.searchResults.update((entries) =>
         entries.map((entry) => (entry.id === entryId ? { ...entry, in_srs: true } : entry)),
@@ -80,7 +82,7 @@ export class DictionaryService {
         kanji: kanji || null,
         reading,
         meaning,
-        deckId: deckId || null,
+        deckId: this.resolveDeckId(deckId),
       })
       this.addedCardIds.update((current) => [...current, entryId])
       return entryId
@@ -227,5 +229,9 @@ export class DictionaryService {
 
   async getKanjiSvg(kanji: string): Promise<string | null> {
     return invoke<string | null>('get_kanji_svg', { kanji })
+  }
+
+  private resolveDeckId(deckId?: string | null): string {
+    return deckId?.trim() || this.deckService.targetDeckId()?.trim() || 'default'
   }
 }
