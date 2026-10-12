@@ -13,6 +13,14 @@ pub fn add_to_srs(
 ) -> Result<(), String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
 
+    add_to_srs_in_conn(&conn, entry_id, deck_id)
+}
+
+pub fn add_to_srs_in_conn(
+    conn: &rusqlite::Connection,
+    entry_id: i64,
+    deck_id: Option<String>,
+) -> Result<(), String> {
     let card_id = Uuid::new_v4().to_string();
     let current_timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -186,6 +194,14 @@ pub fn create_deck(
     state: State<'_, AppState>,
 ) -> Result<Deck, String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
+    create_deck_in_conn(&conn, name, description)
+}
+
+pub fn create_deck_in_conn(
+    conn: &rusqlite::Connection,
+    name: String,
+    description: Option<String>,
+) -> Result<Deck, String> {
     let id = Uuid::new_v4().to_string();
 
     conn.execute(
@@ -222,7 +238,10 @@ pub fn update_deck(
 #[tauri::command]
 pub fn delete_deck(id: String, state: State<'_, AppState>) -> Result<(), String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
+    delete_deck_in_conn(&conn, id)
+}
 
+pub fn delete_deck_in_conn(conn: &rusqlite::Connection, id: String) -> Result<(), String> {
     if id == "default" {
         return Err("O baralho padrão não pode ser excluído.".to_string());
     }
@@ -278,6 +297,14 @@ pub fn create_tag(
 #[tauri::command]
 pub fn answer_card(card_id: String, rating: i32, state: State<'_, AppState>) -> Result<(), String> {
     let mut conn = state.db.lock().map_err(|e| e.to_string())?;
+    answer_card_in_conn(&mut conn, card_id, rating)
+}
+
+pub fn answer_card_in_conn(
+    conn: &mut rusqlite::Connection,
+    card_id: String,
+    rating: i32,
+) -> Result<(), String> {
     let tx = conn.transaction().map_err(|e| e.to_string())?;
 
     let (current_stability, current_difficulty, current_reps, current_state): (f64, f64, i32, i32) = tx

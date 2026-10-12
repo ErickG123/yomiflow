@@ -362,3 +362,17 @@ cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
 cargo test --manifest-path src-tauri/Cargo.toml
 cargo check --manifest-path src-tauri/Cargo.toml
 ```
+# Rust Integration Tests
+
+The Rust backend integration suite lives in `src-tauri/tests/integration_tests.rs`. It exercises the SRS service operations against the real SQLite schema and checks the Lindera bunsetsu pipeline, including JSON serialization.
+
+Every database test opens a fresh SQLite `:memory:` connection and runs `db::create_tables_and_seed` before exercising the service. Tests never open or modify the user's `yomiflow.db` file. SRS connection-level service functions are shared with the Tauri commands so the same persistence logic is exercised without constructing a desktop runtime.
+
+Run only this suite from the Tauri crate directory:
+
+```bash
+cd src-tauri
+cargo test --test integration_tests
+```
+
+The database uses `rusqlite`, which is synchronous in this application, so these integration cases use Rust's `#[test]` harness rather than `#[tokio::test]`. Tokio is not required for the current SQLite routines.
