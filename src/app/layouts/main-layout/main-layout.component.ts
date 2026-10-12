@@ -1,0 +1,60 @@
+import { Component, OnDestroy, inject } from '@angular/core'
+import { Router, RouterOutlet } from '@angular/router'
+import { listen } from '@tauri-apps/api/event'
+import { TrayAction } from '../../core/models/tray-action.model'
+import { ZenModeService } from '../../core/services/zen-mode.service'
+import { NotebookService } from '../../features/notebook/services/notebook.service'
+import { PomodoroControlService } from '../../features/pomodoro/services/pomodoro-control.service'
+import { SidebarComponent } from '../components/sidebar/sidebar.component'
+import { TopbarComponent } from '../components/topbar/topbar.component'
+import { SettingsModalComponent } from '../components/settings-modal/settings-modal.component'
+import { ProcessingOverlayComponent } from '../components/processing-overlay/processing-overlay.component'
+
+@Component({
+  selector: 'app-main-layout',
+  standalone: true,
+  imports: [
+    RouterOutlet,
+    SidebarComponent,
+    TopbarComponent,
+    SettingsModalComponent,
+    ProcessingOverlayComponent,
+  ],
+  templateUrl: './main-layout.component.html',
+  styleUrl: './main-layout.component.scss',
+})
+export class MainLayoutComponent implements OnDestroy {
+  private readonly router = inject(Router)
+  private readonly zenMode = inject(ZenModeService)
+  private readonly notebook = inject(NotebookService)
+  private readonly pomodoro = inject(PomodoroControlService)
+  private unlistenTrayAction?: () => void
+
+  constructor() {
+    void listen<TrayAction>('tray-action', ({ payload }) => this.handleTrayAction(payload))
+      .then((unlisten) => (this.unlistenTrayAction = unlisten))
+      .catch((error) => console.warn('Failed to register system tray listener:', error))
+  }
+
+  ngOnDestroy(): void {
+    this.unlistenTrayAction?.()
+  }
+
+  private handleTrayAction(action: TrayAction): void {
+    switch (action) {
+      case 'start_pomodoro':
+        this.pomodoro.requestStart()
+        break
+      case 'new_note':
+        this.notebook.requestNewNote()
+        void this.router.navigate(['/notebook'])
+        break
+      case 'pending_reviews':
+        void this.router.navigate(['/study'])
+        break
+      case 'zen_mode':
+        void this.zenMode.toggleZenMode()
+        break
+    }
+  }
+}

@@ -171,6 +171,13 @@ mod tests {
     }
 
     #[test]
+    fn test_fsrs_rejects_ratings_outside_supported_range() {
+        for rating in [0, 5, -1] {
+            assert!(calculate_fsrs_step(rating, 1.0, 5.0, 1, 2, 1_000, 2_000).is_err());
+        }
+    }
+
+    #[test]
     fn test_fsrs_progression_good() {
         let now = 1_000_000;
         let step1 = calculate_fsrs_step(3, 0.0, 0.0, 0, 0, now, now).unwrap();

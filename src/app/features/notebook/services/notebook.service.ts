@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core'
 import { invoke } from '@tauri-apps/api/core'
+import { Subject } from 'rxjs'
 import { BunsetsuChunk, MorphologicalToken, NotebookEntry } from '../models/notebook.model'
 
 @Injectable({
@@ -9,6 +10,17 @@ export class NotebookService {
   readonly entries = signal<NotebookEntry[]>([])
   readonly currentEntry = signal<NotebookEntry | null>(null)
   readonly isAnalyzing = signal<boolean>(false)
+  readonly newNoteRequested = signal(false)
+  readonly newNoteRequests = new Subject<void>()
+
+  requestNewNote(): void {
+    this.newNoteRequested.set(true)
+    this.newNoteRequests.next()
+  }
+
+  consumeNewNoteRequest(): void {
+    this.newNoteRequested.set(false)
+  }
 
   async analyzeText(text: string): Promise<MorphologicalToken[]> {
     if (!text || !text.trim()) {
@@ -54,7 +66,7 @@ export class NotebookService {
     contentMd: string,
     deckId?: string | null,
     nextReviewDate?: number | null,
-    srsStage?: number | null
+    srsStage?: number | null,
   ): Promise<void> {
     try {
       await invoke('save_notebook_entry', {

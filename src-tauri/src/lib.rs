@@ -5,9 +5,9 @@ pub mod importer;
 pub mod models;
 
 use std::sync::{Arc, Mutex};
-use tauri::menu::{Menu, MenuItem};
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{Manager, WindowEvent};
+use tauri::{Emitter, Manager, WindowEvent};
 
 pub struct AppState {
     pub db: Arc<Mutex<rusqlite::Connection>>,
@@ -36,36 +36,75 @@ pub fn run() {
                 db: Arc::new(Mutex::new(conn)),
             });
 
-            // Create context menu items for system tray
-            let show_i = MenuItem::with_id(app, "show", "Mostrar YomiFlow", true, None::<&str>)?;
-            let review_i = MenuItem::with_id(app, "review", "Revisões Pendentes", true, None::<&str>)?;
+            // Create grouped system tray actions
+            let start_pomodoro_i = MenuItem::with_id(
+                app,
+                "start_pomodoro",
+                "Iniciar Pomodoro (25min)",
+                true,
+                None::<&str>,
+            )?;
+            let new_note_i = MenuItem::with_id(
+                app,
+                "new_note",
+                "Nova Anota\u{00e7}\u{00e3}o",
+                true,
+                None::<&str>,
+            )?;
+            let study_separator = PredefinedMenuItem::separator(app)?;
+            let review_i = MenuItem::with_id(
+                app,
+                "pending_reviews",
+                "Revis\u{00f5}es Pendentes (SRS)",
+                true,
+                None::<&str>,
+            )?;
+            let zen_mode_i =
+                MenuItem::with_id(app, "zen_mode", "Modo Foco (Zen Mode)", true, None::<&str>)?;
+            let system_separator = PredefinedMenuItem::separator(app)?;
+            let show_i =
+                MenuItem::with_id(app, "show_app", "Mostrar YomiFlow", true, None::<&str>)?;
+            let quit_separator = PredefinedMenuItem::separator(app)?;
             let quit_i = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
 
-            let tray_menu = Menu::with_items(app, &[&show_i, &review_i, &quit_i])?;
-
+            let tray_menu = Menu::with_items(
+                app,
+                &[
+                    &start_pomodoro_i,
+                    &new_note_i,
+                    &study_separator,
+                    &review_i,
+                    &zen_mode_i,
+                    &system_separator,
+                    &show_i,
+                    &quit_separator,
+                    &quit_i,
+                ],
+            )?;
             // Build system tray
             let _tray = TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&tray_menu)
                 .show_menu_on_left_click(false)
-                .on_menu_event(|app, event| match event.id.as_ref() {
-                    "show" => {
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
+                .on_menu_event(|app, event| {
+                    let id = event.id.as_ref();
+                    match id {
+                        "show_app" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                            }
                         }
-                    }
-                    "review" => {
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                            let _ = window.eval("window.location.hash = '#/study'; window.location.pathname = '/study';");
+                        "start_pomodoro" | "new_note" | "pending_reviews" | "zen_mode" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                                let _ = window.emit("tray-action", id);
+                            }
                         }
+                        "quit" => app.exit(0),
+                        _ => {}
                     }
-                    "quit" => {
-                        app.exit(0);
-                    }
-                    _ => {}
                 })
                 .on_tray_icon_event(|tray, event| {
                     if let TrayIconEvent::Click {

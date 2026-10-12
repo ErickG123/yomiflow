@@ -259,16 +259,16 @@ pub fn get_kanji_breakdown(
         return Ok(Vec::new());
     }
 
-    let placeholders = unique_chars
-        .iter()
-        .map(|_| "?")
-        .collect::<Vec<_>>()
-        .join(", ");
-
-    let query = format!(
-        "SELECT character, onyomi, kunyomi, meaning, jlpt_level FROM kanjis WHERE character IN ({})",
-        placeholders
+    let mut query = String::from(
+        "SELECT character, onyomi, kunyomi, meaning, jlpt_level FROM kanjis WHERE character IN (",
     );
+    for index in 0..unique_chars.len() {
+        if index > 0 {
+            query.push_str(", ");
+        }
+        query.push('?');
+    }
+    query.push(')');
 
     let mut stmt = conn.prepare(&query).map_err(|e| e.to_string())?;
 

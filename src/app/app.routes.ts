@@ -1,158 +1,122 @@
 import { Routes } from '@angular/router'
-
-import { onboardingGuard } from './core/guards/onboarding.guard'
+import { onboardingEntryGuard, onboardingGuard } from './core/guards/onboarding.guard'
 
 export const routes: Routes = [
   {
-    path: '',
-    redirectTo: 'dashboard',
-    pathMatch: 'full',
-  },
-  {
     path: 'onboarding',
+    canActivate: [onboardingEntryGuard],
     loadComponent: () =>
-      import('./features/onboarding/components/onboarding/onboarding.component').then(
-        (m) => m.OnboardingComponent
+      import('./layouts/onboarding-layout/onboarding-layout.component').then(
+        (module) => module.OnboardingLayoutComponent,
       ),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/onboarding/components/onboarding/onboarding.component').then(
+            (module) => module.OnboardingComponent,
+          ),
+      },
+    ],
   },
   {
-    path: 'dashboard',
-    canActivate: [onboardingGuard],
+    path: '',
     loadComponent: () =>
-      import('./features/dashboard/components/dashboard-main/dashboard-main.component').then(
-        (m) => m.DashboardMainComponent
+      import('./layouts/main-layout/main-layout.component').then(
+        (module) => module.MainLayoutComponent,
       ),
+    canActivateChild: [onboardingGuard],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/dashboard/components/dashboard-main/dashboard-main.component').then(
+            (module) => module.DashboardMainComponent,
+          ),
+      },
+      {
+        path: 'dictionary',
+        loadComponent: () =>
+          import('./features/dictionary/components/dictionary-search/dictionary-search.component').then(
+            (module) => module.DictionarySearchComponent,
+          ),
+      },
+      {
+        path: 'readability',
+        loadComponent: () =>
+          import('./features/readability/components/readability-analyzer/readability-analyzer.component').then(
+            (module) => module.ReadabilityAnalyzerComponent,
+          ),
+      },
+      {
+        path: 'study',
+        loadComponent: () =>
+          import('./features/srs/components/study-session/study-session.component').then(
+            (module) => module.StudySessionComponent,
+          ),
+      },
+      {
+        path: 'image-occlusion',
+        loadComponent: () =>
+          import('./features/image-occlusion/components/image-occlusion/image-occlusion.component').then(
+            (module) => module.ImageOcclusionComponent,
+          ),
+      },
+      {
+        path: 'kana',
+        loadComponent: () =>
+          import('./features/kana/components/kana-trainer/kana-trainer.component').then(
+            (module) => module.KanaTrainerComponent,
+          ),
+      },
+      {
+        path: '',
+        loadChildren: () =>
+          import('./features/reader/reader.routes').then((module) => module.readerRoutes),
+      },
+      {
+        path: 'decks',
+        loadChildren: () =>
+          import('./features/decks/decks.routes').then((module) => module.deckRoutes),
+      },
+      {
+        path: 'video',
+        loadComponent: () =>
+          import('./features/video/components/video-player/video-player.component').then(
+            (module) => module.VideoPlayerComponent,
+          ),
+      },
+      {
+        path: 'shadowing',
+        loadComponent: () =>
+          import('./features/shadowing/components/shadowing-trainer/shadowing-trainer.component').then(
+            (module) => module.ShadowingTrainerComponent,
+          ),
+      },
+      {
+        path: 'notebook',
+        loadComponent: () =>
+          import('./features/notebook/components/notebook-editor/notebook-editor.component').then(
+            (module) => module.NotebookEditorComponent,
+          ),
+      },
+      {
+        path: 'calendar',
+        loadComponent: () =>
+          import('./features/calendar/components/calendar-view/calendar-view.component').then(
+            (module) => module.CalendarViewComponent,
+          ),
+      },
+      {
+        path: 'analytics',
+        loadComponent: () =>
+          import('./features/stats/components/jlpt-analytics/jlpt-analytics.component').then(
+            (module) => module.JlptAnalyticsComponent,
+          ),
+      },
+      { path: '**', redirectTo: 'dashboard' },
+    ],
   },
-  {
-    path: 'dictionary',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/dictionary/components/dictionary-search/dictionary-search.component').then(
-        (m) => m.DictionarySearchComponent
-      ),
-  },
-  {
-    path: 'readability',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/readability/components/readability-analyzer/readability-analyzer.component').then(
-        (m) => m.ReadabilityAnalyzerComponent
-      ),
-  },
-  {
-    path: 'study',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/srs/components/study-session/study-session.component').then(
-        (m) => m.StudySessionComponent
-      ),
-  },
-  {
-    path: 'image-occlusion',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/image-occlusion/components/image-occlusion/image-occlusion.component').then(
-        (m) => m.ImageOcclusionComponent
-      ),
-  },
-  {
-    path: 'kana',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/kana/components/kana-trainer/kana-trainer.component').then(
-        (m) => m.KanaTrainerComponent
-      ),
-  },
-  {
-    path: 'manga',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/reader/components/manga-library/manga-library.component').then(
-        (m) => m.MangaLibraryComponent
-      ),
-  },
-  {
-    path: 'reader',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/reader/components/manga-reader/manga-reader.component').then(
-        (m) => m.MangaReaderComponent
-      ),
-  },
-  {
-    path: 'web',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/reader/components/web-reader/web-reader.component').then(
-        (m) => m.WebReaderComponent
-      ),
-  },
-  {
-    path: 'epub',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/reader/components/epub-reader/epub-reader.component').then(
-        (m) => m.EpubReaderComponent
-      ),
-  },
-  {
-    path: 'video',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/video/components/video-player/video-player.component').then(
-        (m) => m.VideoPlayerComponent
-      ),
-  },
-  {
-    path: 'shadowing',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/shadowing/components/shadowing-trainer/shadowing-trainer.component').then(
-        (m) => m.ShadowingTrainerComponent
-      ),
-  },
-  {
-    path: 'notebook',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/notebook/components/notebook-editor/notebook-editor.component').then(
-        (m) => m.NotebookEditorComponent
-      ),
-  },
-  {
-    path: 'decks',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/decks/components/deck-list/deck-list.component').then(
-        (m) => m.DeckListComponent
-      ),
-  },
-  {
-    path: 'decks/:id/settings',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/decks/components/deck-settings/deck-settings.component').then(
-        (m) => m.DeckSettingsComponent
-      ),
-  },
-  {
-    path: 'calendar',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/calendar/components/calendar-view/calendar-view.component').then(
-        (m) => m.CalendarViewComponent
-      ),
-  },
-  {
-    path: 'analytics',
-    canActivate: [onboardingGuard],
-    loadComponent: () =>
-      import('./features/stats/components/jlpt-analytics/jlpt-analytics.component').then(
-        (m) => m.JlptAnalyticsComponent
-      ),
-  },
-  {
-    path: '**',
-    redirectTo: 'dashboard',
-  },
+  { path: '**', redirectTo: 'dashboard' },
 ]

@@ -21,39 +21,47 @@ Mastering Japanese through immersion traditionally requires stitching together a
 ## Core Features
 
 ### Smart Media Consumption
+
 - **Manga Reader with Zero-Copy Neural OCR:** Open archive packages (`.cbz`, `.zip`, `.cbr`, `.rar`) directly from memory without extracting directories to disk. Box speech bubbles on the page to trigger local vision-to-text inference powered by MangaOCR on ONNX Runtime (`ort`).
 - **Video Player with FFmpeg Extraction:** Stream `.mkv` and `.mp4` video locally with sub-millisecond hover dictionary lookups on embedded subtitle streams. Automatically slice native audio clips and extract context screenshots via FFmpeg to generate rich multimedia flashcards with a single click.
 - **NHK Web Easy Offline Reader:** Cache articles and native audio clips into local SQLite storage for distraction-free reading with integrated morphological hover breakdown.
 
 ### Relational SRS & Gamification
+
 - **Modern Spaced Repetition (FSRS & SM-2):** Advanced memory scheduler built on pure mathematical domain models, tracking card stability and item difficulty across multiple user-defined Decks.
 - **Relational Integrity:** Foreign key enforcement (`PRAGMA foreign_keys = ON;`) with cascading deletions between dictionary entries, cards, custom decks, tags, and review logs.
 - **Temporal Analytics & Heatmaps:** GitHub-style 16-week consistency heatmaps, review forecast projections, and JLPT coverage metrics (N5 through N1) mapped against dictionary and card corpora.
 - **Achievement & Badge Engine:** Persistent milestone awards (e.g., streak milestones, kanji master badges) evaluated locally against review records.
 
 ### Global Pomodoro & Immersion Tracker
+
 - **Focused Exposure Tracking:** Run global focus and break cycles from the sidebar, categorize time as active reading, passive listening, or SRS review, and receive native desktop notifications when each phase ends.
 - **Persistent Immersion Metrics:** Successfully completed focus blocks are stored in local SQLite `study_sessions`, providing a durable measure of study exposure hours by category and date.
 
 ### Visual SRS (Image Occlusion)
+
 - **SVG Mask Editor:** Upload or paste manga panels and draw multiple rectangular masks over speech bubbles, kanji, or other visual details.
 - **Native Visual Recall:** Review image cards with opaque regions and reveal each hidden area on click, then schedule recall with the existing FSRS ratings while keeping images and mask coordinates local.
 
 ### Neuroscience-Based Interleaved SRS
+
 - **Dynamic Component Rendering:** One review queue interleaves vocabulary, image occlusion, grammar notes, and Kana Dojo prompts across decks; Angular switches the card UI by its explicit type and resets response state between cards.
 - **Interleaved Practice:** The Rust backend gathers pending reviews and shuffles the combined queue to encourage active recall across different study domains instead of repetitive single-deck sessions.
 
 ### Hybrid Linguistic Notebook
+
 - **Notion-Style TipTap Rich-Text:** Clean block and markdown editor with slash command capabilities, split-screen viewing, and autosaving.
 - **Real-Time Morphological NLP (Lindera):** Integrated Lindera tokenizer with IPADIC dictionary running on Rust. Parses Japanese text in real time to categorize and syntax-highlight parts of speech (verbs, particles, nouns, adjectives, and auxiliaries) with debounced IPC updates.
 - **Morphological Readability Analyzer (Offline MorphMan):** Analyze pasted Japanese text locally with Lindera lemmas crossed against vocabulary cards and FSRS retention in SQLite. A comprehension percentage, average retention metric, and inline unknown-word highlights help estimate how much of a passage is familiar before reading.
 - **Strict Content Sanitization:** Comprehensive XSS mitigation utilizing Angular `DomSanitizer` in conjunction with HTML security contexts.
 
 ### Kana Dojo
+
 - **Speed Flashcard Drill Engine:** Practice Hiragana and Katakana across Gojūon (base), Dakuon/Handakuon (ten-ten / maru), and Yōon (combination) character sets.
 - **Granular Mastery Tracking:** Database persistence (`kana_mastery`) recording character-level accuracy and velocity to power global proficiency metrics on the dashboard.
 
 ### Offline-First & BYOS (Bring Your Own Storage)
+
 - **Zero Third-Party Cloud Lock-In:** No remote proprietary telemetry or forced cloud backends.
 - **Native Google Drive Backup:** Direct synchronization of the local SQLite database to the user's personal Google Drive using native OAuth2 (`oauth2`, `tiny_http`, and `reqwest`). Users retain absolute ownership and privacy of their data.
 - **Discord Rich Presence (Zen Mode):** Optional desktop status broadcast via `discord-rich-presence` displaying real-time immersion sessions and study duration.
@@ -91,6 +99,7 @@ Mastering Japanese through immersion traditionally requires stitching together a
 ```
 
 ### IPC Bridge Pattern
+
 The frontend interacts with the native runtime exclusively through typed IPC invocations using `@tauri-apps/api/core`. Computationally intensive tasks—such as morphological tokenization, OCR tensor evaluation, archive decompression, and database batch imports—are offloaded from the UI and event loop to worker threads via `tokio::task::spawn_blocking`.
 
 ---
@@ -157,17 +166,19 @@ Ensure the following runtimes and tools are installed on your workstation:
    - **Linux**: `libwebkit2gtk-4.1-dev`, `build-essential`, `curl`, `wget`, `file`, `libssl-dev`, `libayatana-appindicator3-dev`, `librsvg2-dev`
    - **macOS**: Xcode Command Line Tools
    - **Windows**: Microsoft C++ Build Tools and WebView2 (preinstalled on Windows 10/11)
-4. **FFmpeg** *(Optional, recommended)*: Required for subtitle extraction and audio clipping from `.mkv`/`.mp4` media files.
+4. **FFmpeg** _(Optional, recommended)_: Required for subtitle extraction and audio clipping from `.mkv`/`.mp4` media files.
 
 ### Installation & Development
 
 1. **Clone the Repository:**
+
    ```bash
    git clone https://github.com/ErickG123/yomiflow.git
    cd yomiflow
    ```
 
 2. **Install Frontend Dependencies:**
+
    ```bash
    npm install
    ```
@@ -176,6 +187,12 @@ Ensure the following runtimes and tools are installed on your workstation:
    ```bash
    npm run tauri dev
    ```
+
+## Contributing & Development Workflow
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) for every commit. Commit messages must use a recognized type and description, such as `feat: add study shortcut`, `fix: correct sidebar overflow`, or `chore: update dependencies`. Commitlint validates each message.
+
+Husky runs local checks before commits: lint-staged formats staged Angular TypeScript, HTML, and SCSS with Prettier and applies ESLint fixes to TypeScript. The pre-commit hook also checks Rust formatting with `cargo fmt` and runs Clippy with warnings treated as errors.
 
 ---
 

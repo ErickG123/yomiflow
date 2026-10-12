@@ -3,8 +3,14 @@ import { NotebookEditorComponent } from './notebook-editor.component'
 import { NotebookService } from '../../services/notebook.service'
 import { DeckService } from '../../../decks/services/deck.service'
 import { DeckWithCounts } from '../../../decks/models/deck.model'
-import { signal, EnvironmentInjector, createEnvironmentInjector, runInInjectionContext } from '@angular/core'
+import {
+  signal,
+  EnvironmentInjector,
+  createEnvironmentInjector,
+  runInInjectionContext,
+} from '@angular/core'
 import { MorphologicalToken, NotebookEntry } from '../../models/notebook.model'
+import { Subject } from 'rxjs'
 
 describe('NotebookEditorComponent', () => {
   let component: NotebookEditorComponent
@@ -12,6 +18,9 @@ describe('NotebookEditorComponent', () => {
     entries: ReturnType<typeof signal<NotebookEntry[]>>
     currentEntry: ReturnType<typeof signal<NotebookEntry | null>>
     isAnalyzing: ReturnType<typeof signal<boolean>>
+    newNoteRequested: ReturnType<typeof signal<boolean>>
+    newNoteRequests: Subject<void>
+    consumeNewNoteRequest: ReturnType<typeof vi.fn>
     analyzeText: ReturnType<typeof vi.fn>
     generateSyntaxTree: ReturnType<typeof vi.fn>
     loadEntries: ReturnType<typeof vi.fn>
@@ -37,6 +46,9 @@ describe('NotebookEditorComponent', () => {
       entries: signal([]),
       currentEntry: signal(null),
       isAnalyzing: signal(false),
+      newNoteRequested: signal(false),
+      newNoteRequests: new Subject<void>(),
+      consumeNewNoteRequest: vi.fn(),
       analyzeText: vi.fn().mockResolvedValue(mockTokens),
       generateSyntaxTree: vi.fn().mockResolvedValue([
         { id: 1, text: '私は', pos: 'noun+particle', target_id: 3 },
@@ -45,9 +57,11 @@ describe('NotebookEditorComponent', () => {
       ]),
       loadEntries: vi.fn().mockResolvedValue([]),
       saveEntry: vi.fn().mockResolvedValue(undefined),
-      formatTokensToHtml: vi.fn().mockReturnValue(
-        '<span class="text-green-400 font-medium">私</span><span class="text-blue-400 font-medium">は</span><span class="text-green-400 font-medium">学生</span><span class="text-zinc-300">です</span>'
-      ),
+      formatTokensToHtml: vi
+        .fn()
+        .mockReturnValue(
+          '<span class="text-green-400 font-medium">私</span><span class="text-blue-400 font-medium">は</span><span class="text-green-400 font-medium">学生</span><span class="text-zinc-300">です</span>',
+        ),
     }
 
     deckServiceMock = {
@@ -101,7 +115,7 @@ describe('NotebookEditorComponent', () => {
       '# Lição 1\nこれはペンです。',
       null,
       null,
-      0
+      0,
     )
   })
 
@@ -145,4 +159,3 @@ describe('NotebookEditorComponent', () => {
     expect(component.showSyntaxTree()).toBe(false)
   })
 })
-

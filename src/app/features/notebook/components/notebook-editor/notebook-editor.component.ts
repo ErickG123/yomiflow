@@ -24,7 +24,13 @@ import { Subject, Subscription } from 'rxjs'
 import { debounceTime } from 'rxjs/operators'
 import { NotebookService } from '../../services/notebook.service'
 import { DeckService } from '../../../decks/services/deck.service'
-import { AnalysisMode, MorphologicalToken, NotebookEntry, SlashMenuItem, SyntaxChunk } from '../../models/notebook.model'
+import {
+  AnalysisMode,
+  MorphologicalToken,
+  NotebookEntry,
+  SlashMenuItem,
+  SyntaxChunk,
+} from '../../models/notebook.model'
 import { SafeHtmlPipe } from '../../../../shared/pipes/safe-html.pipe'
 import { TranslocoDirective, TranslocoService } from '@ngneat/transloco'
 import { SyntaxTreeExtension } from '../../extensions/syntax-tree.extension'
@@ -44,6 +50,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   private readonly translocoService = inject(TranslocoService, { optional: true })
   private readonly injector = inject(EnvironmentInjector)
   private readonly appRef = inject(ApplicationRef)
+  private trayNewNoteSubscription: Subscription | null = null
 
   @ViewChild('editorElement') editorElementRef?: ElementRef<HTMLDivElement>
   editor: Editor | null = null
@@ -144,20 +151,23 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   readonly selectedText = signal<string>('')
 
   async ngOnInit(): Promise<void> {
-    await Promise.all([
-      this.notebookService.loadEntries(),
-      this.deckService.loadDecks(),
-    ])
+    this.trayNewNoteSubscription = this.notebookService.newNoteRequests.subscribe(() => {
+      this.notebookService.consumeNewNoteRequest()
+      this.createNewNote()
+    })
+    await Promise.all([this.notebookService.loadEntries(), this.deckService.loadDecks()])
+    if (this.notebookService.newNoteRequested()) {
+      this.notebookService.consumeNewNoteRequest()
+      this.createNewNote()
+    }
     await this.triggerAnalysis(this.markdownContent())
 
     // Configure RxJS debounceTime(750) for auto mode
-    this.textSubscription = this.textChange$
-      .pipe(debounceTime(750))
-      .subscribe((text) => {
-        if (this.analysisMode() === 'auto') {
-          void this.performMorphologicalAnalysis(text)
-        }
-      })
+    this.textSubscription = this.textChange$.pipe(debounceTime(750)).subscribe((text) => {
+      if (this.analysisMode() === 'auto') {
+        void this.performMorphologicalAnalysis(text)
+      }
+    })
   }
 
   ngAfterViewInit(): void {
@@ -178,7 +188,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
         TableHeader,
         TableCell,
         Placeholder.configure({
-          placeholder: 'Digite \'/\' para blocos e comandos, ou anote em japonês...',
+          placeholder: "Digite '/' para blocos e comandos, ou anote em japonês...",
         }),
         SyntaxTreeExtension.configure({
           injector: this.injector,
@@ -207,8 +217,8 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     })
   }
 
-
   ngOnDestroy(): void {
+    this.trayNewNoteSubscription?.unsubscribe()
     if (this.toastTimeout) {
       clearTimeout(this.toastTimeout)
     }
@@ -401,7 +411,6 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     action()
   }
 
-
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent): void {
     if (!this.showSlashMenu()) return
@@ -411,7 +420,9 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
       this.selectedSlashIndex.update((i) => (i + 1) % this.slashMenuItems.length)
     } else if (event.key === 'ArrowUp') {
       event.preventDefault()
-      this.selectedSlashIndex.update((i) => (i - 1 + this.slashMenuItems.length) % this.slashMenuItems.length)
+      this.selectedSlashIndex.update(
+        (i) => (i - 1 + this.slashMenuItems.length) % this.slashMenuItems.length,
+      )
     } else if (event.key === 'Enter') {
       event.preventDefault()
       const item = this.slashMenuItems[this.selectedSlashIndex()]
@@ -448,7 +459,8 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   createNewNote(): void {
     const newId = crypto.randomUUID()
     this.currentId.set(newId)
-    const defaultTitle = this.translocoService?.translate('notebook.default_new_note') ?? 'Nova Anotação'
+    const defaultTitle =
+      this.translocoService?.translate('notebook.default_new_note') ?? 'Nova Anotação'
     this.title.set(defaultTitle)
     this.markdownContent.set('')
     this.selectedDeckId.set(null)
@@ -464,12 +476,22 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
       const currentText = this.editor?.getText() || this.markdownContent()
       let currentTitle = this.title().trim()
 
-      const defaultNew = this.translocoService?.translate('notebook.default_new_note') ?? 'Nova Anotação'
-      const untitled = this.translocoService?.translate('notebook.untitled_note') ?? 'Nota sem título'
+      const defaultNew =
+        this.translocoService?.translate('notebook.default_new_note') ?? 'Nova Anotação'
+      const untitled =
+        this.translocoService?.translate('notebook.untitled_note') ?? 'Nota sem título'
 
       // If title is default or empty, extract from first line of content if available
-      if (!currentTitle || currentTitle === defaultNew || currentTitle === 'Nova Anotação' || currentTitle === 'Minha Anotação') {
-        const firstLine = currentText.split('\n').map((l) => l.trim()).find((l) => l.length > 0)
+      if (
+        !currentTitle ||
+        currentTitle === defaultNew ||
+        currentTitle === 'Nova Anotação' ||
+        currentTitle === 'Minha Anotação'
+      ) {
+        const firstLine = currentText
+          .split('\n')
+          .map((l) => l.trim())
+          .find((l) => l.length > 0)
         if (firstLine) {
           currentTitle = firstLine.slice(0, 50)
           this.title.set(currentTitle)
@@ -482,17 +504,20 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
         currentText,
         this.selectedDeckId(),
         null,
-        0
+        0,
       )
 
       // Guarantee immediate reactive reload of notes list
       await this.notebookService.loadEntries()
 
-      const successMsg = this.translocoService?.translate('notebook.save_success') ?? 'Nota guardada com sucesso!'
+      const successMsg =
+        this.translocoService?.translate('notebook.save_success') ?? 'Nota guardada com sucesso!'
       this.showToast(successMsg)
     } catch (err) {
       console.error('Falha ao guardar nota:', err)
-      const errorMsg = this.translocoService?.translate('notebook.save_error') ?? 'Erro ao guardar nota. Tente novamente.'
+      const errorMsg =
+        this.translocoService?.translate('notebook.save_error') ??
+        'Erro ao guardar nota. Tente novamente.'
       this.showToast(errorMsg)
     }
   }

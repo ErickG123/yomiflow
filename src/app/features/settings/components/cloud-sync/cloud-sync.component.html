@@ -5,11 +5,16 @@
       <h4 class="text-sm font-semibold text-zinc-100">{{ t('cloud.title') }}</h4>
     </div>
     @if (isAuthenticated()) {
-      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> {{ t('cloud.status_connected') }}
+      <span
+        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
+      >
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        {{ t('cloud.status_connected') }}
       </span>
     } @else {
-      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-800 border border-zinc-700 text-zinc-400">
+      <span
+        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-800 border border-zinc-700 text-zinc-400"
+      >
         {{ t('cloud.status_not_connected') }}
       </span>
     }
@@ -17,14 +22,18 @@
 
   <!-- Error or Success Alert Feedback -->
   @if (errorMessage()) {
-    <div class="p-3 rounded-lg bg-red-950/40 border border-red-900/60 text-red-300 text-xs flex items-start gap-2">
+    <div
+      class="p-3 rounded-lg bg-red-950/40 border border-red-900/60 text-red-300 text-xs flex items-start gap-2"
+    >
       <i class="pi pi-exclamation-circle text-red-400 shrink-0 mt-0.5"></i>
       <span>{{ errorMessage() }}</span>
     </div>
   }
 
   @if (backupSuccessToast()) {
-    <div class="p-3 rounded-lg bg-emerald-950/40 border border-emerald-900/60 text-emerald-300 text-xs flex items-center gap-2">
+    <div
+      class="p-3 rounded-lg bg-emerald-950/40 border border-emerald-900/60 text-emerald-300 text-xs flex items-center gap-2"
+    >
       <i class="pi pi-check-circle text-emerald-400 shrink-0"></i>
       <span>{{ backupSuccessToast() }}</span>
     </div>
@@ -34,7 +43,7 @@
   @if (!isAuthenticated()) {
     <div class="space-y-3">
       <p class="text-xs text-zinc-400 leading-relaxed">
-        {{ t('cloud.not_connected_desc') }} (<code class="bg-zinc-800 px-1 py-0.5 rounded-zinc-300">yomiflow.db</code>) {{ t('cloud.not_connected_desc_end') }}
+        {{ t('cloud.not_connected_desc', { db: 'yomiflow.db' }) }}
       </p>
 
       <div class="space-y-2">
@@ -87,7 +96,11 @@
         <div class="flex justify-between items-center text-xs">
           <span class="text-zinc-400">{{ t('cloud.last_backup') }}:</span>
           <span class="font-mono text-zinc-200">
-            {{ lastBackupTime() ? (lastBackupTime() | date:'dd/MM/yyyy HH:mm:ss') : t('cloud.no_backup_recorded') }}
+            {{
+              lastBackupTime()
+                ? (lastBackupTime() | date: 'dd/MM/yyyy HH:mm:ss')
+                : t('cloud.no_backup_recorded')
+            }}
           </span>
         </div>
         <div class="flex justify-between items-center text-xs">

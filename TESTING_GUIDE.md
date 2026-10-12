@@ -13,7 +13,7 @@ A pirâmide de testes do YomiFlow divide-se em três camadas de garantia:
 1. **Testes de Domínio & Persistência Relacional (Backend Rust):**
    - Validação de funções puras de agendamento matemático (FSRS, SM-2), tokenização do Lindera e integridade referencial em SQLite com modo WAL e chaves estrangeiras ativas (`PRAGMA foreign_keys = ON;`).
 2. **Testes de Interface & Gestão de Estado (Frontend Angular):**
-   - Validação de componentes reativos isolados, Angular Signals, diretivas e pipes. As chamadas nativas do Tauri (`invoke`) são estritamente interceptadas via *test doubles/mocks*, garantindo que a suíte execute em ambientes headless (Vitest / Karma / jsdom) sem depender do binário do Tauri.
+   - Validação de componentes reativos isolados, Angular Signals, diretivas e pipes. As chamadas nativas do Tauri (`invoke`) são estritamente interceptadas via _test doubles/mocks_, garantindo que a suíte execute em ambientes headless (Vitest / Karma / jsdom) sem depender do binário do Tauri.
 3. **Testes de Aceitação e Roteiros Manuais (End-to-End):**
    - Validação holística de fluxos de ponta a ponta (onboarding, navegação, atalhos de teclado, TipTap, OCR de mídia e sincronização BYOS).
 
@@ -42,6 +42,7 @@ npm run test:watch
 Para garantir **zero efeitos colaterais** no ambiente do utilizador (evitando modificar o banco real em `%APPDATA%/yomiflow` ou `yomiflow.db`), todos os testes que envolvem banco de dados devem utilizar instâncias isoladas em memória RAM via `Connection::open_in_memory()`.
 
 #### Padrão de Teste com SQLite `:memory:` e Cascading Deletes
+
 ```rust
 #[cfg(test)]
 mod tests {
@@ -65,7 +66,7 @@ mod tests {
 
         // 2. Insere um cartão vinculado a este baralho
         conn.execute(
-            "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state) 
+            "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params!["card-101", 1, "test-deck", 1700000000, 2.5, 0.3, 0, 0],
         ).unwrap();
@@ -81,7 +82,7 @@ mod tests {
 
         // 5. Valida violação de chave estrangeira ao tentar inserir com deck inexistente
         let invalid_insert = conn.execute(
-            "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state) 
+            "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params!["card-invalid", 1, "non-existent-deck", 1700000000, 2.5, 0.3, 0, 0],
         );
@@ -91,7 +92,9 @@ mod tests {
 ```
 
 #### Testando Casos Extremos no Analisador Morfológico (Lindera NLP)
+
 A biblioteca Lindera deve processar inputs arbitrários sem provocar `panic` ou estourar a memória. É mandatória a cobertura de casos limítrofes em `src-tauri/src/domain/nlp.rs`:
+
 - **Strings Vazias e Apenas Espaços:** Devem retornar coleções vazias com `Ok(vec![])`.
 - **Símbolos, Emojis e Pontuações Mistas:** Caracteres especiais (`「」：！？@#$%^&*()_+`) devem ser categorizados com POS `other` sem falhas.
 - **Proteção contra Exaustão de Payload:** Payloads superiores a `MAX_JAPANESE_TEXT_BYTES` (50 KB) devem ser rejeitados imediatamente com `Err`.
@@ -103,6 +106,7 @@ A biblioteca Lindera deve processar inputs arbitrários sem provocar `panic` ou 
 Nos testes do Angular (utilizando Vitest / Karma), o objeto global do Tauri e a função `invoke` do `@tauri-apps/api/core` devem ser interceptados para que nenhum comando tente acessar portas ou sockets do sistema operacional.
 
 #### Mock Centralizado do `invoke`
+
 ```typescript
 import { vi } from 'vitest'
 import * as tauriCore from '@tauri-apps/api/core'
@@ -153,6 +157,7 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 ---
 
 ### Cenário A: Blindagem do Onboarding
+
 **Objetivo:** Garantir que novos utilizadores passem obrigatoriamente pela tela de configuração inicial e que acessos diretos por URL sejam bloqueados até a persistência no SQLite.
 
 1. **Estado Inicial Frio:**
@@ -179,14 +184,15 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 ---
 
 ### Cenário B: O Caderno Híbrido (Slash Commands e NLP)
+
 **Objetivo:** Validar a experiência de escrita no editor TipTap, o acionamento do menu flutuante por comando de barra (`/`) e a coloração morfológica em tempo real via Lindera.
 
 1. **Acesso ao Caderno:**
    - Navegue para `/notebook` a partir da barra lateral esquerda.
 2. **Ativação dos Slash Commands:**
    - No corpo do editor de texto, pressione a tecla `/`.
-   - **Critério de Aceitação:** O menu flutuante deve abrir instantaneamente logo abaixo do cursor de digitação, exibindo opções como *Título 1 (H1)*, *Título 2 (H2)*, *Lista com Marcadores*, *Tabela* e *Bloco de Código*.
-   - Use as setas do teclado `ArrowDown` / `ArrowUp` e pressione `Enter` para selecionar *Título 1*. O caractere `/` deve ser removido e a linha convertida em título.
+   - **Critério de Aceitação:** O menu flutuante deve abrir instantaneamente logo abaixo do cursor de digitação, exibindo opções como _Título 1 (H1)_, _Título 2 (H2)_, _Lista com Marcadores_, _Tabela_ e _Bloco de Código_.
+   - Use as setas do teclado `ArrowDown` / `ArrowUp` e pressione `Enter` para selecionar _Título 1_. O caractere `/` deve ser removido e a linha convertida em título.
 3. **Análise Morfológica em Tempo Real (Modo Auto):**
    - No seletor de análise gramatical, confirme que o **Modo Auto** está selecionado.
    - Digite em japonês: `私は猫が好きです。毎日日本語を勉強します。`
@@ -205,6 +211,7 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 ---
 
 ### Cenário C: Isolamento de Baralhos (Decks)
+
 **Objetivo:** Assegurar que múltiplos baralhos gerenciam suas próprias filas de estudo sem que haja vazamento de cartões entre eles.
 
 1. **Criação de Baralhos Separados:**
@@ -230,6 +237,7 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 ---
 
 ### Cenário D: Kana Dojo (Treinador de Velocidade)
+
 **Objetivo:** Validar a filtragem por tipo de caractere, fluidez do quiz de Romaji e a persistência de precisão na tabela `kana_mastery`.
 
 1. **Configuração da Sessão:**
@@ -248,8 +256,8 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 3. **Auditoria de Persistência no SQLite:**
    - Ao concluir a sessão de 10 caracteres, abra o terminal SQLite ou inspecione a tabela:
      ```sql
-     SELECT character, correct_count, wrong_count, alphabet, category 
-     FROM kana_mastery 
+     SELECT character, correct_count, wrong_count, alphabet, category
+     FROM kana_mastery
      WHERE correct_count > 0 OR wrong_count > 0;
      ```
    - **Critério de Aceitação:** Os caracteres treinados devem apresentar os respectivos incrementos em `correct_count` e `wrong_count`.
@@ -260,18 +268,19 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 ---
 
 ### Cenário E: Internacionalização Dinâmica (i18n)
+
 **Objetivo:** Garantir que a alternância entre idiomas (Português, Inglês e Espanhol) ocorra de forma reativa, sem recarregar a janela e sem deixar textos hardcoded.
 
 1. **Alternância de Idioma no Cabeçalho/Sidebar:**
    - No seletor de idiomas (disponível no menu ou no modal de Configurações), alterne de `PT` para `EN`.
 2. **Verificação Instantânea de UI:**
    - **Critério de Aceitação:** Todos os títulos da barra lateral devem atualizar imediatamente:
-     - *Consumo* -> *Consumption*
-     - *Estudo Ativo* -> *Active Study*
-     - *Ferramentas* -> *Tools*
-   - O Dashboard deve atualizar os títulos dos cartões (*Proficiency*, *Decks*, *Daily Goal*) em tempo real, sem refresh do navegador (`window.location.reload`).
+     - _Consumo_ -> _Consumption_
+     - _Estudo Ativo_ -> _Active Study_
+     - _Ferramentas_ -> _Tools_
+   - O Dashboard deve atualizar os títulos dos cartões (_Proficiency_, _Decks_, _Daily Goal_) em tempo real, sem refresh do navegador (`window.location.reload`).
 3. **Placeholders, Modais e Toasts:**
-   - Abra o **Dicionário** (`/dictionary`). O placeholder de busca deve estar em inglês (*Search kanji, reading or meaning...*).
+   - Abra o **Dicionário** (`/dictionary`). O placeholder de busca deve estar em inglês (_Search kanji, reading or meaning..._).
    - Abra as **Configurações** e ative o modo Zen ou salve uma anotação no Caderno:
      - As notificações Toast devem ser exibidas no idioma ativo selecionado.
 4. **Ciclo Completo com Espanhol:**
@@ -280,6 +289,7 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 ---
 
 ### Cenário F: Immersion Tracker
+
 **Objetivo:** Confirmar que as notificações nativas são emitidas ao terminar foco/intervalo e que um bloco de foco concluído é persistido uma única vez no SQLite.
 
 1. Inicie o aplicativo desktop com `npm run tauri dev` e conceda permissão de notificações ao YomiFlow quando solicitado.
@@ -298,6 +308,7 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 7. Repita iniciando e pausando ou reiniciando um foco antes do término. Sessões interrompidas não devem criar linhas.
 
 ### Cenário G: Oclusão de Imagem
+
 **Objetivo:** Validar a criação local de um cartão visual com várias máscaras e a revelação individual de cada região durante a revisão.
 
 1. Abra **Oclusão de Imagem** na Sidebar. Faça upload de um painel de mangá em PNG, JPEG ou WebP, ou copie uma imagem e cole na janela.
@@ -316,6 +327,7 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
    Confirme que `image_path` aponta para um arquivo na pasta `image_occlusion` do diretório de dados local e que `masks_json` contém os dois retângulos com coordenadas entre 0 e 1. A avaliação deve aparecer em `image_occlusion_review_logs` para o cartão.
 
 ### Cenário H: Prática Intercalada
+
 **Objetivo:** Confirmar que a fila reúne tipos variados e que o renderizador Angular troca a interface e limpa o estado ao avançar entre cartas diferentes.
 
 1. Garanta que existam revisões vencidas ou novas de vocabulário em pelo menos dois baralhos, um cartão de oclusão, uma nota de gramática vinculada a um baralho com revisão vencida e kana sem prática recente.
@@ -327,6 +339,7 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 6. Reabra a sessão e confirme que os itens avaliados que ainda não venceram não retornam imediatamente à fila.
 
 ### Cenário I: Analisador Lexical
+
 **Objetivo:** Verificar a estimativa de cobertura lexical, os destaques de palavras sem cartão e a atualização do resultado após adicionar vocabulário ao SRS.
 
 1. Abra **Nível de Leitura** na Sidebar, cole um parágrafo em japonês com palavras que já tenham cartões e pelo menos uma palavra sem cartão, e selecione **Analisar compreensão**.
@@ -336,7 +349,21 @@ Para validar a integridade funcional do sistema em ambiente desktop real, execut
 5. Adicione a palavra desconhecida a um baralho pelo dicionário, crie seu cartão e reteste o mesmo texto. O total de palavras deve permanecer igual, `known_words` deve aumentar pelas ocorrências daquela palavra e a percentagem deve subir conforme o cálculo acima; o destaque deve desaparecer dessas ocorrências.
 6. Repita em EN e ES e confirme que os rótulos do analisador mudam com a localidade ativa.
 
+### Cenário J: Limites de Lazy Loading entre Dashboard e Caderno
+
+**Objetivo:** Confirmar que as páginas pesadas são carregadas apenas ao navegar para a feature e que a troca de rota conserva o layout principal.
+
+1. Inicie o app e abra `/dashboard`. Confirme que o `MainLayoutComponent` apresenta Sidebar/Header e que o Dashboard aparece no outlet sem carregar a tela de Onboarding.
+2. Com as ferramentas de desenvolvimento abertas, inspecione os módulos/chunks carregados ou use o Network panel com cache desativado. Confirme que o chunk do `NotebookEditorComponent` ainda não foi solicitado ao entrar no Dashboard.
+3. Navegue pela Sidebar até `/notebook`. O chunk do Caderno deve ser solicitado na primeira navegação e a tela deve abrir dentro do mesmo `MainLayoutComponent`, sem recarregar o documento.
+4. Retorne ao Dashboard e volte ao Caderno. Após o primeiro carregamento, o chunk pode ser reutilizado pelo cache do runtime; a rota deve continuar funcional.
+5. Confirme que `/onboarding` usa o layout focado sem Sidebar/Pomodoro. Em uma instalação concluída, a rota deve redirecionar ao Dashboard; numa instalação não concluída, uma rota do ecossistema deve redirecionar ao onboarding.
+
 ## 4. Pipeline de Integração Contínua (CI/CD Quality Gates)
+
+### Pipeline Local
+
+O hook local do Husky executa Prettier/ESLint nos ficheiros Angular staged, `cargo fmt --check` e Clippy (`-D warnings`) antes de cada commit. Estes testes estáticos detetam formatação divergente, erros de lint e code smells comuns antes de chegarem ao repositório. O hook `commit-msg` também valida o formato Conventional Commits.
 
 Antes de qualquer `git commit` e `git push`, a suíte de validação obrigatória abaixo deve ser executada sem erros:
 
@@ -353,6 +380,7 @@ flowchart TD
 ```
 
 ### Checklist Rápido de Comandos Pré-Push:
+
 ```bash
 npm run lint
 npm run test:ci

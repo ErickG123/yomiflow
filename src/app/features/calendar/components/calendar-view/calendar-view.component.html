@@ -1,6 +1,8 @@
-<div *transloco="let t" class="space-y-6 max-w-6xl mx-auto">
+<div *transloco="let t" class="min-h-full w-full p-8 space-y-6 max-w-6xl mx-auto">
   <!-- Calendar View Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+  <div
+    class="flex flex-col md:flex-row justify-between items-start md:items-center w-full mb-6 gap-4 border-b border-zinc-800 pb-4"
+  >
     <div>
       <h2 class="text-xl font-bold tracking-tight text-zinc-100 flex items-center space-x-2">
         <i class="pi pi-calendar text-indigo-400"></i>
@@ -12,7 +14,7 @@
     </div>
 
     <!-- Month Navigation Controls -->
-    <div class="flex items-center space-x-2">
+    <div class="flex items-center justify-end space-x-2 self-end md:self-auto">
       <button
         type="button"
         (click)="prevMonth()"
@@ -46,7 +48,9 @@
   </div>
 
   <!-- Legend & Thermal Scale -->
-  <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-400 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/80">
+  <div
+    class="flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-400 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/80"
+  >
     <div class="flex items-center space-x-4">
       <div class="flex items-center space-x-1.5">
         <span class="w-3 h-3 rounded-xs bg-emerald-500 inline-block"></span>
@@ -66,7 +70,9 @@
     <div class="flex items-center space-x-1.5 text-[10px] text-zinc-500 select-none">
       <span>{{ t('calendar.light') }}</span>
       <span class="w-2.5 h-2.5 rounded-xs bg-zinc-800 inline-block"></span>
-      <span class="w-2.5 h-2.5 rounded-xs bg-emerald-950 border border-emerald-900 inline-block"></span>
+      <span
+        class="w-2.5 h-2.5 rounded-xs bg-emerald-950 border border-emerald-900 inline-block"
+      ></span>
       <span class="w-2.5 h-2.5 rounded-xs bg-emerald-700 inline-block"></span>
       <span class="w-2.5 h-2.5 rounded-xs bg-emerald-500 inline-block"></span>
       <span class="w-2.5 h-2.5 rounded-xs bg-emerald-400 inline-block"></span>
@@ -77,9 +83,13 @@
   <!-- Main Grid & Detail Drawer Layout -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Monthly Calendar Grid (2 Cols on lg) -->
-    <div class="lg:col-span-2 bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 shadow-sm space-y-3">
+    <div
+      class="lg:col-span-2 bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 shadow-sm space-y-3"
+    >
       <!-- Weekday headers -->
-      <div class="grid grid-cols-7 gap-2 text-center text-xs font-semibold text-zinc-500 uppercase tracking-wider py-1 border-b border-zinc-800/80">
+      <div
+        class="grid grid-cols-7 gap-2 text-center text-xs font-semibold text-zinc-500 uppercase tracking-wider py-1 border-b border-zinc-800/80"
+      >
         <div>{{ t('calendar.weekdays.sun') }}</div>
         <div>{{ t('calendar.weekdays.mon') }}</div>
         <div>{{ t('calendar.weekdays.tue') }}</div>
@@ -151,7 +161,9 @@
     </div>
 
     <!-- Day Details & Notebook Sidebar -->
-    <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 shadow-sm space-y-5 flex flex-col justify-between">
+    <div
+      class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 shadow-sm space-y-5 flex flex-col justify-between"
+    >
       <div class="space-y-4">
         <!-- Sidebar Header with Selected Date -->
         <div class="border-b border-zinc-800 pb-3">
@@ -167,14 +179,18 @@
         <!-- Metrics cards for selected day -->
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-zinc-950/70 border border-emerald-500/20 rounded-xl p-3.5 space-y-1">
-            <span class="block text-[10px] text-zinc-400 uppercase font-medium">{{ t('calendar.reviewed') }}</span>
+            <span class="block text-[10px] text-zinc-400 uppercase font-medium">{{
+              t('calendar.reviewed')
+            }}</span>
             <div class="text-2xl font-bold text-emerald-400">
               {{ selectedDaySummary().completedCount }}
             </div>
           </div>
 
           <div class="bg-zinc-950/70 border border-rose-500/20 rounded-xl p-3.5 space-y-1">
-            <span class="block text-[10px] text-zinc-400 uppercase font-medium">{{ t('calendar.srs_scheduled') }}</span>
+            <span class="block text-[10px] text-zinc-400 uppercase font-medium">{{
+              t('calendar.srs_scheduled')
+            }}</span>
             <div class="text-2xl font-bold text-rose-400">
               {{ selectedDaySummary().scheduledCount }}
             </div>
@@ -184,9 +200,13 @@
         <!-- Hybrid Notebook Notes Section -->
         <div class="space-y-3 pt-2">
           <div class="flex items-center justify-between">
-            <h4 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center space-x-1.5">
+            <h4
+              class="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center space-x-1.5"
+            >
               <i class="pi pi-book text-amber-400 text-xs"></i>
-              <span>{{ t('calendar.notebook_notes') }} ({{ selectedDaySummary().notes.length }})</span>
+              <span
+                >{{ t('calendar.notebook_notes') }} ({{ selectedDaySummary().notes.length }})</span
+              >
             </h4>
             <a
               routerLink="/notebook"
@@ -198,7 +218,9 @@
 
           <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
             @for (note of selectedDaySummary().notes; track note.id) {
-              <div class="bg-zinc-950 border border-zinc-800/80 rounded-xl p-3 space-y-1.5 hover:border-zinc-700 transition-colors">
+              <div
+                class="bg-zinc-950 border border-zinc-800/80 rounded-xl p-3 space-y-1.5 hover:border-zinc-700 transition-colors"
+              >
                 <div class="font-bold text-sm text-zinc-200 truncate">
                   {{ note.title || t('notebook.untitled') }}
                 </div>
@@ -207,7 +229,9 @@
                 </p>
               </div>
             } @empty {
-              <div class="text-center py-6 text-zinc-500 text-xs bg-zinc-950/40 rounded-xl border border-zinc-800/60">
+              <div
+                class="text-center py-6 text-zinc-500 text-xs bg-zinc-950/40 rounded-xl border border-zinc-800/60"
+              >
                 {{ t('calendar.no_notes_day') }}
               </div>
             }

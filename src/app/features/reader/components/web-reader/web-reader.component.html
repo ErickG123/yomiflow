@@ -1,310 +1,361 @@
-<div *transloco="let t" class="flex h-full w-full bg-zinc-950 text-zinc-100 overflow-hidden relative">
-  <!-- Toast Notification -->
-  @if (toastMessage(); as msg) {
-    <div class="fixed top-5 right-5 z-50 bg-indigo-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2 animate-fadeIn border border-indigo-400/30">
-      <i class="pi pi-check text-sm"></i>
-      <span>{{ msg }}</span>
-    </div>
-  }
-
-  <!-- Left Sidebar: News List -->
-  <aside class="w-80 border-r border-zinc-800/80 bg-zinc-950 flex flex-col shrink-0">
-    <div class="p-4 border-b border-zinc-800/80 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-          <i class="pi pi-globe text-sm"></i>
-        </div>
-        <div>
-          <h2 class="text-sm font-bold text-white">{{ t('web_reader.title') }}</h2>
-          <p class="text-[10px] text-zinc-400">{{ t('web_reader.subtitle') }}</p>
-        </div>
-      </div>
-      <button
-        type="button"
-        (click)="newsService.fetchNews()"
-        [disabled]="newsService.isLoading()"
-        class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors disabled:opacity-50 cursor-pointer"
-        [title]="t('web_reader.refresh')"
+<main
+  *transloco="let t"
+  class="h-full w-full flex flex-col p-6 md:p-8 overflow-hidden bg-zinc-950 text-zinc-100"
+>
+  <div class="flex min-h-0 flex-1 w-full bg-zinc-950 text-zinc-100 overflow-hidden relative">
+    <!-- Toast Notification -->
+    @if (toastMessage(); as msg) {
+      <div
+        class="fixed top-5 right-5 z-50 bg-indigo-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2 animate-fadeIn border border-indigo-400/30"
       >
-        <i class="pi pi-refresh text-xs" [class.pi-spin]="newsService.isLoading()"></i>
-      </button>
-    </div>
-
-    <!-- News Articles List -->
-    <div class="flex-1 overflow-y-auto p-3 space-y-2">
-      @if (newsService.isLoading()) {
-        <div class="flex flex-col items-center justify-center py-16 space-y-3 text-zinc-500">
-          <i class="pi pi-spin pi-spinner text-2xl text-indigo-500"></i>
-          <span class="text-xs">{{ t('web_reader.loading_articles') }}</span>
-        </div>
-      } @else if (newsService.errorMessage(); as err) {
-        <div class="p-4 rounded-xl bg-red-950/20 border border-red-900/40 text-red-400 text-xs">
-          <p class="font-semibold mb-1">{{ t('web_reader.load_error') }}</p>
-          <p class="text-[11px] text-red-300/80">{{ err }}</p>
-          <button
-            type="button"
-            (click)="newsService.fetchNews()"
-            class="mt-3 px-3 py-1.5 bg-red-600/30 hover:bg-red-600/50 rounded-lg text-red-200 text-[11px] font-semibold transition cursor-pointer"
-          >
-            {{ t('web_reader.retry') }}
-          </button>
-        </div>
-      } @else if (newsService.newsList().length === 0) {
-        <div class="text-center py-16 text-zinc-500 text-xs">
-          <p>{{ t('web_reader.no_articles') }}</p>
-        </div>
-      } @else {
-        @for (article of newsService.newsList(); track article.id) {
-          <button
-            type="button"
-            (click)="selectArticle(article)"
-            class="w-full text-left p-3 rounded-xl transition-all border cursor-pointer group"
-            [class.bg-indigo-600/10]="newsService.selectedArticle()?.id === article.id"
-            [class.border-indigo-500/40]="newsService.selectedArticle()?.id === article.id"
-            [class.bg-zinc-900/40]="newsService.selectedArticle()?.id !== article.id"
-            [class.border-zinc-800/60]="newsService.selectedArticle()?.id !== article.id"
-            [class.hover:border-zinc-700]="newsService.selectedArticle()?.id !== article.id"
-          >
-            <div class="text-xs font-semibold text-zinc-200 group-hover:text-white line-clamp-2 leading-snug">
-              {{ article.title }}
-            </div>
-            @if (article.published_at) {
-              <div class="text-[10px] text-zinc-500 mt-1.5 flex items-center gap-1">
-                <i class="pi pi-calendar text-[9px]"></i>
-                <span>{{ article.published_at }}</span>
-              </div>
-            }
-          </button>
-        }
-      }
-    </div>
-  </aside>
-
-  <!-- Right: Article Viewer & Interactive Text -->
-  <main class="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950">
-    @if (newsService.selectedArticle(); as article) {
-      <!-- Top Action Bar -->
-      <div class="h-14 border-b border-zinc-800/80 px-6 flex items-center justify-between shrink-0 bg-zinc-950/80 backdrop-blur-xs">
-        <div class="flex items-center gap-3">
-          <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{{ t('web_reader.source_nhk') }}</span>
-          @if (article.news_web_url) {
-            <a
-              [href]="article.news_web_url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-xs text-indigo-400 hover:text-indigo-300 underline flex items-center gap-1"
-            >
-              <span>{{ t('web_reader.view_original') }}</span>
-              <i class="pi pi-external-link text-[10px]"></i>
-            </a>
-          }
-        </div>
-
-        <div class="flex items-center gap-3">
-          <label class="text-xs text-zinc-400 flex items-center gap-2">
-            <span>{{ t('web_reader.target_deck') }}:</span>
-            <select
-              [value]="selectedDeckId()"
-              (change)="selectedDeckId.set($any($event.target).value)"
-              class="bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1 text-xs text-zinc-200 outline-none"
-            >
-              <option value="default">{{ t('web_reader.deck_default') }}</option>
-              @for (deck of deckService.decks(); track deck.id) {
-                @if (deck.id !== 'default') {
-                  <option [value]="deck.id">{{ deck.name }}</option>
-                }
-              }
-            </select>
-          </label>
-
-          <button
-            type="button"
-            (click)="sendToNotebook()"
-            class="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white flex items-center gap-1.5 transition cursor-pointer"
-            [title]="t('web_reader.save_article_notebook')"
-          >
-            <i class="pi pi-file-edit text-xs"></i>
-            <span>{{ t('web_reader.save_article_notebook') }}</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Article Content Scroll Area -->
-      <div class="flex-1 overflow-y-auto px-8 py-8 max-w-4xl w-full mx-auto space-y-6">
-        <!-- Article Header -->
-        <div class="space-y-3">
-          <h1 class="text-2xl font-bold text-white tracking-tight leading-relaxed">
-            {{ article.title }}
-          </h1>
-          @if (article.published_at) {
-            <div class="text-xs text-zinc-400 flex items-center gap-2">
-              <i class="pi pi-clock text-xs"></i>
-              <span>{{ article.published_at }}</span>
-            </div>
-          }
-        </div>
-
-        <!-- Mini Audio Player -->
-        @if (article.audio_url) {
-          <div class="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800/80 shadow-md flex flex-col sm:flex-row items-center gap-3">
-            <div class="flex items-center gap-2.5 text-indigo-400 shrink-0">
-              <div class="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
-                <i class="pi pi-volume-up text-sm"></i>
-              </div>
-              <span class="text-xs font-semibold text-zinc-300">{{ t('web_reader.audio_player') }}</span>
-            </div>
-            <audio controls [src]="article.audio_url" class="w-full h-9 rounded-lg outline-none accent-indigo-500">
-              Your browser does not support the audio element.
-            </audio>
-          </div>
-        }
-
-        <!-- Optional Article Image -->
-        @if (article.image_url) {
-          <div class="rounded-2xl overflow-hidden border border-zinc-800/80 bg-zinc-900/50 max-h-80 flex items-center justify-center">
-            <img
-              [src]="article.image_url"
-              [alt]="article.title"
-              class="w-full h-full object-cover max-h-80"
-              loading="lazy"
-            />
-          </div>
-        }
-
-        <!-- Interactive Japanese Text -->
-        <div class="space-y-4 pt-2">
-          @for (paragraph of tokenizedParagraphs(); track $index) {
-            <p class="text-base leading-loose text-zinc-200 font-normal tracking-wide">
-              @for (token of paragraph; track $index) {
-                @if (token.isWord) {
-                  <span
-                    (click)="onWordClick(token.text)"
-                    class="cursor-pointer hover:bg-indigo-600/30 hover:text-indigo-200 rounded px-1 transition-colors border-b border-dashed border-zinc-700 hover:border-indigo-400"
-                    [class.bg-indigo-600/20]="activeWord() === token.text"
-                    [title]="t('web_reader.click_to_lookup')"
-                  >{{ token.text }}</span>
-                } @else {
-                  <span>{{ token.text }}</span>
-                }
-              }
-            </p>
-          }
-        </div>
-      </div>
-    } @else {
-      <!-- Empty State -->
-      <div class="flex-1 flex flex-col items-center justify-center text-zinc-500 space-y-3">
-        <i class="pi pi-book-open text-4xl text-zinc-700"></i>
-        <p class="text-sm">{{ t('web_reader.select_article_hint') }}</p>
+        <i class="pi pi-check text-sm"></i>
+        <span>{{ msg }}</span>
       </div>
     }
-  </main>
 
-  <!-- Side Drawer / Hover Popup: Word Dictionary Lookup -->
-  @if (activeWord(); as word) {
-    <aside class="w-96 border-l border-zinc-800/80 bg-zinc-950 flex flex-col shrink-0 shadow-2xl z-20 animate-fadeIn">
-      <div class="h-14 border-b border-zinc-800/80 px-4 flex items-center justify-between shrink-0">
-        <div class="flex items-center gap-2 truncate">
-          <span class="text-xs uppercase font-bold text-zinc-400 tracking-wider">{{ t('web_reader.dictionary') }}</span>
-          <span class="text-sm font-bold text-white px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800">{{ word }}</span>
+    <!-- Left Sidebar: News List -->
+    <aside class="w-80 border-r border-zinc-800/80 bg-zinc-950 flex flex-col shrink-0">
+      <div class="p-4 border-b border-zinc-800/80 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div
+            class="w-7 h-7 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400"
+          >
+            <i class="pi pi-globe text-sm"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-white">{{ t('web_reader.title') }}</h2>
+            <p class="text-[10px] text-zinc-400">{{ t('web_reader.subtitle') }}</p>
+          </div>
         </div>
         <button
           type="button"
-          (click)="closeHoverDictionary()"
-          class="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition cursor-pointer"
+          (click)="newsService.fetchNews()"
+          [disabled]="newsService.isLoading()"
+          class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors disabled:opacity-50 cursor-pointer"
+          [title]="t('web_reader.refresh')"
         >
-          <i class="pi pi-times text-xs"></i>
+          <i class="pi pi-refresh text-xs" [class.pi-spin]="newsService.isLoading()"></i>
         </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-4 space-y-4">
-        @if (isSearchingWord()) {
-          <div class="flex flex-col items-center justify-center py-16 space-y-2 text-zinc-500">
-            <i class="pi pi-spin pi-spinner text-xl text-indigo-500"></i>
-            <span class="text-xs">{{ t('web_reader.searching_definition') }}</span>
+      <!-- News Articles List -->
+      <div class="flex-1 overflow-y-auto p-3 space-y-2">
+        @if (newsService.isLoading()) {
+          <div class="flex flex-col items-center justify-center py-16 space-y-3 text-zinc-500">
+            <i class="pi pi-spin pi-spinner text-2xl text-indigo-500"></i>
+            <span class="text-xs">{{ t('web_reader.loading_articles') }}</span>
           </div>
-        } @else if (activeWordResults().length === 0) {
-          <div class="text-center py-12 text-zinc-500 text-xs space-y-3">
-            <p>{{ t('web_reader.no_definition_found') }}</p>
+        } @else if (newsService.errorMessage(); as err) {
+          <div class="p-4 rounded-xl bg-red-950/20 border border-red-900/40 text-red-400 text-xs">
+            <p class="font-semibold mb-1">{{ t('web_reader.load_error') }}</p>
+            <p class="text-[11px] text-red-300/80">{{ err }}</p>
             <button
               type="button"
-              (click)="sendToNotebook()"
-              class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition cursor-pointer inline-flex items-center gap-1.5"
+              (click)="newsService.fetchNews()"
+              class="mt-3 px-3 py-1.5 bg-red-600/30 hover:bg-red-600/50 rounded-lg text-red-200 text-[11px] font-semibold transition cursor-pointer"
             >
-              <i class="pi pi-file-edit text-xs"></i>
-              <span>{{ t('web_reader.send_word_notebook') }}</span>
+              {{ t('web_reader.retry') }}
             </button>
           </div>
+        } @else if (newsService.newsList().length === 0) {
+          <div class="text-center py-16 text-zinc-500 text-xs">
+            <p>{{ t('web_reader.no_articles') }}</p>
+          </div>
         } @else {
-          @for (entry of activeWordResults(); track entry.id) {
-            <div class="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 space-y-3 hover:border-zinc-700 transition">
-              <div class="flex items-start justify-between gap-2">
-                <div>
-                  <div class="text-base font-bold text-white flex items-center gap-2">
-                    <span>{{ entry.kanji || entry.reading }}</span>
-                    @if (entry.kanji) {
-                      <span class="text-xs text-zinc-400 font-normal">({{ entry.reading }})</span>
-                    }
-                  </div>
-                  @if (entry.pitch) {
-                    <div class="mt-1">
-                      <app-pitch-accent [reading]="entry.reading" [pitch]="entry.pitch"></app-pitch-accent>
-                    </div>
-                  }
-                </div>
-
-                <!-- Add to SRS badge/button -->
-                <button
-                  type="button"
-                  (click)="addWordToSrs(entry)"
-                  [disabled]="entry.in_srs"
-                  class="px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer shrink-0 flex items-center gap-1"
-                  [class.bg-emerald-950]="entry.in_srs"
-                  [class.text-emerald-400]="entry.in_srs"
-                  [class.border]="entry.in_srs"
-                  [class.border-emerald-800]="entry.in_srs"
-                  [class.bg-indigo-600]="!entry.in_srs"
-                  [class.hover:bg-indigo-500]="!entry.in_srs"
-                  [class.text-white]="!entry.in_srs"
-                >
-                  <i class="pi" [class.pi-check]="entry.in_srs" [class.pi-plus]="!entry.in_srs" text-[10px]></i>
-                  <span>{{ entry.in_srs ? t('web_reader.in_srs') : t('web_reader.add_srs') }}</span>
-                </button>
+          @for (article of newsService.newsList(); track article.id) {
+            <button
+              type="button"
+              (click)="selectArticle(article)"
+              class="w-full text-left p-3 rounded-xl transition-all border cursor-pointer group"
+              [class.bg-indigo-600/10]="newsService.selectedArticle()?.id === article.id"
+              [class.border-indigo-500/40]="newsService.selectedArticle()?.id === article.id"
+              [class.bg-zinc-900/40]="newsService.selectedArticle()?.id !== article.id"
+              [class.border-zinc-800/60]="newsService.selectedArticle()?.id !== article.id"
+              [class.hover:border-zinc-700]="newsService.selectedArticle()?.id !== article.id"
+            >
+              <div
+                class="text-xs font-semibold text-zinc-200 group-hover:text-white line-clamp-2 leading-snug"
+              >
+                {{ article.title }}
               </div>
-
-              <!-- Meaning -->
-              <p class="text-xs text-zinc-300 leading-relaxed">
-                {{ entry.meaning }}
-              </p>
-
-              <!-- Example Sentence (if available) -->
-              @if (entry.example_sentence) {
-                <div class="p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-800 text-[11px] space-y-1">
-                  <div class="font-semibold text-indigo-400 flex items-center gap-1.5">
-                    <i class="pi pi-comment text-[10px]"></i>
-                    <span>{{ t('web_reader.example_sentence') }}</span>
-                  </div>
-                  <p class="text-zinc-300 italic leading-normal font-sans">
-                    {{ entry.example_sentence }}
-                  </p>
+              @if (article.published_at) {
+                <div class="text-[10px] text-zinc-500 mt-1.5 flex items-center gap-1">
+                  <i class="pi pi-calendar text-[9px]"></i>
+                  <span>{{ article.published_at | date: 'longDate' }}</span>
                 </div>
               }
-
-              <!-- Send to Notebook Button -->
-              <div class="pt-2 border-t border-zinc-800 flex justify-end">
-                <button
-                  type="button"
-                  (click)="sendToNotebook(entry)"
-                  class="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 transition cursor-pointer"
-                >
-                  <i class="pi pi-file-edit text-[10px]"></i>
-                  <span>{{ t('web_reader.send_to_notebook') }}</span>
-                </button>
-              </div>
-            </div>
+            </button>
           }
         }
       </div>
     </aside>
-  }
-</div>
+
+    <!-- Right: Article Viewer & Interactive Text -->
+    <section class="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950">
+      @if (newsService.selectedArticle(); as article) {
+        <!-- Top Action Bar -->
+        <div
+          class="flex items-center justify-between w-full mb-6 min-h-14 border-b border-zinc-800/80 px-6 py-3 shrink-0 bg-zinc-950/80 backdrop-blur-xs"
+        >
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{{
+              t('web_reader.source_nhk')
+            }}</span>
+            @if (article.news_web_url) {
+              <a
+                [href]="article.news_web_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-xs text-indigo-400 hover:text-indigo-300 underline flex items-center gap-1"
+              >
+                <span>{{ t('web_reader.view_original') }}</span>
+                <i class="pi pi-external-link text-[10px]"></i>
+              </a>
+            }
+          </div>
+
+          <div class="flex items-center gap-3">
+            <label class="text-xs text-zinc-400 flex items-center gap-2">
+              <span>{{ t('web_reader.target_deck') }}:</span>
+              <select
+                [value]="selectedDeckId()"
+                (change)="selectedDeckId.set($any($event.target).value)"
+                class="bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1 text-xs text-zinc-200 outline-none"
+              >
+                <option value="default">{{ t('web_reader.deck_default') }}</option>
+                @for (deck of deckService.decks(); track deck.id) {
+                  @if (deck.id !== 'default') {
+                    <option [value]="deck.id">{{ deck.name }}</option>
+                  }
+                }
+              </select>
+            </label>
+
+            <button
+              type="button"
+              (click)="sendToNotebook()"
+              class="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white flex items-center gap-1.5 transition cursor-pointer"
+              [title]="t('web_reader.save_article_notebook')"
+            >
+              <i class="pi pi-file-edit text-xs"></i>
+              <span>{{ t('web_reader.save_article_notebook') }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Article Content Scroll Area -->
+        <div class="flex-1 min-h-0 overflow-y-auto prose prose-invert max-w-none p-4">
+          <!-- Article Header -->
+          <div class="space-y-3">
+            <h1 class="text-2xl font-bold text-white tracking-tight leading-relaxed">
+              {{ article.title }}
+            </h1>
+            @if (article.published_at) {
+              <div class="text-xs text-zinc-400 flex items-center gap-2">
+                <i class="pi pi-clock text-xs"></i>
+                <span>{{ article.published_at | date: 'longDate' }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Mini Audio Player -->
+          @if (article.audio_url) {
+            <div
+              class="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800/80 shadow-md flex flex-col sm:flex-row items-center gap-3"
+            >
+              <div class="flex items-center gap-2.5 text-indigo-400 shrink-0">
+                <div
+                  class="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center"
+                >
+                  <i class="pi pi-volume-up text-sm"></i>
+                </div>
+                <span class="text-xs font-semibold text-zinc-300">{{
+                  t('web_reader.audio_player')
+                }}</span>
+              </div>
+              <audio
+                controls
+                [src]="article.audio_url"
+                class="w-full h-9 rounded-lg outline-none accent-indigo-500"
+              >
+                Your browser does not support the audio element.
+              </audio>
+            </div>
+          }
+
+          <!-- Optional Article Image -->
+          @if (article.image_url) {
+            <div
+              class="rounded-2xl overflow-hidden border border-zinc-800/80 bg-zinc-900/50 max-h-80 flex items-center justify-center"
+            >
+              <img
+                [src]="article.image_url"
+                [alt]="article.title"
+                class="w-full h-full object-cover max-h-80"
+                loading="lazy"
+              />
+            </div>
+          }
+
+          <!-- Interactive Japanese Text -->
+          <div class="space-y-4 pt-2">
+            @for (paragraph of tokenizedParagraphs(); track $index) {
+              <p class="text-base leading-loose text-zinc-200 font-normal tracking-wide">
+                @for (token of paragraph; track $index) {
+                  @if (token.isWord) {
+                    <span
+                      (click)="onWordClick(token.text)"
+                      class="cursor-pointer hover:bg-indigo-600/30 hover:text-indigo-200 rounded px-1 transition-colors border-b border-dashed border-zinc-700 hover:border-indigo-400"
+                      [class.bg-indigo-600/20]="activeWord() === token.text"
+                      [title]="t('web_reader.click_to_lookup')"
+                      >{{ token.text }}</span
+                    >
+                  } @else {
+                    <span>{{ token.text }}</span>
+                  }
+                }
+              </p>
+            }
+          </div>
+        </div>
+      } @else {
+        <!-- Empty State -->
+        <div class="flex-1 flex flex-col items-center justify-center text-zinc-500 space-y-3">
+          <i class="pi pi-book-open text-4xl text-zinc-700"></i>
+          <p class="text-sm">{{ t('web_reader.select_article_hint') }}</p>
+        </div>
+      }
+    </section>
+
+    <!-- Side Drawer / Hover Popup: Word Dictionary Lookup -->
+    @if (activeWord(); as word) {
+      <aside
+        class="w-96 border-l border-zinc-800/80 bg-zinc-950 flex flex-col shrink-0 shadow-2xl z-20 animate-fadeIn"
+      >
+        <div
+          class="h-14 border-b border-zinc-800/80 px-4 flex items-center justify-between shrink-0"
+        >
+          <div class="flex items-center gap-2 truncate">
+            <span class="text-xs uppercase font-bold text-zinc-400 tracking-wider">{{
+              t('web_reader.dictionary')
+            }}</span>
+            <span
+              class="text-sm font-bold text-white px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800"
+              >{{ word }}</span
+            >
+          </div>
+          <button
+            type="button"
+            (click)="closeHoverDictionary()"
+            class="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition cursor-pointer"
+          >
+            <i class="pi pi-times text-xs"></i>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          @if (isSearchingWord()) {
+            <div class="flex flex-col items-center justify-center py-16 space-y-2 text-zinc-500">
+              <i class="pi pi-spin pi-spinner text-xl text-indigo-500"></i>
+              <span class="text-xs">{{ t('web_reader.searching_definition') }}</span>
+            </div>
+          } @else if (activeWordResults().length === 0) {
+            <div class="text-center py-12 text-zinc-500 text-xs space-y-3">
+              <p>{{ t('web_reader.no_definition_found') }}</p>
+              <button
+                type="button"
+                (click)="sendToNotebook()"
+                class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <i class="pi pi-file-edit text-xs"></i>
+                <span>{{ t('web_reader.send_word_notebook') }}</span>
+              </button>
+            </div>
+          } @else {
+            @for (entry of activeWordResults(); track entry.id) {
+              <div
+                class="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 space-y-3 hover:border-zinc-700 transition"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <div>
+                    <div class="text-base font-bold text-white flex items-center gap-2">
+                      <span>{{ entry.kanji || entry.reading }}</span>
+                      @if (entry.kanji) {
+                        <span class="text-xs text-zinc-400 font-normal">({{ entry.reading }})</span>
+                      }
+                    </div>
+                    @if (entry.pitch) {
+                      <div class="mt-1">
+                        <app-pitch-accent
+                          [reading]="entry.reading"
+                          [pitch]="entry.pitch"
+                        ></app-pitch-accent>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Add to SRS badge/button -->
+                  <button
+                    type="button"
+                    (click)="addWordToSrs(entry)"
+                    [disabled]="entry.in_srs"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer shrink-0 flex items-center gap-1"
+                    [class.bg-emerald-950]="entry.in_srs"
+                    [class.text-emerald-400]="entry.in_srs"
+                    [class.border]="entry.in_srs"
+                    [class.border-emerald-800]="entry.in_srs"
+                    [class.bg-indigo-600]="!entry.in_srs"
+                    [class.hover:bg-indigo-500]="!entry.in_srs"
+                    [class.text-white]="!entry.in_srs"
+                  >
+                    <i
+                      class="pi"
+                      [class.pi-check]="entry.in_srs"
+                      [class.pi-plus]="!entry.in_srs"
+                      text-[10px]
+                    ></i>
+                    <span>{{
+                      entry.in_srs ? t('web_reader.in_srs') : t('web_reader.add_srs')
+                    }}</span>
+                  </button>
+                </div>
+
+                <!-- Meaning -->
+                <p class="text-xs text-zinc-300 leading-relaxed">
+                  {{ entry.meaning }}
+                </p>
+
+                <!-- Example Sentence (if available) -->
+                @if (entry.example_sentence) {
+                  <div
+                    class="p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-800 text-[11px] space-y-1"
+                  >
+                    <div class="font-semibold text-indigo-400 flex items-center gap-1.5">
+                      <i class="pi pi-comment text-[10px]"></i>
+                      <span>{{ t('web_reader.example_sentence') }}</span>
+                    </div>
+                    <p class="text-zinc-300 italic leading-normal font-sans">
+                      {{ entry.example_sentence }}
+                    </p>
+                  </div>
+                }
+
+                <!-- Send to Notebook Button -->
+                <div class="pt-2 border-t border-zinc-800 flex justify-end">
+                  <button
+                    type="button"
+                    (click)="sendToNotebook(entry)"
+                    class="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 transition cursor-pointer"
+                  >
+                    <i class="pi pi-file-edit text-[10px]"></i>
+                    <span>{{ t('web_reader.send_to_notebook') }}</span>
+                  </button>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </aside>
+    }
+  </div>
+</main>

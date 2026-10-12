@@ -1,5 +1,13 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { ZenModeService } from './zen-mode.service'
+
+const tauriWindow = vi.hoisted(() => ({ setFullscreen: vi.fn().mockResolvedValue(undefined) }))
+vi.mock('@tauri-apps/api/window', () => ({
+  getCurrentWindow: () => tauriWindow,
+}))
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn().mockResolvedValue(undefined),
+}))
 
 describe('ZenModeService', () => {
   it('should initialize with default states', () => {
@@ -10,16 +18,16 @@ describe('ZenModeService', () => {
     expect(service.formattedTime()).toBe('25:00')
   })
 
-  it('should toggle zen mode and format timer', () => {
+  it('should toggle zen mode and format timer', async () => {
     const service = new ZenModeService()
-    service.toggleZenMode()
+    await service.toggleZenMode()
     expect(service.isZenMode()).toBe(true)
 
     service.switchMode('break')
     expect(service.currentMode()).toBe('break')
     expect(service.formattedTime()).toBe('05:00')
 
-    service.exitZenMode()
+    await service.exitZenMode()
     expect(service.isZenMode()).toBe(false)
   })
 

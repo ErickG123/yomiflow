@@ -1,18 +1,18 @@
 import { inject } from '@angular/core'
 import { CanActivateFn, Router, UrlTree } from '@angular/router'
-import { invoke } from '@tauri-apps/api/core'
+import { CoreInitializationService } from '../services/core-initialization.service'
 
 export const onboardingGuard: CanActivateFn = async (): Promise<boolean | UrlTree> => {
   const router = inject(Router)
+  const initialization = inject(CoreInitializationService)
+  await initialization.initialize()
+  const isCompleted = initialization.onboardingComplete()
+  return isCompleted === false ? router.createUrlTree(['/onboarding']) : true
+}
 
-  try {
-    const isCompleted = await invoke<boolean>('has_completed_onboarding')
-    if (!isCompleted) {
-      return router.createUrlTree(['/onboarding'])
-    }
-    return true
-  } catch (err) {
-    console.warn('Failed to verify onboarding completion in onboardingGuard:', err)
-    return true
-  }
+export const onboardingEntryGuard: CanActivateFn = async (): Promise<boolean | UrlTree> => {
+  const router = inject(Router)
+  const initialization = inject(CoreInitializationService)
+  await initialization.initialize()
+  return initialization.onboardingComplete() === true ? router.createUrlTree(['/dashboard']) : true
 }

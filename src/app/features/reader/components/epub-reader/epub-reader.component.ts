@@ -6,11 +6,13 @@ import {
   HostListener,
   OnDestroy,
   OnInit,
+  SecurityContext,
   ViewChild,
   inject,
   signal,
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
+import { DomSanitizer } from '@angular/platform-browser'
 import { TranslocoDirective } from '@ngneat/transloco'
 import { EpubReaderService } from '../../services/epub-reader.service'
 import { DictionaryService } from '../../../dictionary/services/dictionary.service'
@@ -30,6 +32,7 @@ import ePub from 'epubjs'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EpubReaderComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly sanitizer = inject(DomSanitizer)
   readonly epubService = inject(EpubReaderService)
   readonly dictionaryService = inject(DictionaryService)
   readonly deckService = inject(DeckService)
@@ -76,7 +79,7 @@ export class EpubReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private computeBookHash(pathOrData: string): string {
     let hash = 0
     for (let i = 0; i < pathOrData.length; i++) {
-      hash = ((hash << 5) - hash) + pathOrData.charCodeAt(i)
+      hash = (hash << 5) - hash + pathOrData.charCodeAt(i)
       hash |= 0
     }
     return `epub-${Math.abs(hash).toString(16)}`
@@ -92,7 +95,9 @@ export class EpubReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.book?.destroy?.()
 
     try {
-      this.currentBookHash = this.computeBookHash(this.epubService.currentEpubPath() || dataUri.slice(0, 500))
+      this.currentBookHash = this.computeBookHash(
+        this.epubService.currentEpubPath() || dataUri.slice(0, 500),
+      )
       this.book = ePub(dataUri)
 
       this.book?.loaded?.metadata?.then((meta) => {
@@ -119,7 +124,7 @@ export class EpubReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         // Apply dark reading theme to EPUB contents
         const head = doc.head || doc.getElementsByTagName('head')[0]
         const style = doc.createElement('style')
-        style.innerHTML = `
+        style.textContent = `
           body {
             color: #e4e4e7 !important;
             background-color: transparent !important;
@@ -139,7 +144,7 @@ export class EpubReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.isFuriganaEnabled()) {
           const bodyHtml = doc.body.innerHTML
           const transformed = await this.epubService.injectFurigana(bodyHtml)
-          doc.body.innerHTML = transformed
+          doc.body.innerHTML = this.sanitizer.sanitize(SecurityContext.HTML, transformed) ?? ''
         }
 
         // Add word click lookup inside iframe
@@ -226,12 +231,12 @@ export class EpubReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           entry.kanji,
           entry.reading,
           entry.meaning,
-          this.selectedDeckId()
+          this.selectedDeckId(),
         )
       }
       this.showToast('Palavra adicionada ao SRS!')
       this.activeWordResults.update((list) =>
-        list.map((item) => (item === entry ? { ...item, in_srs: true } : item))
+        list.map((item) => (item === entry ? { ...item, in_srs: true } : item)),
       )
     } catch (err) {
       console.error('Erro ao adicionar palavra ao SRS:', err)

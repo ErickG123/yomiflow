@@ -8,8 +8,17 @@ pub fn validate_date_ymd(date_str: &str) -> Result<(), String> {
     let m: u32 = parts[1].parse().map_err(|_| "Mês inválido".to_string())?;
     let d: u32 = parts[2].parse().map_err(|_| "Dia inválido".to_string())?;
 
-    if !(1970..=2200).contains(&y) || !(1..=12).contains(&m) || !(1..=31).contains(&d) {
+    if !(1970..=2200).contains(&y) || !(1..=12).contains(&m) {
         return Err("Data fora dos limites suportados".to_string());
+    }
+    let days_in_month = match m {
+        2 if y.is_multiple_of(400) || (y.is_multiple_of(4) && !y.is_multiple_of(100)) => 29,
+        2 => 28,
+        4 | 6 | 9 | 11 => 30,
+        _ => 31,
+    };
+    if !(1..=days_in_month).contains(&d) {
+        return Err("Dia inválido para o mês informado".to_string());
     }
 
     Ok(())
@@ -35,6 +44,9 @@ mod tests {
         assert!(validate_date_ymd("invalid-date").is_err());
         assert!(validate_date_ymd("2026-13-01").is_err());
         assert!(validate_date_ymd("2026-00-01").is_err());
+        assert!(validate_date_ymd("2026-02-29").is_err());
+        assert!(validate_date_ymd("2024-02-29").is_ok());
+        assert!(validate_date_ymd("2026-04-31").is_err());
     }
 
     #[test]

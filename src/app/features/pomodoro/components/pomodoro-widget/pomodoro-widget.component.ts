@@ -1,18 +1,25 @@
-import { Component, OnDestroy, inject, signal } from '@angular/core'
+import { Component, OnDestroy, effect, inject, input, signal } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { invoke } from '@tauri-apps/api/core'
-import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification'
+import {
+  isPermissionGranted,
+  requestPermission,
+  sendNotification,
+} from '@tauri-apps/plugin-notification'
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco'
 import { PomodoroPhase, PomodoroStatus, StudyCategory } from '../../models/pomodoro.model'
+import { PomodoroControlService } from '../../services/pomodoro-control.service'
 
 @Component({
-  selector: 'app-pomodoro-widget',
+  selector: 'app-pomodoro',
   standalone: true,
   imports: [FormsModule, TranslocoPipe],
   templateUrl: './pomodoro-widget.component.html',
   styleUrl: './pomodoro-widget.component.scss',
 })
-export class PomodoroWidget implements OnDestroy {
+export class PomodoroWidgetComponent implements OnDestroy {
+  readonly isCollapsed = input(false)
+  private readonly pomodoroControl = inject(PomodoroControlService)
   private readonly transloco = inject(TranslocoService)
   readonly status = signal<PomodoroStatus>('idle')
   readonly phase = signal<PomodoroPhase>('focus')
@@ -22,10 +29,18 @@ export class PomodoroWidget implements OnDestroy {
   readonly remainingSeconds = signal(25 * 60)
   private deadline = 0
   private intervalId?: ReturnType<typeof setInterval>
+  private readonly trayStartEffect = effect(() => {
+    if (this.pomodoroControl.startRequested()) {
+      this.pomodoroControl.consumeStartRequest()
+      this.start()
+    }
+  })
 
   get timeDisplay(): string {
     const remaining = this.remainingSeconds()
-    return `${Math.floor(remaining / 60).toString().padStart(2, '0')}:${(remaining % 60).toString().padStart(2, '0')}`
+    return `${Math.floor(remaining / 60)
+      .toString()
+      .padStart(2, '0')}:${(remaining % 60).toString().padStart(2, '0')}`
   }
 
   ngOnDestroy(): void {
@@ -97,7 +112,11 @@ export class PomodoroWidget implements OnDestroy {
       if (!granted) return
       await sendNotification({
         title: 'YomiFlow',
-        body: this.transloco.translate(finishedPhase === 'focus' ? 'pomodoro.notifications.focus' : 'pomodoro.notifications.break'),
+        body: this.transloco.translate(
+          finishedPhase === 'focus'
+            ? 'pomodoro.notifications.focus'
+            : 'pomodoro.notifications.break',
+        ),
       })
     } catch (error) {
       console.warn('Could not send Pomodoro notification:', error)

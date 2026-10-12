@@ -1,0 +1,87 @@
+<!-- Top Floating Zen Mode / Pomodoro Bar -->
+@if (zenModeService.isZenMode()) {
+  <div
+    *transloco="let t"
+    class="sticky top-0 z-40 bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800 px-4 py-2.5 flex items-center justify-between animate-fadeIn shadow-lg"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+        [class.bg-indigo-500\/20]="zenModeService.currentMode() === 'work'"
+        [class.text-indigo-400]="zenModeService.currentMode() === 'work'"
+        [class.bg-emerald-500\/20]="zenModeService.currentMode() === 'break'"
+        [class.text-emerald-400]="zenModeService.currentMode() === 'break'"
+      >
+        <span
+          class="w-2 h-2 rounded-full animate-ping"
+          [class.bg-indigo-400]="zenModeService.currentMode() === 'work'"
+          [class.bg-emerald-400]="zenModeService.currentMode() === 'break'"
+        ></span>
+        <span>
+          {{ zenModeService.currentMode() === 'work' ? t('zen.mode_focus') : t('zen.mode_break') }}
+        </span>
+      </div>
+
+      <span class="text-lg font-mono font-bold text-white tracking-widest">
+        {{ zenModeService.formattedTime() }}
+      </span>
+
+      <!-- Timer Actions -->
+      <div class="flex items-center gap-1">
+        @if (!zenModeService.isTimerRunning()) {
+          <button
+            type="button"
+            (click)="zenModeService.startTimer()"
+            class="p-1.5 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+            [title]="t('zen.start')"
+          >
+            <i class="pi pi-play text-xs"></i>
+          </button>
+        } @else {
+          <button
+            type="button"
+            (click)="zenModeService.pauseTimer()"
+            class="p-1.5 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+            [title]="t('zen.pause')"
+          >
+            <i class="pi pi-pause text-xs"></i>
+          </button>
+        }
+
+        <button
+          type="button"
+          (click)="zenModeService.resetTimer()"
+          class="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+          [title]="t('zen.reset')"
+        >
+          <i class="pi pi-refresh text-xs"></i>
+        </button>
+
+        <!-- Mode Switch -->
+        <button
+          type="button"
+          (click)="
+            zenModeService.switchMode(zenModeService.currentMode() === 'work' ? 'break' : 'work')
+          "
+          class="ml-1 text-[11px] px-2 py-1 text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors cursor-pointer"
+        >
+          {{
+            zenModeService.currentMode() === 'work'
+              ? t('zen.switch_to_break')
+              : t('zen.switch_to_focus')
+          }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Exit Zen Mode Button -->
+    <button
+      type="button"
+      (click)="zenModeService.exitZenMode()"
+      class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-zinc-400 hover:text-white bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700/60 rounded-xl transition-all cursor-pointer shadow-sm"
+    >
+      <i class="pi pi-window-minimize text-xs"></i>
+      <span>{{ t('zen.exit_zen') }}</span>
+    </button>
+  </div>
+}

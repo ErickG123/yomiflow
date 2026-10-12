@@ -1,4 +1,7 @@
-<div *transloco="let t" class="min-h-[calc(100vh-4rem)] p-8 max-w-4xl mx-auto flex flex-col justify-between text-zinc-100">
+<div
+  *transloco="let t"
+  class="min-h-[calc(100vh-4rem)] p-8 max-w-4xl mx-auto flex flex-col justify-between text-zinc-100"
+>
   <div class="space-y-8">
     <!-- Welcome Header -->
     <header class="space-y-1">
@@ -61,8 +64,18 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div class="space-y-0.5">
           <h2 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
-            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <svg
+              class="w-4 h-4 text-indigo-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
             </svg>
             <span>{{ t('dashboard.kana_proficiency_title') }}</span>
           </h2>
@@ -71,7 +84,7 @@
 
         <a
           routerLink="/kana"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all cursor-pointer shadow-sm self-start sm:self-auto active:scale-95"
+          class="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all cursor-pointer shadow-sm self-start sm:self-auto active:scale-95"
         >
           <span>{{ t('dashboard.train_kana') }}</span>
           <i class="pi pi-arrow-right text-[10px]"></i>
@@ -83,10 +96,14 @@
         <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-xl p-4 space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-xs">
+              <span
+                class="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-xs"
+              >
                 あ
               </span>
-              <span class="text-xs font-semibold text-zinc-200">{{ t('dashboard.hiragana_label') }}</span>
+              <span class="text-xs font-semibold text-zinc-200">{{
+                t('dashboard.hiragana_label')
+              }}</span>
             </div>
             <span class="text-base font-bold text-indigo-400 font-mono">
               {{ kanaProficiency().hiragana_proficiency }}%
@@ -104,10 +121,14 @@
         <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-xl p-4 space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">
+              <span
+                class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs"
+              >
                 ア
               </span>
-              <span class="text-xs font-semibold text-zinc-200">{{ t('dashboard.katakana_label') }}</span>
+              <span class="text-xs font-semibold text-zinc-200">{{
+                t('dashboard.katakana_label')
+              }}</span>
             </div>
             <span class="text-base font-bold text-emerald-400 font-mono">
               {{ kanaProficiency().katakana_proficiency }}%
@@ -132,7 +153,7 @@
         </h2>
         <a
           routerLink="/decks"
-          class="text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors flex items-center space-x-1"
+          class="inline-flex items-center justify-center gap-2 text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
         >
           <span>{{ t('dashboard.manage_decks') }}</span>
           <i class="pi pi-arrow-right text-[10px]"></i>
@@ -146,10 +167,14 @@
           >
             <div class="space-y-1.5">
               <div class="flex items-start justify-between">
-                <h3 class="font-bold text-sm text-zinc-100 group-hover:text-indigo-400 transition-colors truncate">
+                <h3
+                  class="font-bold text-sm text-zinc-100 group-hover:text-indigo-400 transition-colors truncate"
+                >
                   {{ deck.name }}
                 </h3>
-                <span class="text-[10px] text-zinc-500 font-mono">{{ deck.total_count }} {{ t('dashboard.cards_count') }}</span>
+                <span class="text-[10px] text-zinc-500 font-mono"
+                  >{{ deck.total_count }} {{ t('dashboard.cards_count') }}</span
+                >
               </div>
               <p class="text-xs text-zinc-400 line-clamp-2">
                 {{ deck.description || t('dashboard.no_description') }}
@@ -159,10 +184,16 @@
             <div class="pt-3 border-t border-zinc-800/80 mt-3 flex items-center justify-between">
               <div class="flex items-center space-x-3 text-xs">
                 <span class="text-emerald-400 font-bold" [title]="t('dashboard.new_cards')">
-                  {{ deck.new_count }} <span class="text-[10px] font-normal text-zinc-500">{{ t('dashboard.badge_new') }}</span>
+                  {{ deck.new_count }}
+                  <span class="text-[10px] font-normal text-zinc-500">{{
+                    t('dashboard.badge_new')
+                  }}</span>
                 </span>
                 <span class="text-indigo-400 font-bold" [title]="t('dashboard.due_today')">
-                  {{ deck.due_count }} <span class="text-[10px] font-normal text-zinc-500">{{ t('dashboard.badge_due') }}</span>
+                  {{ deck.due_count }}
+                  <span class="text-[10px] font-normal text-zinc-500">{{
+                    t('dashboard.badge_due')
+                  }}</span>
                 </span>
               </div>
 
@@ -178,7 +209,9 @@
             </div>
           </div>
         } @empty {
-          <div class="col-span-full py-6 text-center text-zinc-500 text-xs bg-zinc-900/40 rounded-xl border border-zinc-800">
+          <div
+            class="col-span-full py-6 text-center text-zinc-500 text-xs bg-zinc-900/40 rounded-xl border border-zinc-800"
+          >
             {{ t('dashboard.no_decks') }}
           </div>
         }
@@ -193,7 +226,9 @@
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Streak Card -->
-        <div class="bg-gradient-to-br from-zinc-900 to-zinc-900/90 border border-orange-500/40 rounded-xl p-5 shadow-sm space-y-4 flex flex-col justify-between">
+        <div
+          class="bg-gradient-to-br from-zinc-900 to-zinc-900/90 border border-orange-500/40 rounded-xl p-5 shadow-sm space-y-4 flex flex-col justify-between"
+        >
           <div class="flex items-center justify-between text-orange-400">
             <span class="text-xs font-semibold uppercase tracking-wider text-zinc-300">
               {{ t('dashboard.current_streak') }}
@@ -210,14 +245,20 @@
             </span>
           </div>
 
-          <div class="pt-2 border-t border-zinc-800 text-xs text-zinc-400 flex items-center justify-between">
+          <div
+            class="pt-2 border-t border-zinc-800 text-xs text-zinc-400 flex items-center justify-between"
+          >
             <span>{{ t('dashboard.max_streak') }}:</span>
-            <span class="font-bold text-zinc-200">{{ streakStats().max_streak }} {{ t('dashboard.days') }}</span>
+            <span class="font-bold text-zinc-200"
+              >{{ streakStats().max_streak }} {{ t('dashboard.days') }}</span
+            >
           </div>
         </div>
 
         <!-- Activity Heatmap Card -->
-        <div class="md:col-span-2 bg-zinc-900/70 border border-zinc-800 rounded-xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
+        <div
+          class="md:col-span-2 bg-zinc-900/70 border border-zinc-800 rounded-xl p-5 shadow-sm space-y-3 flex flex-col justify-between"
+        >
           <div class="flex items-center justify-between text-zinc-400">
             <span class="text-xs font-semibold uppercase tracking-wider">
               {{ t('dashboard.heatmap_title') }}

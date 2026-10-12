@@ -1,16 +1,23 @@
-<div *transloco="let t" class="flex h-full w-full bg-zinc-950 text-zinc-100 overflow-hidden relative">
+<main
+  *transloco="let t"
+  class="h-full w-full flex flex-col p-6 md:p-8 overflow-hidden bg-zinc-950 text-zinc-100 relative"
+>
   <!-- Toast Notification -->
   @if (toastMessage(); as msg) {
-    <div class="fixed top-5 right-5 z-50 bg-indigo-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2 animate-fadeIn border border-indigo-400/30">
+    <div
+      class="fixed top-5 right-5 z-50 bg-indigo-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2 animate-fadeIn border border-indigo-400/30"
+    >
       <i class="pi pi-check text-sm"></i>
       <span>{{ msg }}</span>
     </div>
   }
 
   <!-- Main Reader Area -->
-  <main class="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950">
+  <div class="flex-1 flex flex-col min-h-0 overflow-hidden bg-zinc-950">
     <!-- Top Bar -->
-    <header class="h-14 border-b border-zinc-800/80 px-6 flex items-center justify-between shrink-0 bg-zinc-950/80 backdrop-blur-xs">
+    <header
+      class="flex items-center justify-between w-full mb-6 h-14 border-b border-zinc-800/80 px-6 shrink-0 bg-zinc-950/80 backdrop-blur-xs"
+    >
       <div class="flex items-center gap-3 overflow-hidden">
         <button
           type="button"
@@ -41,7 +48,9 @@
           [title]="t('epub_reader.furigana_desc')"
         >
           <i class="pi pi-sparkles text-xs"></i>
-          <span>{{ isFuriganaEnabled() ? t('epub_reader.furigana_on') : t('epub_reader.furigana_off') }}</span>
+          <span>{{
+            isFuriganaEnabled() ? t('epub_reader.furigana_on') : t('epub_reader.furigana_off')
+          }}</span>
         </button>
 
         <!-- Navigation buttons -->
@@ -75,12 +84,16 @@
         </div>
       } @else if (!isBookLoaded()) {
         <div class="flex flex-col items-center justify-center space-y-4 text-center max-w-sm p-6">
-          <div class="w-16 h-16 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+          <div
+            class="w-16 h-16 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400"
+          >
             <i class="pi pi-book text-2xl"></i>
           </div>
           <div>
             <h3 class="text-base font-bold text-white">{{ t('epub_reader.empty_title') }}</h3>
-            <p class="text-xs text-zinc-400 mt-1 leading-relaxed">{{ t('epub_reader.empty_desc') }}</p>
+            <p class="text-xs text-zinc-400 mt-1 leading-relaxed">
+              {{ t('epub_reader.empty_desc') }}
+            </p>
           </div>
           <button
             type="button"
@@ -98,15 +111,22 @@
         [class.hidden]="!isBookLoaded() || epubService.isLoading()"
       ></div>
     </div>
-  </main>
+  </div>
 
   <!-- Side Drawer for Word Lookup -->
   @if (activeWord(); as word) {
-    <aside class="w-96 border-l border-zinc-800/80 bg-zinc-950 flex flex-col shrink-0 shadow-2xl z-20 animate-fadeIn">
+    <aside
+      class="w-96 border-l border-zinc-800/80 bg-zinc-950 flex flex-col shrink-0 shadow-2xl z-20 animate-fadeIn"
+    >
       <div class="h-14 border-b border-zinc-800/80 px-4 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2 truncate">
-          <span class="text-xs uppercase font-bold text-zinc-400 tracking-wider">{{ t('web_reader.dictionary') }}</span>
-          <span class="text-sm font-bold text-white px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800">{{ word }}</span>
+          <span class="text-xs uppercase font-bold text-zinc-400 tracking-wider">{{
+            t('web_reader.dictionary')
+          }}</span>
+          <span
+            class="text-sm font-bold text-white px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800"
+            >{{ word }}</span
+          >
         </div>
         <button
           type="button"
@@ -137,7 +157,9 @@
           </div>
         } @else {
           @for (entry of activeWordResults(); track entry.id) {
-            <div class="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 space-y-3 hover:border-zinc-700 transition">
+            <div
+              class="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 space-y-3 hover:border-zinc-700 transition"
+            >
               <div class="flex items-start justify-between gap-2">
                 <div>
                   <div class="text-base font-bold text-white flex items-center gap-2">
@@ -148,7 +170,10 @@
                   </div>
                   @if (entry.pitch) {
                     <div class="mt-1">
-                      <app-pitch-accent [reading]="entry.reading" [pitch]="entry.pitch"></app-pitch-accent>
+                      <app-pitch-accent
+                        [reading]="entry.reading"
+                        [pitch]="entry.pitch"
+                      ></app-pitch-accent>
                     </div>
                   }
                 </div>
@@ -166,7 +191,12 @@
                   [class.hover:bg-indigo-500]="!entry.in_srs"
                   [class.text-white]="!entry.in_srs"
                 >
-                  <i class="pi" [class.pi-check]="entry.in_srs" [class.pi-plus]="!entry.in_srs" text-[10px]></i>
+                  <i
+                    class="pi"
+                    [class.pi-check]="entry.in_srs"
+                    [class.pi-plus]="!entry.in_srs"
+                    text-[10px]
+                  ></i>
                   <span>{{ entry.in_srs ? t('web_reader.in_srs') : t('web_reader.add_srs') }}</span>
                 </button>
               </div>
@@ -191,4 +221,4 @@
       </div>
     </aside>
   }
-</div>
+</main>

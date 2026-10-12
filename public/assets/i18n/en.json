@@ -343,7 +343,10 @@
     "create_error": "Failed to create deck:",
     "delete_error": "Failed to delete deck:",
     "settings_title": "Deck Settings",
-    "settings_subtitle": "Edit deck name and parameters"
+    "settings_subtitle": "Edit deck name and parameters",
+    "new_badge": "New",
+    "review_badge": "Due",
+    "total_badge": "Total"
   },
   "onboarding": {
     "back": "Back",
@@ -398,6 +401,8 @@
   },
   "video": {
     "open_video": "Open Video (.mkv, .mp4)",
+    "empty_title": "No video opened",
+    "empty_desc": "Open an episode or movie (.mkv, .mp4). Japanese subtitles will be extracted and hovering over words will pause video for dictionary lookup.",
     "subtitles_loaded": "subtitles loaded",
     "ffmpeg_warning": "FFmpeg not detected on system: Embedded subtitle extraction (.mkv) and audio clip cutting require FFmpeg installed in Windows PATH. (External .srt subtitles still work).",
     "install_ffmpeg": "Install FFmpeg",
@@ -437,7 +442,19 @@
     "auth_success": "Google account connected successfully!",
     "auth_error": "Failed to authenticate with Google Drive.",
     "backup_success": "Backup completed successfully on Google Drive!",
-    "backup_error": "Failed to backup to Google Drive."
+    "backup_error": "Failed to backup to Google Drive.",
+    "status_connected": "Connected",
+    "status_not_connected": "Not connected",
+    "not_connected_desc": "Your progress is saved locally in {{db}}. Connect Google Drive to back up and sync your study data.",
+    "client_id_label": "Client ID",
+    "client_secret_label": "Client secret",
+    "client_id_placeholder": "Enter your Google OAuth client ID",
+    "client_secret_placeholder": "Enter your Google OAuth client secret",
+    "awaiting_browser": "Waiting for browser authorization...",
+    "no_backup_recorded": "No backup recorded",
+    "sending_backup": "Uploading database to the cloud...",
+    "backup_now_btn": "Back up now",
+    "disconnect_btn": "Disconnect Google account"
   },
   "kanji_breakdown": {
     "radicals_components": "Radicals / Components",
