@@ -4,6 +4,7 @@ pub mod db;
 pub mod domain;
 pub mod importer;
 pub mod models;
+pub mod services;
 
 use std::sync::{Arc, Mutex};
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -34,8 +35,8 @@ pub fn run() {
                 .map_err(|e| Box::<dyn std::error::Error>::from(e.to_string()))?;
 
             let db = Arc::new(Mutex::new(conn));
-            let audio_runtime = Arc::new(commands::audio::AudioRuntime::new(db.clone()));
-            commands::audio::start_listening_tracker(audio_runtime.clone());
+            let audio_runtime = Arc::new(services::audio::AudioRuntime::new(db.clone()));
+            services::audio::start_listening_tracker(audio_runtime.clone());
 
             app.manage(AppState { db });
             app.manage(audio_runtime);

@@ -1,10 +1,10 @@
-use app_lib::commands::srs::{
-    add_to_srs_in_conn, answer_card_in_conn, create_deck_in_conn, delete_deck_in_conn,
-};
 use app_lib::database::migrations::{
     MIGRATIONS, latest_migration_version, run_migrations, run_migrations_with,
 };
 use app_lib::db::search::global_search_in_connection;
+use app_lib::db::srs::{
+    add_to_srs_in_conn, answer_card_in_conn, create_deck_in_conn, delete_deck_in_conn,
+};
 use app_lib::{db, domain::nlp::generate_syntax_tree};
 use rusqlite::{Connection, params};
 use std::time::{SystemTime, UNIX_EPOCH};

@@ -306,7 +306,7 @@ pub fn add_custom_word_to_srs(
     state: State<'_, AppState>,
 ) -> Result<i64, String> {
     let conn = state.db.lock().map_err(|e| e.to_string())?;
-    let target_deck = crate::commands::srs::resolve_deck_id(&conn, deck_id)?;
+    let target_deck = crate::db::srs::resolve_deck_id(&conn, deck_id)?;
 
     // Check if matching entry already exists
     let existing_id: Option<i64> = conn
@@ -377,7 +377,7 @@ pub fn add_readability_word_to_srs(
 ) -> Result<(), String> {
     let mut conn = state.db.lock().map_err(|error| error.to_string())?;
     let tx = conn.transaction().map_err(|error| error.to_string())?;
-    let target_deck = crate::commands::srs::resolve_deck_id(&tx, deck_id)?;
+    let target_deck = crate::db::srs::resolve_deck_id(&tx, deck_id)?;
     let (kanji, meaning) = if include_context {
         (surface.clone(), context)
     } else {
@@ -403,6 +403,6 @@ pub fn add_readability_word_to_srs(
         }
     };
 
-    crate::commands::srs::add_to_srs_in_conn(&tx, entry_id, Some(target_deck))?;
+    crate::db::srs::add_to_srs(&tx, entry_id, Some(target_deck))?;
     tx.commit().map_err(|error| error.to_string())
 }
