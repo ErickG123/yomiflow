@@ -392,7 +392,7 @@ cargo check --manifest-path src-tauri/Cargo.toml
 ```
 # Rust Integration Tests
 
-The Rust backend integration suite lives in `src-tauri/tests/integration_tests.rs`. It exercises the SRS service operations against the real SQLite schema and checks the Lindera bunsetsu pipeline, including JSON serialization.
+The Rust backend integration suite lives in `src-tauri/tests/integration_tests.rs`. It exercises the SRS service operations against the real SQLite schema, verifies migrations from an empty database, and checks the Lindera bunsetsu pipeline, including JSON serialization.
 
 Every database test opens a fresh SQLite `:memory:` connection and runs `db::create_tables_and_seed` before exercising the service. Tests never open or modify the user's `yomiflow.db` file. SRS connection-level service functions are shared with the Tauri commands so the same persistence logic is exercised without constructing a desktop runtime.
 
@@ -404,3 +404,15 @@ cargo test --test integration_tests
 ```
 
 The database uses `rusqlite`, which is synchronous in this application, so these integration cases use Rust's `#[test]` harness rather than `#[tokio::test]`. Tokio is not required for the current SQLite routines.
+
+### Schema Migration Test
+
+`test_schema_migrations_apply_from_zero_to_latest` opens a fresh in-memory SQLite connection, applies every migration, checks that the recorded version equals `latest_migration_version()`, and verifies representative tables and the `flashcards` view exist. It then runs the migration engine a second time to check that an up-to-date database remains unchanged. The migration module also has a unit test that forces a SQL error and checks that both the partial DDL and version record are rolled back.
+
+Run just the migration integration case from `src-tauri/` with:
+
+```bash
+cargo test --test integration_tests test_schema_migrations_apply_from_zero_to_latest
+```
+
+Migration tests use only `Connection::open_in_memory()` and never touch the production `yomiflow.db`. During app startup, migration failures propagate from database initialization and prevent the application from continuing with a partially migrated schema.

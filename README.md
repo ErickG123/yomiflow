@@ -70,6 +70,10 @@ Mastering Japanese through immersion traditionally requires stitching together a
 
 ## Architecture & Technology Stack
 
+### SQLite Schema Migrations
+
+The Rust backend manages SQLite schema evolution through versioned migrations in `src-tauri/src/database/migrations.rs`. At startup, it creates `schema_migrations`, applies each unapplied migration in its own transaction, and records the version only after its SQL succeeds. A failed migration rolls back and stops database initialization so the app cannot continue with a partially updated schema. The checked-in `schema.sql` defines the current base schema; later migrations handle compatibility changes for existing databases.
+
 ```
 +------------------------------------------------------------------------+
 |                          Angular 22 Frontend                           |
@@ -134,6 +138,7 @@ yomiflow/
 |   |   |-- shared/                   # Generic UI components, pipes, and directives
 |-- src-tauri/                        # Tauri v2 Backend & Rust Core
 |   |-- src/
+|   |   |-- database/                 # Versioned SQLite migrations and base schema
 |   |   |-- commands/                 # Tauri IPC command entry points
 |   |   |   |-- ai_ocr.rs             # ONNX Runtime MangaOCR pipeline
 |   |   |   |-- dictionary.rs         # Yomichan SQLite indexed lookups
