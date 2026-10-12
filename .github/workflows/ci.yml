@@ -1,22 +1,22 @@
-name: CI
+name: CI (Code Quality & Tests)
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-
+  validate-and-test:
+    name: Build, Lint & Test
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Install Tauri system dependencies
+      - name: Install System Dependencies (Tauri/Linux)
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev libasound2-dev patchelf
@@ -25,42 +25,51 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: npm
 
-      - name: Install Frontend dependencies
-        run: npm ci || npm install
-
-      - name: Frontend Lint
-        run: npm run lint
-
-      - name: Frontend Tests (Vitest)
-        run: npm run test:ci
-
-      - name: Frontend Build
-        run: npm run build
-
-      - name: Setup Rust toolchain
+      - name: Setup Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+
+      - name: Install cargo-llvm-cov (Rust Coverage)
+        uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
 
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Prettier Check (Changed Frontend Files)
+        env:
+          BEFORE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          changed_files="$(git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" -- '*.ts' '*.html' '*.scss')"
+          if [ -n "$changed_files" ]; then
+            printf '%s\n' "$changed_files" | xargs -r npx prettier --check
+          fi
+
+      - name: Frontend Lint
+        run: npm run lint
+
+      - name: Frontend Tests & Coverage
+        run: npm run test:coverage
+
       - name: Rust Format Check
         run: cargo fmt -- --check
         working-directory: src-tauri
 
-      - name: Rust Clippy
+      - name: Rust Clippy (Linter)
         run: cargo clippy -- -D warnings
         working-directory: src-tauri
 
-      - name: Rust Tests
-        run: cargo test
+      - name: Rust Tests & Coverage
+        run: cargo llvm-cov --all-features --workspace
         working-directory: src-tauri
 
-      - name: Rust Check
-        run: cargo check
-        working-directory: src-tauri
+      - name: Frontend Build Check
+        run: npm run build

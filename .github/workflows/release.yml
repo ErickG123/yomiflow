@@ -1,35 +1,81 @@
-name: Release
-run-name: Release ${{ github.ref_name }}
+name: Automated Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: automated-release-main
+  cancel-in-progress: false
 
 jobs:
-  release:
-    permissions:
-      contents: write
+  changelog-and-tag:
+    name: Generate Version & Changelog
+    runs-on: ubuntu-latest
+    outputs:
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
+      changelog: ${{ steps.release_notes.outputs.changelog }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      - name: Bump version and generate changelog
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: false
+          release_branches: main
+
+      - name: Include maintenance commits in release notes
+        id: release_notes
+        if: steps.tag_version.outputs.new_tag != ''
+        env:
+          GENERATED_CHANGELOG: ${{ steps.tag_version.outputs.changelog }}
+          PREVIOUS_TAG: ${{ steps.tag_version.outputs.previous_tag }}
+        run: |
+          delimiter="CHANGELOG_$(date +%s%N)"
+          {
+            echo "changelog<<$delimiter"
+            printf '%s\n' "$GENERATED_CHANGELOG"
+            maintenance_commits="$(git log "${PREVIOUS_TAG}..HEAD" --format='- %s' --extended-regexp --grep='^chore(\([^)]*\))?:')"
+            if [ -n "$maintenance_commits" ]; then
+              printf '\n### Maintenance\n\n%s\n' "$maintenance_commits"
+            fi
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+
+  build-and-publish:
+    name: Build & Publish Release
+    needs: changelog-and-tag
+    if: ${{ needs.changelog-and-tag.outputs.new_tag != '' }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest'
-            args: '--target universal-apple-darwin'
-          - platform: 'ubuntu-latest'
+          - platform: macos-latest
+            args: --target universal-apple-darwin
+            targets: aarch64-apple-darwin,x86_64-apple-darwin
+          - platform: ubuntu-22.04
             args: ''
-          - platform: 'windows-latest'
+            targets: ''
+          - platform: windows-latest
             args: ''
-
+            targets: ''
     runs-on: ${{ matrix.platform }}
-
     steps:
-      - name: Checkout repository
+      - name: Checkout repository at new tag
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.changelog-and-tag.outputs.new_tag }}
 
-      - name: Install Ubuntu system dependencies
-        if: matrix.platform == 'ubuntu-latest'
+      - name: Install System Dependencies (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev libasound2-dev patchelf
@@ -38,27 +84,32 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: npm
 
-      - name: Setup Rust toolchain
+      - name: Setup Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.targets }}
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
 
-      - name: Install Frontend dependencies
-        run: npm ci || npm install
+      - name: Install Frontend Dependencies
+        run: npm ci
 
-      - name: Build Tauri App and Publish Release
+      - name: Sync package version
+        run: npm version ${{ needs.changelog-and-tag.outputs.new_tag }} --no-git-tag-version
+
+      - name: Build Tauri App and Publish Release Assets
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'YomiFlow ${{ github.ref_name }}'
-          releaseBody: 'See the release notes and assets below.'
+          tagName: ${{ needs.changelog-and-tag.outputs.new_tag }}
+          releaseName: YomiFlow ${{ needs.changelog-and-tag.outputs.new_tag }}
+          releaseBody: ${{ needs.changelog-and-tag.outputs.changelog }}
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

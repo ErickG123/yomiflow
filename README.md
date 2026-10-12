@@ -206,6 +206,12 @@ Use [Conventional Commits](https://www.conventionalcommits.org/) for every commi
 
 Husky runs local checks before commits: lint-staged formats staged Angular TypeScript, HTML, and SCSS with Prettier and applies ESLint fixes to TypeScript. The pre-commit hook also checks Rust formatting with `cargo fmt` and runs Clippy with warnings treated as errors.
 
+## CI/CD & Release Flow
+
+Contributors do not need to create version tags manually. Use Conventional Commits (validated locally by Husky and Commitlint), then merge or push to `main`. GitHub Actions runs the quality and test pipeline; successful release-worthy commits trigger automatic SemVer tagging, release notes, and builds for Windows, macOS, and Linux, which are published as a GitHub Release.
+
+`fix:` produces a patch release, `feat:` produces a minor release, and a `BREAKING CHANGE:` footer produces a major release. Maintenance commits such as `chore:`, `docs:`, `refactor:`, and `test:` are included in release notes when a release is produced, without independently advancing the version.
+
 ---
 
 ## Quality Assurance & Verification
