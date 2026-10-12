@@ -68,6 +68,8 @@ jobs:
     name: Build & Publish Release
     needs: changelog-and-tag
     if: ${{ needs.changelog-and-tag.outputs.new_tag != '' }}
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
