@@ -75,6 +75,13 @@ export class NotebookService {
     }
   }
 
+  upsertEntry(entry: NotebookEntry): void {
+    this.entries.update((entries) => [
+      entry,
+      ...entries.filter((current) => current.id !== entry.id),
+    ])
+  }
+
   async saveEntry(
     id: string,
     title: string,
@@ -92,7 +99,6 @@ export class NotebookService {
         nextReviewDate: nextReviewDate ?? null,
         srsStage: srsStage ?? 0,
       })
-      await this.loadEntries()
     } catch (err) {
       console.error('Erro ao guardar nota do caderno:', err)
       throw err

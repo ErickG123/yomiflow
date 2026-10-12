@@ -361,13 +361,13 @@
             type="button"
             (click)="toggleSyntaxTree()"
             class="px-3 py-1.5 border rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
-            [class.bg-indigo-600]="showSyntaxTree()"
-            [class.border-indigo-500]="showSyntaxTree()"
-            [class.text-white]="showSyntaxTree()"
-            [class.bg-zinc-950]="!showSyntaxTree()"
-            [class.border-zinc-800]="!showSyntaxTree()"
-            [class.text-zinc-400]="!showSyntaxTree()"
-            [class.hover:text-zinc-200]="!showSyntaxTree()"
+            [class.bg-indigo-600]="isTreeView()"
+            [class.border-indigo-500]="isTreeView()"
+            [class.text-white]="isTreeView()"
+            [class.bg-zinc-950]="!isTreeView()"
+            [class.border-zinc-800]="!isTreeView()"
+            [class.text-zinc-400]="!isTreeView()"
+            [class.hover:text-zinc-200]="!isTreeView()"
             [title]="t('notebook.toggle_syntax_tree_title')"
           >
             <i class="pi pi-sitemap text-xs"></i>
@@ -378,74 +378,84 @@
 
       <!-- Borderless Infinite-Page Editor Surface (Obsidian feel) -->
       <div class="p-6 md:p-8 flex-1 overflow-y-auto relative">
-        <!-- Floating Bubble Menu upon Text Selection -->
-        @if (showBubbleMenu()) {
-          <div
-            class="absolute z-50 flex items-center gap-1 bg-zinc-900 border border-zinc-700/90 rounded-xl shadow-2xl p-1 backdrop-blur-md animate-fade-in"
-            [style.top.px]="bubbleMenuPosition().top"
-            [style.left.px]="bubbleMenuPosition().left"
-          >
-            <button
-              type="button"
-              (click)="insertSyntaxTree(selectedText())"
-              class="px-2.5 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 hover:text-white transition-all text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
-              title="Gerar Árvore de Dependência Sintática para o trecho selecionado"
-            >
-              <i class="pi pi-sitemap text-xs"></i>
-              <span>Árvore Sintática</span>
-            </button>
+        @if (isTreeView()) {
+          <div class="h-full rounded-xl border border-zinc-800 bg-zinc-950/60 p-5">
+            @if (syntaxTreeData().length > 0) {
+              <app-syntax-node [data]="syntaxTreeData()"></app-syntax-node>
+            } @else {
+              <p class="text-sm text-zinc-500">{{ t('notebook.empty_prompt') }}</p>
+            }
           </div>
-        }
-
-        <div
-          #editorElement
-          class="tiptap-editor-surface prose prose-invert max-w-none text-base text-zinc-100"
-        ></div>
-
-        <!-- Floating Slash Command (/) Menu (Notion Style) -->
-        @if (showSlashMenu()) {
-          <div
-            class="absolute z-50 w-72 bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-2xl py-2 overflow-hidden backdrop-blur-md"
-            [style.top.px]="slashMenuPosition().top"
-            [style.left.px]="slashMenuPosition().left"
-          >
+        } @else {
+          <!-- Floating Bubble Menu upon Text Selection -->
+          @if (showBubbleMenu()) {
             <div
-              class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-zinc-500 border-b border-zinc-800"
+              class="absolute z-50 flex items-center gap-1 bg-zinc-900 border border-zinc-700/90 rounded-xl shadow-2xl p-1 backdrop-blur-md animate-fade-in"
+              [style.top.px]="bubbleMenuPosition().top"
+              [style.left.px]="bubbleMenuPosition().left"
             >
-              Blocos & Comandos (/)
+              <button
+                type="button"
+                (click)="insertSyntaxTree(selectedText())"
+                class="px-2.5 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 hover:text-white transition-all text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                title="Gerar Árvore de Dependência Sintática para o trecho selecionado"
+              >
+                <i class="pi pi-sitemap text-xs"></i>
+                <span>Árvore Sintática</span>
+              </button>
             </div>
-            <div class="max-h-60 overflow-y-auto py-1">
-              @for (item of slashMenuItems; track item.id; let idx = $index) {
-                <button
-                  type="button"
-                  (click)="item.action()"
-                  class="w-full text-left px-3 py-2 flex items-center gap-3 transition-colors cursor-pointer text-xs"
-                  [class.bg-indigo-600]="selectedSlashIndex() === idx"
-                  [class.text-white]="selectedSlashIndex() === idx"
-                  [class.text-zinc-300]="selectedSlashIndex() !== idx"
-                  [class.hover:bg-zinc-800]="selectedSlashIndex() !== idx"
-                >
-                  <div
-                    class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border text-xs font-bold"
-                    [class.border-indigo-400]="selectedSlashIndex() === idx"
-                    [class.bg-indigo-500]="selectedSlashIndex() === idx"
-                    [class.border-zinc-700]="selectedSlashIndex() !== idx"
-                    [class.bg-zinc-800]="selectedSlashIndex() !== idx"
+          }
+
+          <div
+            #editorElement
+            class="tiptap-editor-surface prose prose-invert max-w-none text-base text-zinc-100"
+          ></div>
+
+          <!-- Floating Slash Command (/) Menu (Notion Style) -->
+          @if (showSlashMenu()) {
+            <div
+              class="absolute z-50 w-72 bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-2xl py-2 overflow-hidden backdrop-blur-md"
+              [style.top.px]="slashMenuPosition().top"
+              [style.left.px]="slashMenuPosition().left"
+            >
+              <div
+                class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-zinc-500 border-b border-zinc-800"
+              >
+                Blocos & Comandos (/)
+              </div>
+              <div class="max-h-60 overflow-y-auto py-1">
+                @for (item of slashMenuItems; track item.id; let idx = $index) {
+                  <button
+                    type="button"
+                    (click)="item.action()"
+                    class="w-full text-left px-3 py-2 flex items-center gap-3 transition-colors cursor-pointer text-xs"
+                    [class.bg-indigo-600]="selectedSlashIndex() === idx"
+                    [class.text-white]="selectedSlashIndex() === idx"
+                    [class.text-zinc-300]="selectedSlashIndex() !== idx"
+                    [class.hover:bg-zinc-800]="selectedSlashIndex() !== idx"
                   >
-                    @if (item.icon.startsWith('pi ')) {
-                      <i [class]="item.icon + ' text-xs'"></i>
-                    } @else {
-                      <span>{{ item.icon }}</span>
-                    }
-                  </div>
-                  <div class="truncate">
-                    <div class="font-semibold">{{ t(item.titleKey) }}</div>
-                    <div class="text-[10px] text-zinc-400 truncate">{{ t(item.descKey) }}</div>
-                  </div>
-                </button>
-              }
+                    <div
+                      class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border text-xs font-bold"
+                      [class.border-indigo-400]="selectedSlashIndex() === idx"
+                      [class.bg-indigo-500]="selectedSlashIndex() === idx"
+                      [class.border-zinc-700]="selectedSlashIndex() !== idx"
+                      [class.bg-zinc-800]="selectedSlashIndex() !== idx"
+                    >
+                      @if (item.icon.startsWith('pi ')) {
+                        <i [class]="item.icon + ' text-xs'"></i>
+                      } @else {
+                        <span>{{ item.icon }}</span>
+                      }
+                    </div>
+                    <div class="truncate">
+                      <div class="font-semibold">{{ t(item.titleKey) }}</div>
+                      <div class="text-[10px] text-zinc-400 truncate">{{ t(item.descKey) }}</div>
+                    </div>
+                  </button>
+                }
+              </div>
             </div>
-          </div>
+          }
         }
       </div>
 
@@ -495,37 +505,6 @@
     </div>
 
     <!-- Isolated Syntax Tree Dependency Panel -->
-    @if (showSyntaxTree() && syntaxTreeData().length > 0) {
-      <div
-        class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-5 shadow-lg space-y-3 animate-fade-in"
-      >
-        <div class="flex items-center justify-between pb-2 border-b border-zinc-800">
-          <h4
-            class="text-xs uppercase tracking-wider font-semibold text-zinc-300 flex items-center gap-2"
-          >
-            <svg
-              class="w-4 h-4 text-indigo-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-            <span>ÁRVORE DE DEPENDÊNCIA SINTÁTICA</span>
-          </h4>
-          <span class="text-[11px] text-zinc-500 font-mono"
-            >{{ syntaxTreeData().length }} blocos Bunsetsu</span
-          >
-        </div>
-
-        <app-syntax-node [data]="syntaxTreeData()"></app-syntax-node>
-      </div>
-    }
 
     @if (activeLintTooltip(); as lintTooltip) {
       <aside

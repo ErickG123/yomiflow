@@ -27,6 +27,7 @@ describe('NotebookEditorComponent', () => {
     generateSyntaxTree: ReturnType<typeof vi.fn>
     loadEntries: ReturnType<typeof vi.fn>
     saveEntry: ReturnType<typeof vi.fn>
+    upsertEntry: ReturnType<typeof vi.fn>
     formatTokensToHtml: ReturnType<typeof vi.fn>
   }
   let deckServiceMock: {
@@ -61,6 +62,12 @@ describe('NotebookEditorComponent', () => {
       ]),
       loadEntries: vi.fn().mockResolvedValue([]),
       saveEntry: vi.fn().mockResolvedValue(undefined),
+      upsertEntry: vi.fn((entry: NotebookEntry) => {
+        notebookServiceMock.entries.update((entries) => [
+          entry,
+          ...entries.filter((item) => item.id !== entry.id),
+        ])
+      }),
       formatTokensToHtml: vi
         .fn()
         .mockReturnValue(
@@ -125,6 +132,8 @@ describe('NotebookEditorComponent', () => {
       null,
       0,
     )
+    expect(notebookServiceMock.upsertEntry).toHaveBeenCalledOnce()
+    expect(notebookServiceMock.entries()[0]?.id).toBe(component.currentId())
   })
 
   it('should reset editor and state when creating a new note', () => {
@@ -160,11 +169,11 @@ describe('NotebookEditorComponent', () => {
   })
 
   it('should toggle syntax tree visibility and update syntaxTreeData', () => {
-    expect(component.showSyntaxTree()).toBe(false)
+    expect(component.isTreeView()).toBe(false)
     component.toggleSyntaxTree()
-    expect(component.showSyntaxTree()).toBe(true)
+    expect(component.isTreeView()).toBe(true)
     component.toggleSyntaxTree()
-    expect(component.showSyntaxTree()).toBe(false)
+    expect(component.isTreeView()).toBe(false)
   })
 
   it('opens an existing note through a bidirectional link', () => {

@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   ApplicationRef,
   ChangeDetectionStrategy,
   Component,
@@ -53,7 +52,7 @@ import { notebookTextToEditorHtml } from '../../utils/notebook-link-html'
   styleUrl: './notebook-editor.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy {
+export class NotebookEditorComponent implements OnInit, OnDestroy {
   readonly notebookService = inject(NotebookService)
   readonly deckService = inject(DeckService)
   private readonly router = inject(Router)
@@ -67,7 +66,21 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   private grammarLintRequestId = 0
   private lintTooltipTimeout: ReturnType<typeof setTimeout> | null = null
 
-  @ViewChild('editorElement') editorElementRef?: ElementRef<HTMLDivElement>
+  private editorElement?: ElementRef<HTMLDivElement>
+  @ViewChild('editorElement')
+  set editorElementRef(element: ElementRef<HTMLDivElement> | undefined) {
+    this.editorElement = element
+    if (!element) {
+      if (this.editor) {
+        this.editorHtml.set(this.editor.getHTML())
+        this.markdownContent.set(this.editor.getText())
+        this.editor.destroy()
+        this.editor = null
+      }
+      return
+    }
+    this.initializeEditor(element.nativeElement)
+  }
   editor: Editor | null = null
 
   readonly analysisMode = signal<AnalysisMode>('manual')
@@ -83,14 +96,15 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
   })
   readonly title = signal<string>('Minha Anotação')
   readonly markdownContent = signal<string>('私は学生です。\n毎日日本語を勉強します。')
+  private readonly editorHtml = signal<string>(notebookTextToEditorHtml(this.markdownContent()))
   readonly tokens = signal<MorphologicalToken[]>([])
-  readonly showSyntaxTree = signal<boolean>(false)
+  readonly isTreeView = signal<boolean>(false)
   readonly syntaxTreeData = signal<SyntaxChunk[]>([])
   readonly toastMessage = signal<string | null>(null)
   private toastTimeout: ReturnType<typeof setTimeout> | null = null
 
   toggleSyntaxTree(): void {
-    this.showSyntaxTree.update((v) => !v)
+    this.isTreeView.update((v) => !v)
   }
 
   // Slash Commands state
@@ -201,11 +215,10 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     })
   }
 
-  ngAfterViewInit(): void {
-    if (!this.editorElementRef) return
-
+  private initializeEditor(element: HTMLDivElement): void {
+    if (this.editor) return
     this.editor = new Editor({
-      element: this.editorElementRef.nativeElement,
+      element,
       extensions: [
         StarterKit.configure({
           heading: {
@@ -232,7 +245,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
           onHover: (lint, coordinates) => this.onGrammarLintHover(lint, coordinates),
         }),
       ],
-      content: notebookTextToEditorHtml(this.markdownContent()),
+      content: this.editorHtml(),
       onSelectionUpdate: ({ editor }) => {
         this.updateBubbleMenu(editor)
       },
@@ -246,6 +259,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
 
         const text = editor.getText()
         this.markdownContent.set(text)
+        this.editorHtml.set(editor.getHTML())
         this.scheduleGrammarLint(getGrammarLintText(editor))
 
         if (this.analysisMode() === 'auto') {
@@ -355,6 +369,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
       this.editor.commands.setContent(wrappedHtml, {
         emitUpdate: false,
       })
+      this.editorHtml.set(this.editor.getHTML())
 
       // Safely restore selection within the newly rendered document bounds
       const docSize = this.editor.state.doc.content.size
@@ -372,7 +387,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     const textBefore = editor.state.doc.textBetween(Math.max(0, from - 1), from, '\n', '\0')
     if (textBefore === '/') {
       const coords = editor.view.coordsAtPos(from)
-      const containerRect = this.editorElementRef?.nativeElement.getBoundingClientRect()
+      const containerRect = this.editorElement?.nativeElement.getBoundingClientRect()
       if (containerRect) {
         this.slashMenuPosition.set({
           top: coords.bottom - containerRect.top + 8,
@@ -393,7 +408,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
       if (selected.length > 0) {
         this.selectedText.set(selected)
         const coords = editor.view.coordsAtPos(from)
-        const containerRect = this.editorElementRef?.nativeElement.getBoundingClientRect()
+        const containerRect = this.editorElement?.nativeElement.getBoundingClientRect()
         if (containerRect) {
           this.bubbleMenuPosition.set({
             top: Math.max(0, coords.top - containerRect.top - 46),
@@ -563,6 +578,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
     this.currentId.set(entry.id)
     this.title.set(entry.title)
     this.markdownContent.set(entry.content_md)
+    this.editorHtml.set(notebookTextToEditorHtml(entry.content_md))
     this.selectedDeckId.set(entry.deck_id ?? null)
 
     if (this.editor) {
@@ -601,6 +617,7 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
       this.translocoService?.translate('notebook.default_new_note') ?? 'Nova Anotação'
     this.title.set(defaultTitle)
     this.markdownContent.set('')
+    this.editorHtml.set('<p></p>')
     this.selectedDeckId.set(this.deckService.targetDeckId())
 
     if (this.editor) {
@@ -647,6 +664,20 @@ export class NotebookEditorComponent implements OnInit, AfterViewInit, OnDestroy
 
       // Guarantee immediate reactive reload of notes list
       await this.notebookService.loadEntries()
+      const now = new Date().toISOString()
+      const existingEntry = this.notebookService
+        .entries()
+        .find((entry) => entry.id === this.currentId())
+      this.notebookService.upsertEntry({
+        id: this.currentId(),
+        title: currentTitle || untitled,
+        content_md: currentText,
+        created_at: existingEntry?.created_at ?? now,
+        updated_at: now,
+        deck_id: this.selectedDeckId(),
+        next_review_date: existingEntry?.next_review_date ?? null,
+        srs_stage: existingEntry?.srs_stage ?? 0,
+      })
 
       const successMsg =
         this.translocoService?.translate('notebook.save_success') ?? 'Nota guardada com sucesso!'
