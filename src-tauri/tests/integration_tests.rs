@@ -1,7 +1,10 @@
+use app_lib::commands::search::global_search_in_connection;
 use app_lib::commands::srs::{
     add_to_srs_in_conn, answer_card_in_conn, create_deck_in_conn, delete_deck_in_conn,
 };
-use app_lib::database::migrations::{latest_migration_version, run_migrations};
+use app_lib::database::migrations::{
+    MIGRATIONS, latest_migration_version, run_migrations, run_migrations_with,
+};
 use app_lib::{db, domain::nlp::generate_syntax_tree};
 use rusqlite::{Connection, params};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -54,6 +57,196 @@ fn test_schema_migrations_apply_from_zero_to_latest() {
         })
         .expect("read migration version after second run");
     assert_eq!(version_after_second_run, current_version);
+}
+
+#[test]
+fn test_global_search_triggers_track_cards_notes_and_news() {
+    let connection = Connection::open_in_memory().expect("open isolated search database");
+    connection
+        .execute_batch("PRAGMA foreign_keys = ON;")
+        .expect("enable foreign keys");
+    run_migrations(&connection).expect("apply search index migration");
+    connection
+        .execute(
+            "INSERT INTO decks (id, name) VALUES ('default', 'Default')",
+            [],
+        )
+        .expect("insert deck");
+    connection
+        .execute(
+            "INSERT INTO dictionary_entries (id, kanji, reading, meaning) VALUES (1, '猫', 'ねこ', 'needle vocabulary')",
+            [],
+        )
+        .expect("insert dictionary entry");
+    connection
+        .execute(
+            "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state)
+             VALUES ('card-1', 1, 'default', 0, 0, 0, 0, 0)",
+            [],
+        )
+        .expect("insert vocabulary card");
+    connection
+        .execute(
+            "INSERT INTO notebook_entries (id, title, content_md) VALUES ('note-1', 'Study note', 'note needle phrase')",
+            [],
+        )
+        .expect("insert notebook entry");
+    connection
+        .execute(
+            "INSERT INTO nhk_news_cache (id, title, body_text, body_html, cached_at)
+             VALUES ('news-1', 'News headline', 'news needle phrase', '<p>news</p>', 1)",
+            [],
+        )
+        .expect("insert cached news");
+
+    let results = global_search_in_connection(&connection, "needle").expect("search indexed data");
+    assert_eq!(results.len(), 3);
+    assert!(results.iter().any(|result| result.id == "card:card-1"));
+    assert!(results.iter().any(|result| result.id == "note:note-1"));
+    assert!(results.iter().any(|result| result.id == "news:news-1"));
+    assert!(
+        results
+            .iter()
+            .all(|result| result.snippet.contains("<mark>needle</mark>"))
+    );
+
+    connection
+        .execute(
+            "UPDATE notebook_entries SET content_md = 'updated searchable phrase' WHERE id = 'note-1'",
+            [],
+        )
+        .expect("update note and refresh index");
+    assert!(
+        global_search_in_connection(&connection, "needle")
+            .unwrap()
+            .iter()
+            .all(|result| result.id != "note:note-1")
+    );
+    assert!(
+        global_search_in_connection(&connection, "searchable")
+            .unwrap()
+            .iter()
+            .any(|result| result.id == "note:note-1")
+    );
+
+    connection
+        .execute(
+            "UPDATE nhk_news_cache SET body_text = 'updated news phrase' WHERE id = 'news-1'",
+            [],
+        )
+        .expect("update news and refresh index");
+    assert!(
+        global_search_in_connection(&connection, "needle")
+            .unwrap()
+            .iter()
+            .all(|result| result.id != "news:news-1")
+    );
+
+    connection
+        .execute(
+            "UPDATE dictionary_entries SET meaning = 'updated card phrase' WHERE id = 1",
+            [],
+        )
+        .expect("update dictionary data");
+    connection
+        .execute("UPDATE cards SET state = 1 WHERE id = 'card-1'", [])
+        .expect("update card and refresh indexed dictionary fields");
+    assert!(
+        global_search_in_connection(&connection, "needle")
+            .unwrap()
+            .iter()
+            .all(|result| result.id != "card:card-1")
+    );
+    assert!(
+        global_search_in_connection(&connection, "updated")
+            .unwrap()
+            .iter()
+            .any(|result| result.id == "card:card-1")
+    );
+
+    connection
+        .execute("DELETE FROM cards WHERE id = 'card-1'", [])
+        .expect("delete card and remove index row");
+    assert!(
+        global_search_in_connection(&connection, "updated")
+            .unwrap()
+            .iter()
+            .all(|result| result.id != "card:card-1")
+    );
+
+    connection
+        .execute("DELETE FROM nhk_news_cache WHERE id = 'news-1'", [])
+        .expect("delete news and remove index row");
+    assert!(
+        global_search_in_connection(&connection, "news")
+            .unwrap()
+            .iter()
+            .all(|result| result.id != "news:news-1")
+    );
+    connection
+        .execute("DELETE FROM notebook_entries WHERE id = 'note-1'", [])
+        .expect("delete note and remove index row");
+    assert!(
+        global_search_in_connection(&connection, "searchable")
+            .unwrap()
+            .iter()
+            .all(|result| result.id != "note:note-1")
+    );
+}
+
+#[test]
+fn test_global_search_removes_deleted_notes() {
+    let connection = Connection::open_in_memory().expect("open isolated search database");
+    connection
+        .execute_batch("PRAGMA foreign_keys = ON;")
+        .unwrap();
+    run_migrations(&connection).unwrap();
+    connection.execute("INSERT INTO notebook_entries (id, title, content_md) VALUES ('note', 'Note', 'searchable note')", []).unwrap();
+    assert!(
+        global_search_in_connection(&connection, "searchable")
+            .unwrap()
+            .iter()
+            .any(|item| item.id == "note:note")
+    );
+    connection
+        .execute("DELETE FROM notebook_entries WHERE id = 'note'", [])
+        .unwrap();
+    assert!(
+        global_search_in_connection(&connection, "searchable")
+            .unwrap()
+            .is_empty()
+    );
+}
+
+#[test]
+fn test_omnisearch_migration_indexes_existing_records() {
+    let connection = Connection::open_in_memory().expect("open pre-OmniSearch database");
+    run_migrations_with(&connection, &MIGRATIONS[..2]).expect("apply pre-search schema");
+    connection
+        .execute(
+            "INSERT INTO decks (id, name) VALUES ('default', 'Default')",
+            [],
+        )
+        .unwrap();
+    connection
+        .execute(
+            "INSERT INTO dictionary_entries (kanji, reading, meaning) VALUES ('犬', 'いぬ', 'backfillhound')",
+            [],
+        )
+        .unwrap();
+    connection
+        .execute(
+            "INSERT INTO cards (id, entry_id, deck_id, due_date, stability, difficulty, reps, state)
+             VALUES ('old-card', 1, 'default', 0, 0, 0, 0, 0)",
+            [],
+        )
+        .unwrap();
+
+    run_migrations_with(&connection, &MIGRATIONS[2..]).expect("apply OmniSearch index backfill");
+
+    let results = global_search_in_connection(&connection, "backfillhound").unwrap();
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0].id, "card:old-card");
 }
 
 #[test]

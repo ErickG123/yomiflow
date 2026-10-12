@@ -33,6 +33,11 @@ Mastering Japanese through immersion traditionally requires stitching together a
 - **Temporal Analytics & Heatmaps:** GitHub-style 16-week consistency heatmaps, review forecast projections, and JLPT coverage metrics (N5 through N1) mapped against dictionary and card corpora.
 - **Achievement & Badge Engine:** Persistent milestone awards (e.g., streak milestones, kanji master badges) evaluated locally against review records.
 
+### Global FTS5 OmniSearch
+
+- **One Search Across YomiFlow:** Search SRS vocabulary cards, TipTap notebook notes, and cached NHK articles from the global Ctrl+K palette, with results grouped by source and matching snippets highlighted.
+- **SQLite-Powered Index:** A versioned FTS5 index stays synchronized through insert, update, and delete triggers, so search remains available offline without duplicate application-side indexing logic.
+
 ### Global Pomodoro & Immersion Tracker
 
 - **Focused Exposure Tracking:** Run global focus and break cycles from the sidebar, categorize time as active reading, passive listening, or SRS review, and receive native desktop notifications when each phase ends.

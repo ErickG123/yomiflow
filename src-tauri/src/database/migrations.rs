@@ -34,6 +34,72 @@ CREATE VIEW IF NOT EXISTS flashcards AS
 SELECT id, entry_id, deck_id, due_date, stability, difficulty, reps, state FROM cards;
 "#;
 
+const OMNISEARCH_MIGRATION: &str = r#"
+CREATE VIRTUAL TABLE IF NOT EXISTS global_search USING fts5(id, source_type, title, content, snippet);
+
+CREATE TRIGGER IF NOT EXISTS global_search_cards_insert AFTER INSERT ON cards BEGIN
+    INSERT INTO global_search (id, source_type, title, content, snippet)
+    SELECT 'card:' || NEW.id, 'card', COALESCE(NULLIF(d.kanji, ''), d.reading),
+           COALESCE(d.kanji, '') || ' ' || COALESCE(d.reading, '') || ' ' || COALESCE(d.meaning, ''), ''
+    FROM dictionary_entries d WHERE d.id = NEW.entry_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS global_search_cards_update AFTER UPDATE ON cards BEGIN
+    DELETE FROM global_search WHERE id = 'card:' || OLD.id;
+    INSERT INTO global_search (id, source_type, title, content, snippet)
+    SELECT 'card:' || NEW.id, 'card', COALESCE(NULLIF(d.kanji, ''), d.reading),
+           COALESCE(d.kanji, '') || ' ' || COALESCE(d.reading, '') || ' ' || COALESCE(d.meaning, ''), ''
+    FROM dictionary_entries d WHERE d.id = NEW.entry_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS global_search_cards_delete AFTER DELETE ON cards BEGIN
+    DELETE FROM global_search WHERE id = 'card:' || OLD.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS global_search_notebook_insert AFTER INSERT ON notebook_entries BEGIN
+    INSERT INTO global_search (id, source_type, title, content, snippet)
+    VALUES ('note:' || NEW.id, 'note', COALESCE(NEW.title, ''), COALESCE(NEW.content_md, ''), '');
+END;
+
+CREATE TRIGGER IF NOT EXISTS global_search_notebook_update AFTER UPDATE ON notebook_entries BEGIN
+    DELETE FROM global_search WHERE id = 'note:' || OLD.id;
+    INSERT INTO global_search (id, source_type, title, content, snippet)
+    VALUES ('note:' || NEW.id, 'note', COALESCE(NEW.title, ''), COALESCE(NEW.content_md, ''), '');
+END;
+
+CREATE TRIGGER IF NOT EXISTS global_search_notebook_delete AFTER DELETE ON notebook_entries BEGIN
+    DELETE FROM global_search WHERE id = 'note:' || OLD.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS global_search_news_insert AFTER INSERT ON nhk_news_cache BEGIN
+    INSERT INTO global_search (id, source_type, title, content, snippet)
+    VALUES ('news:' || NEW.id, 'news', NEW.title, COALESCE(NEW.body_text, ''), '');
+END;
+
+CREATE TRIGGER IF NOT EXISTS global_search_news_update AFTER UPDATE ON nhk_news_cache BEGIN
+    DELETE FROM global_search WHERE id = 'news:' || OLD.id;
+    INSERT INTO global_search (id, source_type, title, content, snippet)
+    VALUES ('news:' || NEW.id, 'news', NEW.title, COALESCE(NEW.body_text, ''), '');
+END;
+
+CREATE TRIGGER IF NOT EXISTS global_search_news_delete AFTER DELETE ON nhk_news_cache BEGIN
+    DELETE FROM global_search WHERE id = 'news:' || OLD.id;
+END;
+
+INSERT INTO global_search (id, source_type, title, content, snippet)
+SELECT 'card:' || c.id, 'card', COALESCE(NULLIF(d.kanji, ''), d.reading),
+       COALESCE(d.kanji, '') || ' ' || COALESCE(d.reading, '') || ' ' || COALESCE(d.meaning, ''), ''
+FROM cards c JOIN dictionary_entries d ON d.id = c.entry_id;
+
+INSERT INTO global_search (id, source_type, title, content, snippet)
+SELECT 'note:' || id, 'note', COALESCE(title, ''), COALESCE(content_md, ''), ''
+FROM notebook_entries;
+
+INSERT INTO global_search (id, source_type, title, content, snippet)
+SELECT 'news:' || id, 'news', title, COALESCE(body_text, ''), ''
+FROM nhk_news_cache;
+"#;
+
 pub static MIGRATIONS: &[Migration] = &[
     Migration {
         version: 1,
@@ -42,6 +108,10 @@ pub static MIGRATIONS: &[Migration] = &[
     Migration {
         version: 2,
         sql: LEGACY_COLUMN_MIGRATION,
+    },
+    Migration {
+        version: 3,
+        sql: OMNISEARCH_MIGRATION,
     },
 ];
 
@@ -123,20 +193,46 @@ pub fn latest_migration_version() -> u32 {
 }
 
 fn apply_migration(transaction: &Transaction<'_>, migration: &Migration) -> rusqlite::Result<()> {
-    for statement in migration
-        .sql
-        .split(';')
-        .map(str::trim)
-        .filter(|sql| !sql.is_empty())
-    {
-        if let Some((table, column)) = added_column(statement)
+    for statement in migration_statements(migration.sql) {
+        if let Some((table, column)) = added_column(&statement)
             && column_exists(transaction, table, column)?
         {
             continue;
         }
-        transaction.execute_batch(statement)?;
+        transaction.execute_batch(&format!("{statement};"))?;
     }
     Ok(())
+}
+
+fn migration_statements(sql: &str) -> Vec<String> {
+    let mut statements = Vec::new();
+    let mut pending = String::new();
+
+    for part in sql.split(';') {
+        if !pending.is_empty() {
+            pending.push(';');
+            pending.push('\n');
+        }
+        pending.push_str(part);
+        let statement = pending.trim();
+        if statement.is_empty() {
+            pending.clear();
+            continue;
+        }
+
+        let is_trigger = statement.to_ascii_uppercase().starts_with("CREATE TRIGGER");
+        if is_trigger && !statement.to_ascii_uppercase().trim_end().ends_with("END") {
+            continue;
+        }
+
+        statements.push(statement.to_string());
+        pending.clear();
+    }
+
+    if !pending.trim().is_empty() {
+        statements.push(pending.trim().to_string());
+    }
+    statements
 }
 
 fn added_column(statement: &str) -> Option<(&str, &str)> {

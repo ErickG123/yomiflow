@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core'
+import { ActivatedRoute } from '@angular/router'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco'
 import { DictionaryEntry, KanjiEntry } from '../../models/dictionary.model'
 import { DictionaryService } from '../../services/dictionary.service'
@@ -15,6 +17,8 @@ import { PitchAccentComponent } from '../../../../shared/components/pitch-accent
 })
 export class DictionarySearchComponent {
   private readonly dictionaryService = inject(DictionaryService)
+  private readonly route = inject(ActivatedRoute)
+  private readonly destroyRef = inject(DestroyRef)
   private readonly translocoService = inject(TranslocoService, { optional: true })
   readonly audioService = inject(AudioService)
 
@@ -30,6 +34,13 @@ export class DictionarySearchComponent {
   // Map of entryId -> KanjiEntry[]
   readonly expandedKanjiMap = signal<Record<number, KanjiEntry[]>>({})
   readonly loadingKanjiSet = signal<Record<number, boolean>>({})
+
+  constructor() {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const search = params.get('search')
+      if (search) void this.dictionaryService.search(search)
+    })
+  }
 
   onSearchInput(event: Event): void {
     const target = event.target as HTMLInputElement
@@ -68,10 +79,14 @@ export class DictionarySearchComponent {
     try {
       if (entry.in_srs) {
         await this.dictionaryService.removeFromSrs(entry.id)
-        this.showToast(this.translocoService?.translate('search.toast_removed') ?? 'Removido dos estudos')
+        this.showToast(
+          this.translocoService?.translate('search.toast_removed') ?? 'Removido dos estudos',
+        )
       } else {
         await this.dictionaryService.addToSrs(entry.id)
-        this.showToast(this.translocoService?.translate('search.toast_added') ?? 'Adicionado aos estudos')
+        this.showToast(
+          this.translocoService?.translate('search.toast_added') ?? 'Adicionado aos estudos',
+        )
       }
     } catch (error) {
       console.error('Failed to toggle SRS status:', error)

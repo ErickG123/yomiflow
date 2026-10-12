@@ -6,6 +6,7 @@ pub mod media;
 pub mod news;
 pub mod nlp;
 pub mod reader;
+pub mod search;
 pub mod srs;
 pub mod system;
 
@@ -17,5 +18,6 @@ pub use media::*;
 pub use news::*;
 pub use nlp::*;
 pub use reader::*;
+pub use search::*;
 pub use srs::*;
 pub use system::*;

@@ -1,7 +1,9 @@
-import { Component, computed, inject, signal } from '@angular/core'
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core'
 import { Router } from '@angular/router'
 import { CommandPaletteCommand } from '../../core/models/command-palette.model'
+import { SearchResult } from '../../core/models/search-result.model'
 import { CommandPaletteService } from '../../core/services/command-palette.service'
+import { GlobalSearchService } from '../../core/services/global-search.service'
 import { NotebookService } from '../notebook/services/notebook.service'
 import { PomodoroControlService } from '../pomodoro/services/pomodoro-control.service'
 
@@ -10,13 +12,41 @@ import { PomodoroControlService } from '../pomodoro/services/pomodoro-control.se
   standalone: true,
   templateUrl: './command-palette.component.html',
 })
-export class CommandPaletteComponent {
+export class CommandPaletteComponent implements OnDestroy {
   private readonly router = inject(Router)
   private readonly notebook = inject(NotebookService)
   private readonly pomodoro = inject(PomodoroControlService)
   readonly palette = inject(CommandPaletteService)
+  readonly globalSearch = inject(GlobalSearchService)
   readonly query = signal('')
   readonly selectedIndex = signal(0)
+  private searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+  readonly searchResults = computed(() => {
+    const results = this.globalSearch.results()
+    return [
+      ...results.filter((result) => result.sourceType === 'card'),
+      ...results.filter((result) => result.sourceType === 'note'),
+      ...results.filter((result) => result.sourceType === 'news'),
+    ]
+  })
+  readonly searchResultOffset = computed(() => this.filteredCommands().length)
+  readonly cardResults = computed(() =>
+    this.searchResults().filter((result) => result.sourceType === 'card'),
+  )
+  readonly noteResults = computed(() =>
+    this.searchResults().filter((result) => result.sourceType === 'note'),
+  )
+  readonly newsResults = computed(() =>
+    this.searchResults().filter((result) => result.sourceType === 'news'),
+  )
+  readonly resultGroups = computed(() =>
+    [
+      { sourceType: 'card', label: 'Cartões', results: this.cardResults() },
+      { sourceType: 'note', label: 'Anotações', results: this.noteResults() },
+      { sourceType: 'news', label: 'Notícias', results: this.newsResults() },
+    ].filter((group) => group.results.length > 0),
+  )
 
   readonly commands: CommandPaletteCommand[] = [
     {
@@ -63,8 +93,14 @@ export class CommandPaletteComponent {
   })
 
   onQueryChange(event: Event): void {
-    this.query.set((event.target as HTMLInputElement).value)
+    const value = (event.target as HTMLInputElement).value
+    this.query.set(value)
     this.selectedIndex.set(0)
+    if (this.searchTimeout) clearTimeout(this.searchTimeout)
+    this.globalSearch.clear()
+    if (value.trim()) {
+      this.searchTimeout = setTimeout(() => void this.globalSearch.search(value), 200)
+    }
   }
 
   handleKeydown(event: KeyboardEvent): void {
@@ -74,7 +110,7 @@ export class CommandPaletteComponent {
       return
     }
 
-    const count = this.filteredCommands().length
+    const count = this.filteredCommands().length + this.searchResults().length
     if (event.key === 'ArrowDown' && count > 0) {
       event.preventDefault()
       this.selectedIndex.update((index) => (index + 1) % count)
@@ -88,6 +124,17 @@ export class CommandPaletteComponent {
   }
 
   executeSelected(): void {
+    if (this.query().trim()) {
+      const commands = this.filteredCommands()
+      const selectedIndex = this.selectedIndex()
+      if (selectedIndex < commands.length) {
+        this.execute(commands[selectedIndex])
+        return
+      }
+      const result = this.searchResults()[selectedIndex - commands.length]
+      if (result) this.openSearchResult(result)
+      return
+    }
     const command = this.filteredCommands()[this.selectedIndex()]
     if (command) this.execute(command)
   }
@@ -118,8 +165,28 @@ export class CommandPaletteComponent {
   }
 
   close(): void {
+    if (this.searchTimeout) clearTimeout(this.searchTimeout)
+    this.searchTimeout = null
+    this.globalSearch.clear()
     this.query.set('')
     this.selectedIndex.set(0)
     this.palette.close()
+  }
+
+  openSearchResult(result: SearchResult): void {
+    this.close()
+    const id = result.id.slice(result.id.indexOf(':') + 1)
+    if (result.sourceType === 'card') {
+      void this.router.navigate(['/dictionary'], { queryParams: { search: result.title } })
+    } else if (result.sourceType === 'note') {
+      void this.router.navigate(['/notebook'], { queryParams: { noteId: id } })
+    } else {
+      void this.router.navigate(['/web'], { queryParams: { articleId: id } })
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.searchTimeout) clearTimeout(this.searchTimeout)
+    this.globalSearch.clear()
   }
 }

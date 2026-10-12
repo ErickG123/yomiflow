@@ -416,3 +416,33 @@ cargo test --test integration_tests test_schema_migrations_apply_from_zero_to_la
 ```
 
 Migration tests use only `Connection::open_in_memory()` and never touch the production `yomiflow.db`. During app startup, migration failures propagate from database initialization and prevent the application from continuing with a partially migrated schema.
+
+### Cenário K: Global FTS5 OmniSearch
+
+**Objetivo:** Confirmar que Ctrl+K pesquisa cartões SRS, notas do Caderno e notícias NHK em cache, e que as mudanças nas tabelas de origem mantêm o índice atualizado.
+
+1. Na aplicação, pressione `Ctrl+K` e pesquise uma palavra presente em um cartão, uma anotação e uma notícia em cache. Os resultados devem aparecer agrupados em **Cartões**, **Anotações** e **Notícias**; os trechos devem realçar a ocorrência pesquisada.
+2. Use as setas e `Enter`, ou clique num resultado. Uma anotação deve abrir o Caderno com a nota selecionada; um cartão deve abrir o Dicionário já pesquisado pelo termo; uma notícia deve abrir o leitor Web.
+3. Salve uma nota com uma palavra única e confirme que ela aparece na busca. Edite a nota removendo a palavra: a ocorrência antiga deve desaparecer e o novo conteúdo deve ser pesquisável. Apague-a e confirme que não há resultado residual.
+4. Repita a verificação de atualização e remoção com um cartão SRS e uma notícia NHK em cache.
+5. Rode o teste isolado de integração. Ele parte de SQLite `:memory:`, verifica os triggers de inserção, atualização e remoção, e valida os marcadores `<mark>` retornados pelo `snippet()` do FTS5:
+
+   ```bash
+   cd src-tauri
+   cargo test --test integration_tests test_global_search_triggers_track_cards_notes_and_news
+   ```
+
+### Cenário K: Global FTS5 OmniSearch
+
+**Objetivo:** Confirmar que Ctrl+K pesquisa cartões SRS, notas do Caderno e notícias NHK em cache, e que as mudanças nas tabelas de origem mantêm o índice atualizado.
+
+1. Na aplicação, pressione `Ctrl+K` e pesquise uma palavra presente em um cartão, uma anotação e uma notícia em cache. Os resultados devem aparecer agrupados em **Cartões**, **Anotações** e **Notícias**; os trechos devem realçar a ocorrência pesquisada.
+2. Use as setas e `Enter`, ou clique num resultado. Uma anotação deve abrir o Caderno com a nota selecionada; um cartão deve abrir o Dicionário já pesquisado pelo termo; uma notícia deve abrir o leitor Web.
+3. Salve uma nota com uma palavra única e confirme que ela aparece na busca. Edite a nota removendo a palavra: a ocorrência antiga deve desaparecer e o novo conteúdo deve ser pesquisável. Apague-a e confirme que não há resultado residual.
+4. Repita a verificação de atualização e remoção com um cartão SRS e uma notícia NHK em cache.
+5. Rode o teste isolado de integração. Ele parte de SQLite `:memory:`, verifica os triggers de inserção, atualização e remoção, e valida os marcadores `<mark>` retornados pelo `snippet()` do FTS5:
+
+   ```bash
+   cd src-tauri
+   cargo test --test integration_tests test_global_search_triggers_track_cards_notes_and_news
+   ```

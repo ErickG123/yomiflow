@@ -1,6 +1,6 @@
 @if (palette.isOpen()) {
   <div
-    class="fixed inset-0 z-50 backdrop-blur-sm bg-black/50 flex justify-center items-start pt-32 px-4"
+    class="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 pt-32 backdrop-blur-sm"
     (click)="close()"
     (keydown)="handleKeydown($event)"
   >
@@ -18,8 +18,8 @@
           type="text"
           [value]="query()"
           (input)="onQueryChange($event)"
-          placeholder="Pesquisar comandos..."
-          aria-label="Pesquisar comandos"
+          placeholder="Pesquisar comandos e conteúdo..."
+          aria-label="Pesquisar comandos e conteúdo"
           class="h-14 min-w-0 flex-1 bg-transparent text-sm text-zinc-100 outline-none placeholder:text-zinc-500"
         />
         <kbd class="rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] text-zinc-500"
@@ -27,11 +27,17 @@
         >
       </div>
 
-      <ul class="max-h-[55vh] overflow-y-auto p-2" role="listbox" aria-label="Comandos">
-        @for (command of filteredCommands(); track command.id; let index = $index) {
-          <li role="option" [attr.aria-selected]="selectedIndex() === index">
+      <div
+        class="max-h-[55vh] overflow-y-auto p-2"
+        role="listbox"
+        aria-label="Comandos e resultados"
+      >
+        @if (!query().trim()) {
+          @for (command of filteredCommands(); track command.id; let index = $index) {
             <button
               type="button"
+              role="option"
+              [attr.aria-selected]="selectedIndex() === index"
               class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors"
               [class.bg-indigo-600]="selectedIndex() === index"
               [class.text-white]="selectedIndex() === index"
@@ -42,15 +48,81 @@
             >
               <i class="pi pi-arrow-right text-xs opacity-70" aria-hidden="true"></i>
               <span>{{ command.label }}</span>
-              @if (index === 0 && !query()) {
-                <span class="ml-auto text-[10px] opacity-60">Sugestão</span>
-              }
             </button>
-          </li>
-        } @empty {
-          <li class="px-3 py-8 text-center text-sm text-zinc-500">Nenhum comando encontrado.</li>
+          } @empty {
+            <p class="px-3 py-8 text-center text-sm text-zinc-500">Nenhum comando encontrado.</p>
+          }
+        } @else {
+          @if (filteredCommands().length) {
+            <p
+              class="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500"
+            >
+              Ações
+            </p>
+            @for (command of filteredCommands(); track command.id; let index = $index) {
+              <button
+                type="button"
+                role="option"
+                [attr.aria-selected]="selectedIndex() === index"
+                class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-zinc-800"
+                [class.bg-indigo-600]="selectedIndex() === index"
+                (mouseenter)="selectedIndex.set(index)"
+                (click)="execute(command)"
+              >
+                <i class="pi pi-arrow-right text-xs opacity-70" aria-hidden="true"></i>
+                <span>{{ command.label }}</span>
+              </button>
+            }
+          }
+          @if (globalSearch.isSearching()) {
+            <p class="px-3 py-5 text-center text-sm text-zinc-500">
+              Pesquisando em todo o YomiFlow…
+            </p>
+          } @else {
+            @for (group of resultGroups(); track group.sourceType) {
+              <p
+                class="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500"
+              >
+                {{ group.label }}
+              </p>
+              @for (result of group.results; track result.id) {
+                <button
+                  type="button"
+                  role="option"
+                  [attr.aria-selected]="
+                    searchResults()[selectedIndex() - searchResultOffset()]?.id === result.id
+                  "
+                  class="w-full rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-zinc-800"
+                  [class.bg-indigo-600]="
+                    searchResults()[selectedIndex() - searchResultOffset()]?.id === result.id
+                  "
+                  (mouseenter)="
+                    selectedIndex.set(searchResultOffset() + searchResults().indexOf(result))
+                  "
+                  (click)="openSearchResult(result)"
+                >
+                  <span class="block truncate text-sm text-zinc-100">{{ result.title }}</span>
+                  <span class="mt-1 block truncate text-xs text-zinc-400">
+                    @for (part of globalSearch.snippetParts(result.snippet); track $index) {
+                      @if (part.highlighted) {
+                        <mark class="rounded bg-amber-500/30 text-amber-200">{{ part.text }}</mark>
+                      } @else {
+                        {{ part.text }}
+                      }
+                    }
+                  </span>
+                </button>
+              }
+            }
+            @if (!filteredCommands().length && !searchResults().length) {
+              <p class="px-3 py-8 text-center text-sm text-zinc-500">
+                Nenhum resultado encontrado.
+              </p>
+            }
+          }
         }
-      </ul>
+      </div>
+
       <footer
         class="flex items-center gap-4 border-t border-zinc-800 px-4 py-2 text-[10px] text-zinc-500"
       >

@@ -12,6 +12,7 @@ pub mod news;
 pub mod nlp;
 pub mod pomodoro;
 pub mod reader;
+pub mod search;
 pub mod settings;
 pub mod srs;
 pub mod stats;

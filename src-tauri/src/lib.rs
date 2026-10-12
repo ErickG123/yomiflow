@@ -214,7 +214,8 @@ pub fn run() {
             commands::image_occlusion::get_image_occlusion_card,
             commands::image_occlusion::answer_image_occlusion_card,
             commands::interleaving::get_interleaved_review_queue,
-            commands::interleaving::answer_grammar_review
+            commands::interleaving::answer_grammar_review,
+            commands::search::global_search
         ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");
