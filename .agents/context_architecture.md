@@ -26,6 +26,14 @@ The global player is mounted by `MainLayoutComponent` beside the route outlet, s
 
 Audio Vault folder imports use the Tauri directory picker and call `import_audio_folder`. Rust recursively scans supported formats, sorts filenames case-insensitively, extracts available ID3 metadata with filename/folder fallbacks, and upserts the tracks in one SQLite transaction. Angular merges the returned tracks into the root library Signal and offers a separate action to append the folder to the playback queue in sorted order. Empty or unsupported folders show a status message without changing the queue.
 
+### Audio thread ownership and platform builds
+
+Rodio's output stream and sink are created and owned on a dedicated audio thread. Tauri commands send playback, pause, seek, volume, and snapshot requests to that thread through channels; the platform stream is not stored in shared Tauri state or captured by an arbitrary `std::thread::spawn` closure. This is required because CoreAudio's stream callback is not `Send`, and sharing the stream caused macOS builds to fail trait bounds. Preserve this single-threaded ownership when extending audio playback.
+
+Release builds currently target Apple Silicon (`aarch64-apple-darwin`) only because the configured `ort-sys` version does not provide an Intel macOS prebuilt runtime, preventing a universal binary. Linux CI and release builds use Ubuntu 24.04: ONNX Runtime C++ objects failed to link under the older Ubuntu 22.04 toolchain due to missing C++ ABI/glibc symbols. The Linux release job installs Tauri's GTK/WebKit/AppIndicator/ALSA bundling dependencies before packaging. These are build-time prerequisites; Linux installations may also need their distribution's runtime WebKitGTK libraries.
+
+The GitHub Release publishing job has explicit `contents: write` permission so `tauri-action` can create the release and upload generated installers. CI/release workflow constraints and troubleshooting are recorded in `.agents/context_ci_cd.md`.
+
 ## Supreme code audit — 2026-10-12
 
 - [x] **DDD, KISS, DRY and YAGNI:** The FTS5 query adapter now lives in `db/search.rs`, while its Tauri command only obtains state and delegates. The interleaving algorithm and its test moved from the command to pure `domain/interleaving.rs`. Removed `calculate_srs_step` from the SRS command because it had no production callers; production review scheduling already uses `domain/fsrs.rs`. Remaining work: some command modules still combine SQL persistence with use-case orchestration, notably interleaved queue loading and SRS review transactions. This audit did not claim those files are adapter-only.

@@ -390,6 +390,28 @@ cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
 cargo test --manifest-path src-tauri/Cargo.toml
 cargo check --manifest-path src-tauri/Cargo.toml
 ```
+
+## Build troubleshooting: CI, coverage, and installation impact
+
+- CI and Linux release packaging run on Ubuntu 24.04. Rust coverage links native ONNX Runtime objects (`ort-sys`); on Ubuntu 22.04 the instrumented test binary failed to link because C++ ABI/glibc symbols such as `__isoc23_*` were unavailable. Revalidate `cargo llvm-cov --all-features --workspace` before changing the runner image.
+- macOS release builds target Apple Silicon only (`aarch64-apple-darwin`). The configured ONNX Runtime dependency has no prebuilt `x86_64-apple-darwin` library, so a universal build fails on its Intel slice. An Intel or universal installer is not currently produced.
+- The Linux build job installs GTK 3, WebKitGTK 4.1, AppIndicator, librsvg, ALSA, and `patchelf` development packages before Tauri packaging. These are installed on the CI runner; they do not add npm dependencies. The resulting `.deb`, `.rpm`, and AppImage artifacts may rely on runtime libraries from the target Linux distribution, especially WebKitGTK.
+- Rodio's audio output stream is owned by a dedicated thread and commands use channels. CoreAudio's callback is not `Send`; moving Rodio's stream into shared Tauri state or another generic thread causes macOS compilation errors.
+- Release creation/upload requires `contents: write` for both the tag job and the `build-and-publish` job. If `tauri-action` reports `Resource not accessible by integration`, inspect the repository/organization setting that grants write access to `GITHUB_TOKEN`.
+
+The troubleshooting work changed workflow targets, permissions, and Rust thread ownership; it did not require contributors to install new project packages. To repeat the local quality checks from the repository root:
+
+```bash
+npm ci
+npm run lint
+npm run test:coverage
+npm run build
+cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+cargo llvm-cov --manifest-path src-tauri/Cargo.toml --all-features --workspace
+```
+
+For a local macOS Apple Silicon Tauri bundle, run `npm run tauri:build -- --target aarch64-apple-darwin`. CI pins npm with `npm install --global npm@11.5.2` and installs dependencies using `npm ci`; this does not change project dependencies. On Ubuntu, CI installs `libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev libasound2-dev patchelf` through `apt-get`; local Linux developers must install equivalent Tauri prerequisites for their distribution. Users should download an installer matching their OS and architecture; in particular, the current macOS release is for Apple Silicon and is not an Intel Mac installer.
 # Rust Integration Tests
 
 The Rust backend integration suite lives in `src-tauri/tests/integration_tests.rs`. It exercises the SRS service operations against the real SQLite schema, verifies migrations from an empty database, and checks the Lindera bunsetsu pipeline, including JSON serialization.
