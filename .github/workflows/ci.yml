@@ -14,6 +14,8 @@ jobs:
   validate-and-test:
     name: Build, Lint & Test
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -81,3 +83,13 @@ jobs:
 
       - name: Frontend Build Check
         run: npm run build
+
+  release:
+    name: Tag and Publish Release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate-and-test
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release.yml
+    secrets:
+      release_token: ${{ secrets.GITHUB_TOKEN }}

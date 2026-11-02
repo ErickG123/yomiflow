@@ -210,7 +210,7 @@ Husky runs local checks before commits: lint-staged formats staged Angular TypeS
 
 ## CI/CD & Release Flow
 
-Contributors do not need to create version tags manually. Use Conventional Commits (validated locally by Husky and Commitlint), then merge or push to `main`. GitHub Actions runs the quality and test pipeline; successful release-worthy commits trigger automatic SemVer tagging, release notes, and builds for Windows, macOS, and Linux, which are published as a GitHub Release.
+Contributors do not need to create version tags manually. Use Conventional Commits (validated locally by Husky and Commitlint), then merge or push to `main`. GitHub Actions runs the quality and test pipeline first; only a successful run on `main` calls the release workflow. Release-worthy commits trigger automatic SemVer tagging, release notes, and builds for Windows, macOS, and Linux. Commits without a release type, such as documentation-only changes, do not create a tag.
 
 The current release matrix packages Linux on Ubuntu 24.04 and builds macOS for Apple Silicon (`aarch64`) only. Ubuntu 24.04 is needed to link the ONNX Runtime native objects used by Rust coverage and the app. Intel and universal macOS builds are currently unavailable because the configured ONNX Runtime crate has no Intel macOS prebuilt binary. The Linux job installs GTK, WebKitGTK, AppIndicator, ALSA, librsvg, and `patchelf` development dependencies required by Tauri packaging. Release jobs grant the GitHub Actions token `contents: write` to create the GitHub Release and upload assets.
 
