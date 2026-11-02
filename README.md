@@ -1,20 +1,18 @@
 # YomiFlow
 
-> The Offline-First Japanese Immersion & Second Brain Ecosystem
+> An offline-first desktop workspace for learning Japanese through immersion.
 
 [![Angular](https://img.shields.io/badge/Angular-22%20Signals-DD0031?style=flat-square&logo=angular&logoColor=white)](https://angular.dev/)
 [![Tauri](https://img.shields.io/badge/Tauri-v2.12-24C8D8?style=flat-square&logo=tauri&logoColor=white)](https://v2.tauri.app/)
 [![Rust](https://img.shields.io/badge/Rust-2024%20Edition-DEA584?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![SQLite](https://img.shields.io/badge/SQLite-WAL%20Mode-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
-[![Offline First](https://img.shields.io/badge/Offline--First-100%25-10B981?style=flat-square&logo=speedtest&logoColor=white)](https://github.com/)
+[![Offline First](https://img.shields.io/badge/Offline--First-Works%20offline-10B981?style=flat-square&logo=speedtest&logoColor=white)](https://github.com/ErickG123/yomiflow)
 
 ---
 
 ## Overview
 
-Mastering Japanese through immersion traditionally requires stitching together a fragmented web of separate, cloud-reliant tools: browser pop-up dictionaries, external flashcard programs, cloud sync subscriptions, third-party note editors, and fragile media integrations. When internet access drops or remote APIs shift, the learning workflow breaks.
-
-**YomiFlow** unifies the entire Japanese acquisition lifecycle into a single high-performance, offline-first desktop environment. It seamlessly fuses static and dynamic media consumption (Manga and Video) with knowledge production and retention (Linguistic Notebook and Relational Spaced Repetition). YomiFlow runs locally and remains useful offline; optional, user-initiated Google Drive backups let you keep a copy under your own account. Your study data, annotations, media corpus, and flashcard history remain under your control.
+**YomiFlow** brings Japanese reading, listening, note-taking, and spaced repetition together in one desktop app. Core study tools and data run locally, so you can keep studying offline. Google Drive backup is optional and user-initiated.
 
 ---
 
@@ -22,8 +20,8 @@ Mastering Japanese through immersion traditionally requires stitching together a
 
 ### Smart Media Consumption
 
-- **Manga Reader with Zero-Copy Neural OCR:** Open archive packages (`.cbz`, `.zip`, `.cbr`, `.rar`) directly from memory without extracting directories to disk. Box speech bubbles on the page to trigger local vision-to-text inference powered by MangaOCR on ONNX Runtime (`ort`).
-- **Video Player with FFmpeg Extraction:** Stream `.mkv` and `.mp4` video locally with sub-millisecond hover dictionary lookups on embedded subtitle streams. Automatically slice native audio clips and extract context screenshots via FFmpeg to generate rich multimedia flashcards with a single click.
+- **Manga Reader and local OCR:** Read `.cbz`, `.zip`, `.cbr`, and `.rar` archives, and select speech bubbles for on-device text recognition with MangaOCR and ONNX Runtime (`ort`).
+- **Video player and FFmpeg tools:** Play local `.mkv` and `.mp4` files, look up words in embedded subtitles, and create audio clips or screenshots for study cards.
 - **NHK Web Easy Offline Reader:** Cache articles and native audio clips into local SQLite storage for distraction-free reading with integrated morphological hover breakdown.
 - **Global Command Palette:** Search commands and indexed app content from the Ctrl+K palette, with translated commands and FTS5 results for cards, notes, and cached news.
 - **Passive Immersion Audio Tracker & Global Player:** A persistent player continues across route changes, reads local MP3 metadata and album art, saves an audio library, and records listened milliseconds per session in SQLite.
@@ -31,6 +29,7 @@ Mastering Japanese through immersion traditionally requires stitching together a
 ### Relational SRS & Gamification
 
 - **Modern Spaced Repetition (FSRS & SM-2):** Advanced memory scheduler built on pure mathematical domain models, tracking card stability and item difficulty across multiple user-defined Decks.
+- **Interleaved review:** Combine vocabulary, image occlusion, grammar notes, and Kana Dojo prompts in a shared review queue.
 - **Relational Integrity:** Foreign key enforcement (`PRAGMA foreign_keys = ON;`) with cascading deletions between dictionary entries, cards, custom decks, tags, and review logs.
 - **Temporal Analytics & Heatmaps:** GitHub-style 16-week consistency heatmaps, review forecast projections, and JLPT coverage metrics (N5 through N1) mapped against dictionary and card corpora.
 - **Achievement & Badge Engine:** Persistent milestone awards (e.g., streak milestones, kanji master badges) evaluated locally against review records.
@@ -50,30 +49,31 @@ Mastering Japanese through immersion traditionally requires stitching together a
 - **SVG Mask Editor:** Upload or paste manga panels and draw multiple rectangular masks over speech bubbles, kanji, or other visual details.
 - **Native Visual Recall:** Review image cards with opaque regions and reveal each hidden area on click, then schedule recall with the existing FSRS ratings while keeping images and mask coordinates local.
 
-### Neuroscience-Based Interleaved SRS
-
-- **Dynamic Component Rendering:** One review queue interleaves vocabulary, image occlusion, grammar notes, and Kana Dojo prompts across decks; Angular switches the card UI by its explicit type and resets response state between cards.
-- **Interleaved Practice:** The Rust backend gathers pending reviews and shuffles the combined queue to encourage active recall across different study domains instead of repetitive single-deck sessions.
-
 ### Hybrid Linguistic Notebook
 
 - **Notion-Style TipTap Rich-Text:** Clean block and markdown editor with slash command capabilities, split-screen viewing, and autosaving.
 - **Real-Time Morphological NLP (Lindera):** Integrated Lindera tokenizer with IPADIC dictionary running on Rust. Parses Japanese text in real time to categorize and syntax-highlight parts of speech (verbs, particles, nouns, adjectives, and auxiliaries) with debounced IPC updates.
 - **Grammar Linter and Furigana:** Offline Lindera heuristics annotate common particle errors in TipTap and offer corrections; a Ruby renderer adds readings to kanji in supported reader content.
-- **Offline Grammar Linter:** A debounced Lindera check spots common particle mistakes such as `日本語を分かります`, marks the affected text in TipTap, and offers a one-click `が` correction with an explanation.
 - **Morphological Readability Analyzer (Offline MorphMan):** Analyze pasted Japanese text locally with Lindera lemmas crossed against vocabulary cards and FSRS retention in SQLite. A comprehension percentage, average retention metric, and inline unknown-word highlights help estimate how much of a passage is familiar before reading.
-- **Strict Content Sanitization:** Comprehensive XSS mitigation utilizing Angular `DomSanitizer` in conjunction with HTML security contexts.
 
 ### Kana Dojo
 
 - **Speed Flashcard Drill Engine:** Practice Hiragana and Katakana across Gojūon (base), Dakuon/Handakuon (ten-ten / maru), and Yōon (combination) character sets.
 - **Granular Mastery Tracking:** Database persistence (`kana_mastery`) recording character-level accuracy and velocity to power global proficiency metrics on the dashboard.
 
-### Offline-First & BYOS (Bring Your Own Storage)
+### Local-First Data & Optional Integrations
 
-- **Zero Third-Party Cloud Lock-In:** No remote proprietary telemetry or forced cloud backends.
-- **Native Google Drive Backup:** Direct synchronization of the local SQLite database to the user's personal Google Drive using native OAuth2 (`oauth2`, `tiny_http`, and `reqwest`). Users retain absolute ownership and privacy of their data.
+- **Local study data:** Study content and history are stored on the device; no account or hosted study backend is required.
+- **Optional Google Drive backup:** Back up the local SQLite database to your own Drive account when you choose.
 - **Discord Rich Presence (Zen Mode):** Optional desktop status broadcast via `discord-rich-presence` displaying real-time immersion sessions and study duration.
+
+## Screenshots
+
+Explore the [YomiFlow product site](https://github.com/ErickG123/yomiflow-landing) for localized feature pages and silent walkthrough clips.
+
+| Manga reading | Japanese notebook | Spaced repetition |
+| --- | --- | --- |
+| ![Manga reader with a Japanese page open](docs/media/readme/immersion.jpg) | ![Japanese notebook with morphology analysis](docs/media/readme/notebook.jpg) | ![Spaced repetition review card](docs/media/readme/srs.jpg) |
 
 ---
 
@@ -212,6 +212,10 @@ Husky runs local checks before commits: lint-staged formats staged Angular TypeS
 
 Contributors do not need to create version tags manually. Use Conventional Commits (validated locally by Husky and Commitlint), then merge or push to `main`. GitHub Actions runs the quality and test pipeline; successful release-worthy commits trigger automatic SemVer tagging, release notes, and builds for Windows, macOS, and Linux, which are published as a GitHub Release.
 
+The current release matrix packages Linux on Ubuntu 24.04 and builds macOS for Apple Silicon (`aarch64`) only. Ubuntu 24.04 is needed to link the ONNX Runtime native objects used by Rust coverage and the app. Intel and universal macOS builds are currently unavailable because the configured ONNX Runtime crate has no Intel macOS prebuilt binary. The Linux job installs GTK, WebKitGTK, AppIndicator, ALSA, librsvg, and `patchelf` development dependencies required by Tauri packaging. Release jobs grant the GitHub Actions token `contents: write` to create the GitHub Release and upload assets.
+
+The Rodio player keeps its output stream on a dedicated audio thread and routes commands over channels. This avoids moving CoreAudio stream callbacks across threads, which prevents a macOS-only `Send` compilation failure.
+
 `fix:` produces a patch release, `feat:` produces a minor release, and a `BREAKING CHANGE:` footer produces a major release. Maintenance commits such as `chore:`, `docs:`, `refactor:`, and `test:` are included in release notes when a release is produced, without independently advancing the version.
 
 ---
@@ -225,7 +229,7 @@ YomiFlow enforces strict quality gates across both frontend and backend codebase
 npm run lint
 
 # Frontend: Run Unit & Component tests (Vitest)
-npm run test:ci
+npm run test:coverage
 
 # Frontend: Compile Angular production bundle
 npm run build
