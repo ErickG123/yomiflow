@@ -6,6 +6,11 @@
 /out-tsc
 /bazel-out
 
+# Local environment variables and credentials
+.env
+.env.*
+!.env.example
+
 # Node
 /node_modules
 npm-debug.log

@@ -67,6 +67,8 @@
 - **Optional Google Drive backup:** Back up the local SQLite database to your own Drive account when you choose.
 - **Discord Rich Presence (Zen Mode):** Optional desktop status broadcast via `discord-rich-presence` displaying real-time immersion sessions and study duration.
 
+For local development, copy `.env.example` to `.env` and set `YOMIFLOW_GOOGLE_CLIENT_ID` and `YOMIFLOW_GOOGLE_CLIENT_SECRET` to prefill the Google Drive settings. The local `.env` is ignored by Git and loaded only by debug builds. Release builds contain no built-in Google credentials; users can enter their own OAuth credentials in the Cloud Sync settings.
+
 ## Screenshots
 
 Explore the [YomiFlow product site](https://github.com/ErickG123/yomiflow-landing) for localized feature pages and silent walkthrough clips.

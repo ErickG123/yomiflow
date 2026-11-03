@@ -17,6 +17,12 @@ pub struct AppState {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(debug_assertions)]
+    {
+        let env_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../.env");
+        let _ = dotenvy::from_path(env_path);
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_notification::init())
@@ -184,6 +190,7 @@ pub fn run() {
             commands::kanji::get_kanji_details,
             commands::kanji::save_kanji_mnemonic,
             commands::drive_sync::authenticate_google_drive,
+            commands::drive_sync::get_google_drive_oauth_config,
             commands::drive_sync::backup_database_to_drive,
             commands::nlp::analyze_japanese_text,
             commands::nlp::generate_furigana,

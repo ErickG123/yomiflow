@@ -7,6 +7,7 @@ use oauth2::{
 };
 use reqwest::multipart::{Form, Part};
 use rusqlite::params;
+use serde::Serialize;
 use serde_json::Value;
 use std::fs;
 use std::sync::mpsc;
@@ -17,6 +18,21 @@ use tiny_http::{Header, Response, Server};
 const GOOGLE_AUTH_URL: &str = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL: &str = "https://oauth2.googleapis.com/token";
 const GOOGLE_DRIVE_SCOPE: &str = "https://www.googleapis.com/auth/drive.file";
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GoogleDriveOAuthConfig {
+    pub client_id: Option<String>,
+    pub client_secret: Option<String>,
+}
+
+#[tauri::command]
+pub fn get_google_drive_oauth_config() -> GoogleDriveOAuthConfig {
+    GoogleDriveOAuthConfig {
+        client_id: std::env::var("YOMIFLOW_GOOGLE_CLIENT_ID").ok(),
+        client_secret: std::env::var("YOMIFLOW_GOOGLE_CLIENT_SECRET").ok(),
+    }
+}
 
 #[tauri::command]
 pub async fn authenticate_google_drive(

@@ -14,11 +14,8 @@ import { invoke } from '@tauri-apps/api/core'
 export class CloudSyncComponent implements OnInit {
   private readonly translocoService = inject(TranslocoService)
 
-  // Pre-filled with user's client ID for seamless UX while allowing customization
-  readonly clientId = signal<string>(
-    '160252445437-pp8aj1i6e0gabnrjan50pum50vddpgti.apps.googleusercontent.com'
-  )
-  readonly clientSecret = signal<string>('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')
+  readonly clientId = signal<string>('')
+  readonly clientSecret = signal<string>('')
 
   readonly isAuthenticated = signal<boolean>(false)
   readonly isAuthenticating = signal<boolean>(false)
@@ -28,7 +25,21 @@ export class CloudSyncComponent implements OnInit {
   readonly errorMessage = signal<string | null>(null)
 
   async ngOnInit(): Promise<void> {
+    await this.loadOAuthConfig()
     await this.checkAuthStatus()
+  }
+
+  private async loadOAuthConfig(): Promise<void> {
+    try {
+      const config = await invoke<{
+        clientId: string | null
+        clientSecret: string | null
+      }>('get_google_drive_oauth_config')
+      if (config.clientId) this.clientId.set(config.clientId)
+      if (config.clientSecret) this.clientSecret.set(config.clientSecret)
+    } catch (err) {
+      console.warn('Não foi possível carregar a configuração local do Google Drive:', err)
+    }
   }
 
   async checkAuthStatus(): Promise<void> {
@@ -84,7 +95,7 @@ export class CloudSyncComponent implements OnInit {
     } catch (err) {
       console.error('Falha na autenticação Google Drive:', err)
       this.errorMessage.set(
-        typeof err === 'string' ? err : this.translocoService.translate('cloud.auth_error')
+        typeof err === 'string' ? err : this.translocoService.translate('cloud.auth_error'),
       )
     } finally {
       this.isAuthenticating.set(false)
@@ -101,13 +112,13 @@ export class CloudSyncComponent implements OnInit {
       const now = new Date()
       this.lastBackupTime.set(now)
       this.backupSuccessToast.set(
-        `${this.translocoService.translate('cloud.backup_success')} (ID: ${fileId})`
+        `${this.translocoService.translate('cloud.backup_success')} (ID: ${fileId})`,
       )
       setTimeout(() => this.backupSuccessToast.set(null), 5000)
     } catch (err) {
       console.error('Falha ao enviar backup para o Drive:', err)
       this.errorMessage.set(
-        typeof err === 'string' ? err : this.translocoService.translate('cloud.backup_error')
+        typeof err === 'string' ? err : this.translocoService.translate('cloud.backup_error'),
       )
     } finally {
       this.isBackingUp.set(false)
